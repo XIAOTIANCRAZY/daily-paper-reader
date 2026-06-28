@@ -7095,14 +7095,6 @@ body.dpr-sidebar-resizing {
   z-index: 4;
   pointer-events: none;
 }
-.dpr-sidebar-axis-tab[data-unread="1"] > .dpr-sidebar-axis-tab-dot {
-  content: "";
-  display: block;
-  position: absolute;
-  right: 4px;
-  top: 4px;
-  background: #ef4444;
-}
 .dpr-sidebar-axis-tab.is-active {
   background: #eef2ff;
   border-color: #c7d2fe;
@@ -7165,14 +7157,6 @@ body.dpr-sidebar-resizing {
   font-size: 11px;
   color: #64748b;
   font-weight: 600;
-}
-.dpr-sidebar-axis-section-header[data-unread="1"] > .dpr-sidebar-axis-section-dot {
-  content: "";
-  display: block;
-  position: absolute;
-  right: 8px;
-  top: 5px;
-  background: #ef4444;
 }
 .dpr-sidebar-axis-section-header > .dpr-sidebar-day-arrow {
   margin-left: 14px;

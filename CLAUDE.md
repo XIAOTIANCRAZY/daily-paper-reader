@@ -178,6 +178,7 @@
 - **Zotero 集成**：注入 `citation_*` meta 标签供 Zotero Connector 抓取；`zotero-meta-utils.js` / `zotero-chat-utils.js` 是纯工具
 - **Gist 分享**：`gist-share-utils.js`，一键发 GitHub Gist
 - **入口**：`index.html` 两阶段资源加载（CDN/本地），splash + secret gate
+- **侧边栏未读提示约定**：未读红点只标在单篇论文行右上角；二级/三级标签只显示未读/总数数字，不额外打红点。
 
 ### 13. CI/CD + 本地调试
 
