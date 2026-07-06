@@ -25,3 +25,65 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: D-artic-kin
+      description: 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: articulated object
+          keyword_cn: 铰接物体
+          query: a
+        - keyword: articulated objects kinematics
+          keyword_cn: 铰接物体运动学
+          query: kinematic parameters of articulated 3D objects
+        - keyword: physical properties prediction
+          keyword_cn: 物理属性预测
+          query: predicting physical properties of 3D articulated objects
+        - keyword: 3D articulated object understanding
+          keyword_cn: 三维铰接物体理解
+          query: understanding 3D articulated objects from observations
+        - keyword: kinematic parameter learning
+          keyword_cn: 运动学参数学习
+          query: learning kinematic parameters from visual data
+        - keyword: physical property inference
+          keyword_cn: 物理属性推断
+          query: inferring physical properties of articulated systems
+      intent_queries:
+        - query: How to predict kinematic parameters of 3D articulated objects?
+          query_cn: 如何预测三维铰接物体的运动学参数？
+          enabled: true
+          source: manual
+          note: ''
+        - query: Methods for understanding physical properties of articulated objects.
+          query_cn: 理解铰接物体物理属性的方法
+          enabled: true
+          source: manual
+          note: ''
+        - query: Generate articulated objects with realistic motion parameters.
+          query_cn: 生成具有逼真运动参数的铰接物体
+          enabled: true
+          source: manual
+          note: ''
+        - query: Learning based estimation of articulation parameters from images.
+          query_cn: 基于学习的图像关节参数估计
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-07-06T09:53:42.008Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
