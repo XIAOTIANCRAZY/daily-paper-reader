@@ -1,0 +1,523 @@
+Title: CORGI: Consistency-Aware 3D Dog Reconstruction from a Single Image in the Wild
+
+URL Source: https://arxiv.org/pdf/2607.00321v1
+
+Published Time: Thu, 02 Jul 2026 00:21:21 GMT
+
+Number of Pages: 17
+
+Markdown Content:
+# Computational Visual Media https://doi.org/10.26599/CVM.XXXX 
+
+Research/Review Article 
+
+# CORGI: Consistency-Aware 3D Dog Reconstruction from a Single Image in the Wild 
+
+Yuxiao Wu 1,†, Weile Li 1,†, Boyi Zhu 1, Yumeng Liu 1(B), Youcheng Cai 1(B), and Ligang Liu 1
+
+© The Author(s) 
+
+Abstract Reconstructing high-fidelity 3D models of highly articulated animals, such as dogs, from a single in-the-wild image remains a formidable challenge. In this paper, we in-troduce CORGI, a novel framework for consistency-aware 3D dog reconstruction from a single unconstrained image that completely eliminates the need for 3D supervision. To overcome generative inconsistencies and the lack of multi-view capture, our pipeline introduces three core components. First, we propose a Canonical-Driven Orbital Generation (CDOG) strategy, utilizing specialized Canonical and Orbit LoRAs to normalize arbitrary input poses and synthesize reliable 360-degree video observations. Second, we design a Consistency-aware Deformable 3DGS (CA-3DGS) module that anchors on a D-SMAL prior, explicitly modeling per-view generative errors through dedicated neural deformation fields to learn accurate vertex-level displacements. Finally, to elimi-nate structural distortions and recover high-frequency details, we introduce a self-supervised Deformation-Conditioned Generative Repair (DCGR) module. Extensive experiments demonstrate that CORGI achieves state-of-the-art perfor-mance, generalizing seamlessly across diverse dog breeds to produce geometrically accurate, visually coherent, and fully animatable 3D assets ready for downstream applications. 
+
+Keywords 3D Animal Reconstruction, Single-Image Re-construction, 3D Gaussian Splatting, Cross-View Consistency 
+
+# 1 Introduction 
+
+Reconstructing the 3D shape and motion of animals has long been a fundamental challenge in computer vision and 
+
+1 School of Mathematical Sciences, University of Sci-ence and Technology of China, Hefei, 230026, China. E-mail: W. Wu, wuyx2020@mail.ustc.edu.cn; W. Li, li-weile@mail.ustc.edu.cn; B. Zhu, dzzzby@mail.ustc.edu.cn; Y. Liu, lym29@mail.ustc.edu.cn( B); Y. Cai, caiy-oucheng@ustc.edu.cn( B); L. Liu, lgliu@ustc.edu.cn. 
+
+† These authors contributed equally to this work and should be considered co-first authors. 
+
+computer graphics, supporting a wide range of applications in AR/VR and digital content creation. Among non-human species, dogs constitute a particularly compelling target be-cause, as highly articulated quadrupeds living in close asso-ciation with humans, they exhibit substantial structural vari-ability and complex motion dynamics that continue to attract significant research interest [ 1]. Animals are inherently non-cooperative and exhibit continuous non-rigid deformations, making calibrated multi-view capture highly impractical. Consequently, reconstructing high-fidelity 3D representations of dogs in the wild from unconstrained monocular images with arbitrary poses, viewpoints, and backgrounds remains an open and important problem. Existing methods for 3D animal reconstruction can gen-erally be categorized into template-based and template-free approaches. Template-based approaches employ a parametric 3D template to constrain the ill-posed solution space. For instance, BITE [ 2] extends the widely adopted SMAL model [ 3] into the canine domain through the proposed D-SMAL representation, thereby improving pose estimation perfor-mance, while AnimalAvatar [ 4] further enhances dynamic shape tracking from casually captured videos. Nevertheless, constrained by the limited representational capacity of the templates, template-based approaches are inherently limited in capturing subject-specific geometric details. Conversely, template-free approaches [ 5 –7 ] aim to reconstruct articu-lated 3D shapes from image collections without relying on predefined templates, thereby offering greater flexibility and applicability. These methods often depend heavily on silhou-ette or semantic consistency, which often results in overly smooth geometries and insufficient high-frequency details when applied to single in-the-wild images. Recently, the advent of generative 3D reconstruction has enabled new paradigms for single-view modeling. Multi-view diffusion models [ 8 – 10 ] and video diffusion models [11 , 12 ] have demonstrated impressive capabilities for novel-view synthesis. In the domain of dogs, recent works such as 
+
+> arXiv:2607.00321v1 [cs.CV] 1 Jul 2026
+
+2 Y. Wu, W. Li, B. Zhu, Y. Liu, Y. Cai, L. Liu Input Output Input Output   
+
+> Fig. 1 We propose CORGI , a novel framework for reconstructing a high-fidelity 3DGS dog in canonical pose from a single image in the wild.
+
+DogRecon [ 13 ] leverage the canine prior encoded in D-SMAL to guide multi-view image synthesis, followed by animatable 3D Gaussian Splatting (3DGS) [ 14 ] reconstruction. Despite these promising advancements, a critical limitation persists: existing generative models frequently suffer from severe cross-view inconsistencies, leading to blurred textures and geometric artifacts during 3D optimization. Inspired by the powerful capabilities of modern generative models, we adopt a “generation-then-reconstruction” pipeline to reconstruct high-fidelity 3D dog models from a single unconstrained in-the-wild image. However, applying this paradigm to highly articulated animals introduces two major challenges. First, unlike humans, it is hard to let animals cooperate with scanning or controlled multi-view capture. As a result, obtaining perfectly aligned real-world multi-view images together with corresponding ground-truth 3D models is extremely difficult, making supervised training impractical. Consequently, we must rely heavily on generative models to synthesize multi-view observations for reconstruction. However, this introduces a second challenge: due to the inherent nature of generative models, the synthesized results often exhibit inconsistent textures and geometries across views, which is undesirable for coherent 3D reconstruction. To address these challenges, we introduce CORGI , a novel framework for consistency-aware 3D dog reconstruc-tion from a single image in the wild. Specifically, our pipeline comprises three core components. First, we propose the 
+
+Canonical-Driven Orbital Generation (CDOG) strategy, which transforms a single in-the-wild animal image with an arbitrary pose into a 360-degree orbital sequence anchored at a canonical standing pose for 3D reconstruction, thereby pro-viding dense and structured multi-view observations for 3D reconstruction. Second, we introduce the Consistency-Aware Deformable 3DGS (CA-3DGS) module, which enables ro-bust reconstruction from inconsistent generated multi-view observations by recovering a shared canonical 3DGS repre-CORGI: Consistency-Aware 3D D og Reconstruction from a Sin gle Image in the Wild 3sentation while modeling view-specific inconsistencies with neural deformation fields. Third, because these deformation fields are tied to the observed views and do not generalize well to unseen viewpoints, we propose the Deformation-Conditioned Generative Repair (DCGR) module and a novel self-supervised training strategy to repair artifacts in the reconstructed CA-3DGS and improve novel-view synthesis. Together, these designs enable the reconstruction of high-quality animatable 3D dog assets from a single in-the-wild image. Extensive experiments demonstrate that our method achieves state-of-the-art reconstruction performance across the immense structural diversity of dogs; proving that CORGI generalizes seamlessly not just to Corgis, but to diverse breeds like Border Collies, while effectively supporting downstream realistic animation. In summary, our main contributions are as follows: 
+
+• We introduce CORGI , a novel system capable of recon-structing high-fidelity 3D dog from a single image in the wild, effectively eliminating the requirement for paired 3D training data. 
+
+• Our method addresses the severe ambiguity of monoc-ular 3D reconstruction by using CDOG to expand a single image with arbitrary pose into dense observa-tions, and propose CA-3DGS to recover a robust initial 3D representation from these generated views despite their cross-view inconsistencies. 
+
+• We introduce DCGR with a self-supervised learning framework that effectively repaire generative artifacts, producing geometrically accurate and visually coherent 3D models suitable for downstream animation applica-tions. 
+
+# 2 Related work 
+
+2.1 Animal 3D Reconstruction 
+
+Template-based approaches. Inspired by the monumental success of parametric models in human body digitization, early and foundational efforts in 3D animal reconstruction heavily relied on template-based or parametric priors to constrain the severely ill-posed nature of monocular recon-struction. The pioneering SMAL model [ 3] established a skinned multi-animal linear formulation, which subsequently catalyzed the development of species-specific adaptations. Notable examples include D-SMAL [ 2 ] tailored for the unique skeletal kinematics of canines, as well as hSMAL [ 15 ] and VAREN [ 16 ] designed for equines. Building upon these robust geometric priors, a plethora of methods have been proposed to recover articulated shape and pose from single images, sparse multi-view setups, or monocular videos. These frameworks typically employ either computationally intensive optimization-based fitting or efficient feed-forward regression networks [ 2 , 17 – 19 ]. More recently, the field has witnessed a paradigm shift toward advanced rendering primitives. For instance, GART [ 20 ] elegantly extended the template-based paradigm by replacing traditional mesh surfaces with 3D Gaussian primitives coupled with learnable skinning weights, thereby enabling highly efficient, animatable reconstruction with enhanced rendering quality. 
+
+Template-free approaches. Despite their robustness, template-based methods are inherently bottlenecked by the limited topological expressivity of predefined meshes, making them ill-equipped to capture subject-specific geometric vari-ations, such as fluffy fur or distinct ear shapes across different dog breeds. To circumvent these topological constraints, a parallel and flourishing line of research explores template-free reconstruction. These methodologies typically leverage neural implicit representations, articulated neural parts, or canonical-to-posed feature decompositions to learn category-level priors directly from data. For instance, BANMo [ 21 ]pioneered the disentanglement of canonical shape and non-rigid motion to learn animatable neural implicit models from monocular videos. Scaling this concept up, MagicPony [ 7]and 3D-Fauna [ 5] successfully extracted category-level artic-ulated models directly from unconstrained in-the-wild image collections. Concurrently, part-based frameworks—such as LASSIE [ 6 ], Hi-LASSIE [ 22 ], LEAPARD [ 23 ], and AR-TIC3D [ 24 ]—approach the problem by discovering seman-tic correspondences and assembling animals through self-supervised articulated neural parts. Further broadening the design space, methods like CASA [ 25 ] and DualPM [ 26 ]introduced category-agnostic skeletal reasoning and canoni-cal point-map representations to handle extreme topological diversity. Despite this rapid progress, reconstructing highly artic-ulated animals from unconstrained real-world images re-mains profoundly challenging. The scarcity of large-scale, high-quality 3D ground truth paired with diverse in-the-wild photographs forces existing methods to rely on synthetic data, toy scans, or weak 2D supervision. Consequently, both template-based and template-free approaches often struggle to generalize across the vast structural variations of different dog breeds, suffering severe geometric degradation when con-fronted with complex poses, self-occlusions, and fine-scale details like fur. 4 Y. Wu, W. Li, B. Zhu, Y. Liu, Y. Cai, L. Liu 
+
+2.2 Single-Image 3D Generation 
+
+Recovering 3D content from a single image has long been a fundamental, albeit inherently ill-posed, problem in com-puter vision and graphics [ 27 ]. Early approaches typically formulated this as a supervised reconstruction task, training models to directly regress 3D geometry, shape parameters, or category-specific representations from a single observa-tion [ 28 – 32 ]. While these pioneering methods established the foundational paradigm of single-image 3D reconstruction, they were often bottlenecked by their reliance on restrictive object categories and limited geometric representations. Be-yond direct reconstruction, a crucial parallel line of work introduced 3D-aware neural rendering and generative repre-sentations, which subsequently became vital priors for image-conditioned 3D generation. Methods such as GRAF [ 33 ], GI-RAFFE [ 34 ], StyleNeRF [ 35 ], and EG3D [ 36 ] demonstrated that radiance-field-based or geometry-aware representations could synthesize view-consistent images while effectively capturing the underlying 3D structure. With the proliferation of diffusion models, a highly influ-ential line of research emerged that leverages pretrained 2D diffusion models to optimize an underlying 3D representation via diffusion guidance or score distillation. DreamFusion [ 37 ]introduced Score Distillation Sampling (SDS) to optimize a neural radiance field using a 2D diffusion prior. Follow-up frameworks, including LucidDreamer [ 38 ], Magic123 [ 39 ], and ProlificDreamer [ 40 ], further refined this approach by improving geometry initialization, optimization stability, and overall visual fidelity. Although these optimization-based methods can produce exceptionally high-quality results, they inherently require computationally expensive per-instance optimization, rendering them less suitable for scalable, feed-forward reconstruction. To overcome the efficiency bottleneck of per-instance opti-mization, another major direction reformulates single-image 3D generation as a multi-view synthesis problem. Zero-1-to-3 [ 8 ] demonstrated that diffusion models could synthesize plausible novel views from a single input image, catalyz-ing a new pipeline that first generates sparse views and subsequently recovers 3D geometry. Later methods such as SyncDreamer [ 9], MVDream [ 41 ], and Wonder3D [ 42 ]significantly improved cross-view consistency and geomet-ric coherence in the hallucinated views. Building upon this multi-view paradigm, recent Large Reconstruction Models (LRMs)—including LRM [ 43 ], PF-LRM [ 44 ], CRM [ 45 ], LGM [ 46 ], InstantMesh [ 47 ], TripoSR [ 48 ], and One-2-3-45 [ 49 ]—have substantially advanced inference efficiency by amortizing the reconstruction process into a single feed-forward network. Beyond optimization-based techniques and multi-view dif-fusion pipelines, the most recent frontier explores native 3D generative models aimed at modeling 3D assets directly within compact latent spaces. Representative examples include CLAY [ 50 ], 3DShape2VecSet [ 51 ], TRELLIS/TRELLIS-2 [ 52 ], and Hunyuan3D [ 53 ]. These architectures learn struc-tured latent spaces over native 3D representations and perform image-conditioned generation directly within those spaces. Compared to earlier pipelines, these approaches offer superior scalability and exhibit an increasingly generalized capability for 3D generation. Despite this sweeping and rapid progress across multiple paradigms, reconstructing highly articulated animals such as dogs from a single unconstrained image remains particularly formidable. A central bottleneck is the conspicuous absence of large-scale paired supervision between real animal pho-tographs and high-quality 3D assets. In practice, much of the available 3D animal data used to train modern image-to-3D models originates from synthetic repositories, static game assets, or animation models, rather than genuine 3D captures aligned with real-world images. Consequently, even the most robust general-purpose single-image-to-3D models encounter a severe domain gap when applied to in-the-wild dog images. This discrepancy inevitably leads to drastically reduced re-construction fidelity, poor articulation accuracy, and a loss of visual realism. By explicitly addressing these domain gaps and structural inconsistencies, our proposed framework aims to bridge the divide between generative priors and highly articulated real-world subjects. 
+
+# 3 Preliminaries 
+
+3.1 3D Gaussian Splatting 
+
+3D Gaussian Splatting (3DGS) [ 14 ] has recently emerged as an efficient explicit point-based representation for novel view synthesis and 3D scene reconstruction. 3DGS models a continuous 3D scene using a collection of unstructured, anisotropic 3D Gaussians. Each 3D Gaussian is characterized by a center position μ,a 3D covariance matrix Σ, an opacity α, and view-dependent color features c, which are typically encoded using spherical harmonics (SH). The spatial contribution of a 3D Gaussian at a point x is defined as: 
+
+G(x) = exp 
+
+
+
+− 12 (x − μ)T Σ−1(x − μ)
+
+
+
+. (1) The covariance matrix Σ is decomposed into a rotation matrix R and a scaling matrix S, which are parameterized by CORGI: Consistency-Aware 3D D og Reconstruction from a Sin gle Image in the Wild 5a unit quaternion and a 3D scaling vector, respectively: 
+
+Σ = RSS T RT . (2) For efficient rendering, 3DGS employs an optimized tile-based rasterizer. Given a camera view transformation W and the Jacobian matrix J corresponding to the affine approx-imation of the projective transformation, the projected 2D covariance matrix Σ2D is computed as follows [54]: 
+
+Σ2D = JWΣW T JT . (3) The final color C of a pixel is obtained by sorting the projected Gaussians in front-to-back order and performing point-based α-blending, thereby approximating the volume-rendering integral: 
+
+C =
+
+> N
+
+X
+
+> i=1
+
+ciα′
+
+> ii−1
+
+Y
+
+> j=1
+
+(1 − α′ 
+
+> j
+
+), (4) where α′ 
+
+> i
+
+denotes the effective 2D opacity obtained by mul-tiplying the learned opacity αi with the corresponding 2D Gaussian value at the pixel location. 
+
+3.2 Diffusion-Guided Repair 
+
+While 3D Gaussian Splatting provides efficient and pho-torealistic novel-view synthesis for viewpoints close to the original camera trajectories, it inherently struggles with under-constrained regions and sparse-view settings, often producing severe artifacts such as spurious geometry, floaters, and holes [55 , 56 ]. To alleviate these limitations, recent approaches have increasingly exploited the strong generative priors of pre-trained 2D diffusion models to repair artifacts and hallucinate plausible details in unobserved regions. The repair process is commonly formulated as a con-ditional image synthesis task. Given a degraded image 
+
+Irender rendered from an imperfect 3D representation, the diffusion model aims to model the conditional distribution 
+
+p(Igt |Irender ) in order to generate a high-fidelity, artifact-free image ˆI. Mathematically, a conditional denoising network ϵθ
+
+is trained to predict the noise ϵ added to the latent representa-tion zt. At timestep t, the network predicts the injected noise 
+
+ϵ from the noisy latent representation zt by optimizing the standard denoising score-matching objective: 
+
+LDM = Ez0,ϵ ∼N (0 ,I ),t 
+
+|| ϵ − ϵθ (zt, I render , t )|| 22
+
+ . (5) 
+
+# 4 Method 
+
+As illustrated in Figure 2, we propose CORGI , a “generation-then-reconstruction” framework designed to reconstruct high-fidelity, animatable 3D dog models from a single uncon-strained in-the-wild image without relying on any 3D supervi-sion. To overcome the inherent ill-posedness and cross-view inconsistencies of single-view generation, our pipeline seam-lessly integrates three core components. First, the Canonical-Driven Orbital Generation (CDOG) strategy employs spe-cialized Canonical and Orbit LoRAs to normalize the arbitrary input pose and synthesize a reliable 360-degree pseudo-multi-view video sequence. Subsequently, these 2D observations are lifted into 3D via the Consistency-aware Deformable 3DGS (CA-3DGS) module, which anchors 3D Gaussian primitives to a D-SMAL template and optimizes vertex-level displacements, while explicitly absorbing view-dependent generative errors through dedicated neural deformation fields. Finally, to rectify residual geometric distortions and recover high-frequency textures, we introduce the Deformation-Conditioned Generative Repair (DCGR) module, which leverages a 2D continuous deformation map as geometric conditioning for a pre-trained diffusion model to refine the overall 3D representation under a novel self-supervised train-ing strategy. 
+
+4.1 Canonical-Driven Orbital Generation 
+
+Acquiring perfectly aligned, multi-view captures of dynamic animals in the wild is notoriously difficult, making direct 3D supervision virtually impossible. To overcome this, we lever-age an image generation model to transform an in-the-wild image from an arbitrary pose into a standardized canonical pose, and subsequently employ a video generation model to synthesize a 360-degree orbit video for our 3D reconstruction. A straightforward strategy to circumvent this data scarcity would be to rely heavily on test-time prompt engineering, manually adjusting text prompts conditioned on the input im-age to coax a pre-trained generative model into synthesizing the desired outputs. However, such heuristic prompt tuning is highly inefficient and notoriously unstable. To address this problem, we shift the paradigm from unpredictable test-time prompting to systematically fine-tuning pre-trained genera-tive models with Low-Rank Adaptation (LoRA) [ 57 ]. Our Canonical-Driven Orbital Generation (CDOG) module de-composes the inherently ill-posed single-view reconstruction problem into two tractable, stage-wise generative processes: Canonical Pose Generation and Orbital Video Generation. 
+
+4.1.1 Canonical Pose Generation 
+
+The objective of this stage is to transform an input image, which captures a dog in an unconstrained arbitrary pose and cluttered environment, into a canonical pose image, charac-terized by a canonical standing pose and a clean background. 
+
+Dataset. To enable consistent pose transformation, we introduce a self-supervised data curation paradigm. Utilizing 6 Y. Wu, W. Li, B. Zhu, Y. Liu, Y. Cai, L. Liu (c) DCGR: Deformation-Conditioned Generative Repair 
+
+> Refined Images DiFix3D+ Rendered Images Geometry Map LoRA
+
+(a) CDOG: Canonical-Driven Orbital Generation  
+
+> Input Image Canonical Pose Image Orbital Video Qwen
+> Canonical LoRA
+> Wan
+> Orbit LoRA
+> Deformations
+
+(b) CA-3DGS: Consistency-Aware Deformable 3DGS 
+
+> ߤ
+> View Embedding Binded 3DGS D-SMAL Template
+> ࢍઢ ࢏
+> Deformed 3DGS MLP Rendered Image Geometry Map
+
+Initialization Refine Re-Optimize 
+
+Fig. 2 Overview of the CORGI framework. From a single in-the-wild image, CORGI reconstructs a high-fidelity, animatable 3D dog without 3D supervision. (a) CDOG normalizes the input pose and synthesizes a reliable 360-degree pseudo-multi-view video. (b) CA-3DGS 
+
+lifts these 2D observations into a deformable 3DGS field anchored to a D-SMAL template, using neural deformation fields to explicitly isolate view-dependent generative errors. (c) DCGR leverages rendered deformation maps to geometrically condition a diffusion model, rectifying residual artifacts and recovering high-frequency details in a self-supervised manner. 
+
+the advanced generative capabilities of Qwen-Image-Edit [58 ] guided by meticulously engineered prompts, we effi-ciently generate and filter a curated dataset containing 100 high-quality arbitrary-canonical pose image pairs. Each pair consists of a canine subject in a natural, arbitrary pose along-side its exact identity counterpart in a canonical standing pose with a clean background. 
+
+Framework. Building upon the robust zero-shot editing capabilities of Qwen-Image-Edit [ 58 ] as our baseline, we formulate the pose normalization as a conditional image-to-image translation task. Using our self-supervised paired dataset, we fine-tune a Canonical LoRA within the transformer backbone of the baseline model. This explicit fine-tuning forces the network to learn the conditional mapping from the arbitrary input to the canonical pose, effectively disentangling the subject’s intrinsic identity and high-frequency textures from its original unconstrained pose. This provides a reliable spatial anchor for the subsequent orbital video generation. 
+
+4.1.2 Orbital Video Generation 
+
+Given the canonical pose image, this stage synthesizes a dense sequence of multi-view observations to mimic a 360-degree camera flythrough. 
+
+Dataset. Due to the scarcity of high-quality orbital videos specifically featuring dogs, we deliberately assemble a spe-cialized training dataset comprising 100 high-quality orbital videos that include a mixture of canine and non-canine sub-jects. Notably, our primary objective is for the model to exclusively learn the pure geometric prior of a 360-degree azimuthal camera trajectory. Therefore, the inclusion of non-canine data provides excellent supervisory signals for camera motion without being strictly tied to the subject’s semantics. 
+
+Framework. We inject an Orbit LoRA into a pre-trained Image-to-Video (I2V) diffusion backbone, Wan 2.2 [ 59 ], and train it exclusively on our curated orbital dataset. This training strategy successfully decouples the spatial-temporal camera motion from the semantic identity of the subject. Finally, to enforce the cyclic consistency required by the subsequent 3DGS optimization, we utilize a dual-frame con-ditioning mechanism, setting both the initial and terminal CORGI: Consistency-Aware 3D D og Reconstruction from a Sin gle Image in the Wild 7frames strictly to the generated canonical pose image. This forces the diffusion trajectory to synthesize a perfect closed-loop orbital video sequence, providing robust and consistent pseudo-multi-view cues. 
+
+4.2 Consistency-Aware Deformable 3DGS 
+
+Given the multi-view pseudo-ground-truth sequence {Igt  
+
+> i
+
+}Ni=1 
+
+generated by the CDOG module, our goal is to reconstruct a high-fidelity canonical 3DGS representation of the sub-ject. While standard 3DGS demonstrates remarkable render-ing quality and efficiency for static scenes, directly apply-ing it to generatively synthesized multi-view data is inher-ently problematic. Diffusion-generated videos often exhibit view-dependent inconsistencies, texture flickering, and local geometric shifts. To address these issues, we propose the Consistency-aware Deformable 3DGS (CA-3DGS) repre-sentation. CA-3DGS binds the 3D Gaussian primitives to a parametric canine template (D-SMAL) and explicitly models generative inconsistencies through a view-dependent neural deformation field. 
+
+4.2.1 Multi-View D-SMAL Estimation 
+
+Unlike prior single-view methods [ 2 , 13 ], we utilize the synthesized dense multi-view sequence for accurate template alignment. We estimate camera parameters {Vi}Ni=1 using COLMAP and initialize the canine template with BITE [ 2 ]. We denote Ri(·) as the differentiable renderer associated with the camera parameters of the i-th view. We represent the D-SMAL parameters as S = ( β, θ, γ, ϕ, ρ ), where β denotes the shape parameters, θ denotes the 6D rotations of all the joints, γ denotes the global translation, ϕ denotes the global orientation, and ρ is a global scaling factor to accommodate dogs of varying sizes. This parameterization follows DogMo [60 ]. We denote the set of all vertices of the resulting D-SMAL mesh by X and the 3D articulated joints by J. We optimize the parameters jointly across all N views by minimizing the combined objective LD-SMAL = Lmk + Lkp . The two terms are defined as follows. 
+
+Soft Mask Loss. The term Lmk denotes the soft mask loss, which encourages the projected mesh to align with the multi-view silhouettes: 
+
+Lmk =
+
+> N
+
+X
+
+> i=1
+
+∥Mi − R soft  
+
+> i
+
+(X)∥2,
+
+where Mi denotes the foreground pixel set of the segmentation mask in the i-th view, and Rsoft  
+
+> i
+
+(X) denotes the soft mask rendering of of the mesh vertices X in the i-th view as introduced in [ 61 ]. Unlike a binary silhouette, the soft mask outputs a continuous probability value per pixel, indicating the likelihood of being covered by the projected mesh. This differentiability allows gradient flow through the mask loss. 
+
+Keypoint Loss. The term Lkp denotes the sparse keypoint loss, which constrains the articulated pose through sparse keypoint supervision: 
+
+Lkp =
+
+> N
+
+X
+
+> i=1
+
+∥pi − P i(J)∥2, (6) where pi denotes the 2D keypoints detected by BARC [ 18 ], and Pi(J) represents the projection of the corresponding 3D joints. 
+
+4.2.2 Template-Binded 3D Gaussian Optimization 
+
+To maintain topological consistency and facilitate downstream animation, we explicitly attach the 3D Gaussian primitives to the surface of the optimized D-SMAL mesh. Inspired by [ 62 , 63 ], we sample Gaussians uniformly over the template surface within its 2D UV parameterization space. Let μ2D
+
+denote the UV coordinates of a Gaussian. Its base 3D position 
+
+U (X, μ 2D ) is computed through barycentric interpolation of the mesh vertices X. To capture subject-specific non-rigid details (e.g., fur) that cannot be represented by the base template, we introduce a learnable scalar τ that displaces the Gaussian along the interpolated surface normal n. The final position of the j-th Gaussian is formulated as: 
+
+μj = U (X, μ 2Dj ) + τj nj . (7) Crucially, in addition to the Gaussian attributes, the underlying 3D vertices of the D-SMAL mesh are jointly optimized as learnable parameters to better fit subject-specific geometry. 
+
+4.2.3 View-Dependent Deformation Field 
+
+Although the orbital sequence provides dense 360-degree coverage, the generated multi-view images exhibit local cross-view inconsistencies. Forcing a static 3DGS model to fit these inconsistent observations leads to severe texture blurring and floating artifacts. To disentangle the underlying canonical ge-ometry from the view-dependent inconsistencies introduced by the generative model, we represent the scene using a canon-ical 3DGS model G together with a view-dependent neural deformation field Fθ . Here we denote {gj = ( μj , s j , r j )}Kj=1 
+
+as the geometric attributes of the canonical model G, where μj
+
+denotes the position defined in Eq. (7) , and sj and rj represent the scale and rotation of the j-th Gaussian, respectively. In this way, G captures the shared, view-consistent geometry, while Fθ accounts for the view-dependent variations in the Gaussian attributes induced by the inconsistent observations. Specifically, Fθ is parameterized by an efficient tri-plane representation [ 36 ] for spatial feature encoding and a lightweight Multi-Layer Perceptron (MLP) for residual 8 Y. Wu, W. Li, B. Zhu, Y. Liu, Y. Cai, L. Liu deformation decoding. Given a camera view Vi, the deforma-tion field Fθ predicts a residual geometric offset for the j-th Gaussian: 
+
+∆gj,i = Fθ (Vi, g j ). (8) The deformed attributes used for rendering the i-th view are updated as: 
+
+g′ 
+
+> j,i
+
+= gj + ∆ gj,i . (9) This design effectively represent the inconsistencies by the neural deformation field while preserving a clean 3D repre-sentation shared across all views. For i-th view, the image is rendered from the deformed geometric attributes {g′
+
+> j,i
+
+}Kj=1 along with view-independent attributes {αj , cj }Kj=1 using the standard differentiable 3DGS rasterizer. We jointly optimize the mesh vertices X, the Gaussian attributes {τj , s j , r j , α j , cj }Kj=1 , and parameters of the deformation field Fθ using the following objective: 
+
+L = Limage + λarap Larap + λreg Lreg , (10) where each loss is defined as follow. Firstly, Limage consists of L1 loss and Structural Similarity Index Measure (SSIM) to enforce pixel-wise and perceptual consistency with respect to {Igt  
+
+> i
+
+}Ni=1 . Secondly, Larap denotes As-Rigid-As-Possible (ARAP) energy [ 64 ], which encourages local rigidity by con-straining each vertex neighborhood to preserve its original shape up to a local rotation. Specifically, it is computed by pe-nalizing discrepancies between the deformed edge vectors and the corresponding template edge vectors after optimal local rotation alignment. Finally, Lreg regularizes the deformation field to encourage sparse and smooth corrections: 
+
+Lreg = 1
+
+N K 
+
+> N
+
+X
+
+> iK
+
+X
+
+> j
+
+∥∆gj,i ∥22 + λgrad Lgrad , (11) where K is the total number of Gaussian primitives. The first term penalizes the magnitude of the deformations to suppress large and unstable deformations. The second term, Lgrad , pe-nalizes spatial variations in the deformation residuals, whose gradients are approximated using finite differences on the triplane grid, thereby explicitly enforcing spatial smoothness. Although the view-dependent deformation field Fθ absorbs per-view inconsistencies during optimization, its predictions are inherently tied to the input view. If we render each view Vi using its corresponding deformation, the resulting 3DGS would reproduce the view inconsistencies present in the generated inputs. Therefore, instead of applying view-specific deformations at inference time, we freeze the neural deformation field to a single reference view (typically the first view V0) and use the resulting deformed geometry for rendering all novel views. Ideally, a consistent novel-view image ˜Irender  
+
+> i
+
+should be rendered by the differentiable renderer 
+
+Ri:
+
+˜Irender  
+
+> i
+
+= Ri
+
+gj + Fθ (V0, g j ), α j , cj
+
+> Kj=1
+
+
+
+. (12) However, because the deformation field Fθ (V0, ·) is inherently designed to fit the specific generative flaws of the reference view V0, forcing it to adapt to a drastically different view 
+
+Vi inevitably causes severe degradation, such as geometric tearing and texture blurring. To mitigate these artifacts, we introduce the Deformation-Conditioned Generative Repair (DCGR) module, which leverages a custom self-supervised learning paradigm to restore degraded renderings to high-fidelity, artifact-free results. Input Image Ground Truth Geometry Map Reference Image 
+
+# ⋯
+
+# ⋯⋯⋯          
+
+> Fig. 3 Creation of Training Dataset. From top to bottom, each row respectively represents: the rendered image ¯Irender
+> i, the ground-truth target Igt
+> i, the geometry-aware condition Igeo
+> i, and the original photo Iinput
+> ias an appearance-aware condition.
+
+4.2.4 Self-Supervised Dataset Creation 
+
+For the training of the DCGR module to correct generative artifacts under perspective-locked rendering in Eq. 12, we construct a self-supervised dataset that captures the char-acteristic degradations of the initial 3DGS model without requiring clean 3D ground truth. To provide sufficient real-image diversity in training dataset, we collect a large number of dog images from Internet and denote one of them as Iinput . We then apply our CDOG module to generate multi-view images {Igt  
+
+> i
+
+}Ni=1 as pseudo ground truths and optimize the CA-3DGS model together with its view-dependent deformation fields Fθ . In the following, we CORGI: Consistency-Aware 3D D og Reconstruction from a Sin gle Image in the Wild 9continue to use {gj }Kj=1 to denote the geometry parameters of the optimized Gaussians. Since the CA-3DGS model and the deformation fields Fθ are optimized from inconsistent multi-view images, the resulting renderings naturally exhibit artifacts. For each camera view Vi, we render an image as 
+
+¯Irender  
+
+> i
+
+= Ri
+
+gj + Fθ (Vi, g j ), α j , cj
+
+> Kj=1
+
+
+
+. (13) The rendered image ¯Irender  
+
+> i
+
+serves as the corrupted input to DCGR, while the corresponding pseudo ground-truth image 
+
+Igt  
+
+> i
+
+is used as the supervision target. Simultaneously, to provide the network with explicit struc-tural guidance regarding these geometric flaws, we project the view-specific displacement vectors onto the image plane to render a dense geometry map 
+
+Igeo  
+
+> i
+
+= Ri
+
+gj + Fθ (Vi, g j ), α j , ∆μj,i 
+
+> Kj=1
+
+
+
+. (14) Consequently, for each view i, we construct a self-supervised training quadruplet: { ¯Irender  
+
+> i
+
+, I gt  
+
+> i
+
+, I geo  
+
+> i
+
+, I input },where ¯Irender  
+
+> i
+
+is the degraded input, Igt  
+
+> i
+
+is the supervision target, Igeo  
+
+> i
+
+serves as a geometry-aware condition and the original photo Iinput as an appearance-aware condition. 
+
+4.2.5 Network Framework and Iterative Refinement 
+
+We build our repair framework upon the single-step diffu-sion architecture of DiFix3D+ [ 56 ], formulating the artifact removal as a geometrically-conditioned translation task. To adapt the generic diffusion prior to our canine reconstruction pipeline, we freeze the base weights and inject a lightweight LoRA module into the backbone. 
+
+Geometric and Appearance Conditioning. Standard dif-fusion repair modules operate purely in the RGB domain, making them blind to underlying 3D structural collapse. To inject explicit geometric awareness, we concatenate the de-graded rendering ¯Irender  
+
+> i
+
+with our dense geometry map Igeo 
+
+> i
+
+along the channel dimension before feeding them into the U-Net. This enables the network to effectively correlate visual artifacts with localized geometric distortions. Furthermore, to overcome the over-smoothing inherited from the initial generative process, we condition the U-Net on the pristine, real-world image Iinput as an appearance anchor. This allows the network to directly distill authentic high-frequency details into the repaired views. 
+
+Progressive Self-Refinement Loop. To propagate these 2D image enhancements back into the 3D space, we wrap the LoRA-adapted DiFix3D+ network within an iterative self-refinement loop. Starting from the initial representation 
+
+G0, which is the optimized CA-3DGS obtained in Section 4.2, each refinement round t executes three sequential operations: (1) Rendering : We render the multi-view images { ˜Irender  
+
+> i,t
+
+}Ni=1 
+
+from the current model Gt according to Eq. 12, while fixing the deformation field to the reference view V0 to enforce global consistency. (2) Generative Repair : The rendered images and their dense geometry maps are processed by our LoRA-adapted diffusion model to produce a refined, artifact-free observation set {Irefined  
+
+> i,t
+
+}Ni=1 . (3) Re-optimization : The original CDOG sequences are replaced with these repaired images to serve as new pseudo ground truths, and the 3DGS parameters are re-optimized using the losses defined in Sec-tion 4.2 to yield the updated model Gt+1 . In practice, we find that performing the self-refinement loop up to t = 3 is sufficient to obtain a high-fidelity and fully consistent 3DGS model of the dog. 
+
+# 5 Experiments 
+
+5.1 Experiment Setup 
+
+Implementation details. The proposed CORGI frame-work is implemented in PyTorch. For the Canonical-Driven Orbital Generation (CDOG) module, we generate an 80-frame surrounding video to provide dense pseudo-multi-view observations for the subsequent reconstruction stage. The Consistency-Aware Deformable 3DGS (CA-3DGS) module is optimized for a total of 30,000 iterations. The regular-ization weights for the deformation field are empirically set to λarap = 0 .01 , λreg = 0 .01 , and λgrad = 1 . For the Deformation-Conditioned Generative Repair (DCGR) mod-ule, the progressive self-refinement loop is executed for 
+
+K = 3 rounds, with each round undergoing 8,000 iterations of re-optimization. All experiments are conducted on a single NVIDIA RTX 4090 (48GB) GPU. 
+
+Datasets. To rigorously evaluate our framework across both constrained and unconstrained scenarios, we curate two distinct evaluation datasets: (1) Dog Synthetic Dataset: This dataset comprises 10 high-quality, fully rigged 3D canine models. For each model, we render 24 views along a 360-degree orbital trajectory. The first frame strictly serves as the monocular input, while the remaining 23 views are reserved exclusively as ground truth (GT) to quantitatively evaluate multi-view rendering accuracy and geometric fidelity. (2) Dog Wild Dataset: To assess in-the-wild generalization capability, we collect 150 real-world unconstrained dog photographs sourced from the internet. This dataset covers a vast spectrum of dog breeds, arbitrary poses, varying illuminations, and cluttered backgrounds. Since no 3D ground truth is available for real images, this dataset is used exclusively to evaluate single-view 3D generation quality and robustness. 
+
+Metrics. Due to the generative nature of our pipeline, we utilize both reference-based and non-reference metrics 10 Y. Wu, W. Li, B. Zhu, Y. Liu, Y. Cai, L. Liu to provide a comprehensive and human-perception-aligned evaluation: (1) Reference-based Metrics: Evaluated on the Dog Synthetic Dataset, we measure multi-view consistency and reconstruction accuracy against the ground truth using PSNR, SSIM, and LPIPS [ 65 ]. Specifically, PSNR evaluates the absolute pixel-level reconstruction error. SSIM quanti-fies the structural and luminance fidelity of the generated geometries. LPIPS assesses deep feature-level perceptual similarity, which aligns more closely with human visual judg-ment than traditional pixel-wise metrics. (2) Non-reference Metrics: Evaluated on the Dog Wild Dataset, we employ widely adopted perceptual metrics including FID [ 66 ] and NIQE [ 67 ] to assess rendering realism without ground truth. Specifically, FID quantifies the distribution distance between the rendered images and the real data domain, reflecting overall generative fidelity. NIQE measures the naturalness of the synthesized views based on statistical deviations from natural scene models. Furthermore, because preserving the original subject’s identity is crucial, we follow prior work [ 68 ]and calculate the CLIP-cosine similarity between the uncon-strained input photograph and the rendered novel views to rigorously evaluate semantic and identity consistency. 
+
+5.2 Baselines 
+
+To demonstrate the superiority of CORGI, we compare our framework against a comprehensive suite of state-of-the-art baselines. These baselines encompass a wide spectrum of paradigms, ranging from regression-based techniques to diffusion-based generative approaches. 
+
+Single-Image 3D Generation Methods. We select promi-nent baselines representing four distinct technical trajectories within the image-to-3D domain: 
+
+• Image-to-Gaussian: DreamGaussian [ 68 ] and GenFu-sion [11]. 
+
+• Multi-view Diffusion: SyncDreamer [ 9 ] and Ar-1-to-3 [69]. 
+
+• Video Diffusion: SVC [70 ], and HunyuanWorld-Voyager [ 71 ]. Since these methods output temporal video sequences rather than explicit 3D assets, we employ a vanilla 3DGS optimization on their 80-frame generated multi-view videos to obtain the final 3D representation for a fair structural comparison. 
+
+• Native 3D Generation: Hunyuan3D 2.0 [ 53 ] and Trel-lis2 [52]. It is crucial to note that directly feeding in-the-wild, arbi-trarily posed dog images into these general-purpose baselines yields heavily distorted, structurally collapsed, or seman-tically incorrect geometries. Therefore, to ensure the most competitive and fair comparison possible, we utilize the canonical pose image obtained by our CDOG module as the standardized input for all aforementioned single-image baselines. 
+
+Multi-Image 3D Reconstruction Methods. To further isolate and validate the specific contributions of our CA-3DGS and DCGR modules in handling dynamic/inconsistent multi-view data, we compare against robust video-driven animal reconstruction frameworks: GART [ 20 ] and BANMo [ 21 ]. For these baselines, instead of a single image, we provide the full 80-frame, 360-degree orbital video generated by our CDOG module as their input. 
+
+5.3 Comparison 
+
+Quantitative Evaluation. The quantitative comparisons against all baselines on both the Dog Synthetic Dataset and the Dog Wild Dataset are summarized in Table 1. Our pro-posed CORGI compellingly demonstrates state-of-the-art performance across all evaluation metrics. On the Dog Synthetic Dataset , CORGI achieves the high-est PSNR and second highest SSIM scores, significantly outperforming Image-to-Gaussian methods (e.g., Dream-Gaussian [ 68 ]) and Multi-view Diffusion models (e.g., Sync-Dreamer [ 9]). This superiority indicates that our Canonical-Driven Orbital Generation (CDOG) and Consistency-Aware Deformable 3DGS (CA-3DGS) modules successfully estab-lish a rigorous 3D geometric structure rather than merely hallucinating independent 2D views. Nevertheless, CORGI also achieves the second lowest LPIPS score, proving its exceptional capability in preserving high-frequency textural details. Notably, Trellis2 [ 52 ] achieves the best SSIM and LPIPS scores, which we attribute to the nature of the synthetic data: the mesh-based geometry and smooth textures of the Dog Synthetic Dataset are inherently well-suited to Trellis2’s native 3D latent representation. On the Dog Wild Dataset , the non-reference metrics further highlight our method’s robustness to in-the-wild domain gaps. General-purpose generative models often struggle with the complex articulation and non-rigid deformations of real-world canines. In contrast, CORGI attains the best FID and NIQE scores, reflecting the photorealism and naturalness of our rendered views. Most importantly, our method achieves a remarkable margin in the CLIP cosine similarity score. This proves that, unlike Native 3D models that frequently collapse into generating a “generic” dog due to template bias, our framework strictly preserves the subject-specific identity, fur patterns, and structural nuances of the unconstrained input photograph. Furthermore, compared to video-driven CORGI: Consistency-Aware 3D D og Reconstruction from a Sin gle Image in the Wild 11 Hunyuan3D Trellis2 Ours  Voyager  SVC  Ar-1-to-3  SyncDreamer  DreamGaussian Genfusion  Input 
+
+Fig. 4 Qualitative comparison on in-the-wild dog images. Compared to baselines that suffer from, blurry textures, or structural collapse, CORGI reconstructs high-fidelity, geometrically accurate 3D models with crisp fur details and strict multi-view consistency. 12 Y. Wu, W. Li, B. Zhu, Y. Liu, Y. Cai, L. Liu                                                                                               
+
+> Table 1 Quantitative comparison of single-image 3D dog reconstruction. CORGI achieves the overall best performance among all baselines across both reference-based and non-reference metrics. Bold indicates the best result and underlines indicates the second-best. Dog Synthetic Dataset Dog Wild Dataset Method PSNR ↑SSIM ↑LPIPS ↓CLIP ↑FID ↓NIQE ↓CLIP ↑
+> DreamGaussian 13.795 0.827 0.252 0.880 87.900 8.363 0.733 GenFusion 8.546 0.670 0.481 0.751 241.330 8.780 0.642 SyncDreamer 11.668 0.784 0.348 0.776 198.621 10.442 0.668 Ar-1-to-3 12.600 0.824 0.266 0.843 84.990 7.421 0.746 SVC 11.818 0.815 0.279 0.862 63.250 8.228 0.748 HunyuanWorld-Voyager 11.532 0.674 0.445 0.708 71.670 7.853 0.701 Hunyuan3D 2.0 12.511 0.816 0.248 0.893 67.850 7.922 0.749 Trellis2 13.564 0.841 0.228 0.877 44.301 9.040 0.771 GART 13.799 0.814 0.266 0.824 74.218 8.738 0.743 BANMo 13.749 0.811 0.262 0.854 99.654 9.409 0.718 CORGI 14.309 0.836 0.236 0.904 13.477 6.515 0.800
+
+multi-image baselines (GART [ 20 ] and BANMo [ 21 ]), which severely degrade when optimizing directly on our pseudo-multi-view videos due to generative flickering, our method robustly absorbs these inconsistencies via the view-dependent deformation field, yielding significantly higher quantitative fidelity. 
+
+Qualitative Evaluation. The visual comparisons between CORGI and representative state-of-the-art baselines are illus-trated in Figure 4. The qualitative results align perfectly with our quantitative findings, explicitly revealing the inherent bottlenecks of existing paradigms when applied to highly articulated animals in the wild. As observed in Figure 4, Image-to-Gaussian and Multi-view Diffusion methods frequently suffer from ambiguity and blurry problem. Because they lack explicit structural priors for quadrupeds, they often produce geometrically collapsed bodies, missing limbs, or floaters in occluded regions. Video Diffusion baselines (e.g., HunyuanWorld-Voyager [ 71 ]), while offering better temporal smoothness, lack strict 3D multi-view constraints. When their generated 80-frame videos are lifted to vanilla 3DGS, the inherent generative inconsistencies inevitably result in torn geometries and blurry, ghosting textures. 
+
+Native 3D Generation models (e.g., Hunyuan3D 2.0 [ 53 ]and Trellis2 [ 52 ]) successfully maintain 3D consistency but exhibit a profound domain gap. Trained predominantly on synthetic or rigid game assets, they struggle to capture the complex kinematics of real dogs, often outputting rigid, toy-like geometries with completely smoothed-out fur details, failing to preserve the unique identity of the input image. 
+
+5.4 Applications 
+
+CORGI explicitly overcomes these limitations. Empowered by the D-SMAL prior within the CA-3DGS module and the self-supervised refinement of the DCGR module, our method synthesizes topologically intact, structurally coherent, and highly detailed 3D canines. Even under extreme poses, severe self-occlusions, and cluttered backgrounds, CORGI accurately reconstructs delicate anatomical structures (such as thin legs, ears, and snouts) alongside crisp, high-frequency fur textures, seamlessly bridging the gap between 2D generative priors and 3D animatable articulation. A fundamental advantage of our generation-then-reconstruction paradigm is that it yields an inherently ani-matable 3D representation, directly bridging the gap between unconstrained single-image generation and downstream dig-ital content creation. We demonstrate this practical utility through high-fidelity pose-driven animation. 
+
+Pose-Driven Animation. The final reconstructed asset from our CA-3DGS module consists of an optimized 3D Gaussian field explicitly anchored to the parametric D-SMAL template. Although our initial CDOG stage synthesizes a standardized standing pose, the individually optimized subject may still exhibit slight kinematic deviations from a strict mathematical rest pose. To enable flawless and artifact-free animation, we first map the optimized Gaussians into a true canonical rest space via reverse Linear Blend Skinning (LBS). Specifically, for each Gaussian primitive bound to the mesh surface, we invert the local skinning transformations using the originally estimated pose parameters to extract its absolute rest-pose attributes. Once normalized into this rigorous canonical space, the 3D dog model can be seamlessly driven by arbitrary target pose sequences. By applying forward LBS parameterized by novel D-SMAL kinematic poses, we dynamically articulate the canonical Gaussians into new poses. As illustrated in Figure 5, CORGI produces highly realistic and fluid animated sequences. Crucially, because the underlying geometry is CORGI: Consistency-Aware 3D D og Reconstruction from a Sin gle Image in the Wild 13 Input Animated Renders   
+
+> Fig. 5 Pose-driven animation results. Driven by novel D-SMAL pose sequences, our reconstructed 3D models seamlessly perform complex motions (while strictly preserving subject-specific identities, high-frequency textures, and structural integrity without geometric tearing.
+
+topologically consistent and thoroughly refined by our DCGR module, the animated results exhibit zero structural tearing or floating artifacts. The model successfully preserves complex geometric nuances and high-frequency texture details (e.g., subject-specific fur patterns) even under extreme articulations and challenging novel viewpoints. 
+
+5.5 Ablation Study 
+
+To rigorously validate the efficacy of our core algorithmic designs, we conduct an incremental ablation study on the unconstrained Dog Wild Dataset. We define a baseline model and systematically integrate our proposed components to analyze their distinct contributions. The quantitative results across all configurations are summarized in Table 2. Specifically, our evaluated configurations and their corre-sponding table abbreviations are defined as follows: 
+
+• Baseline: A vanilla 3DGS optimization applied directly to the pseudo-multi-view sequence generated by the CDOG module. 
+
+• Model A: Baseline + View-Dependent Deformation Field (Def. Field). 
+
+• Model B: Model A + off-the-shelf DiFix3D [ 56 ] (Di-Fix3D Prior). 
+
+• Model C: Model A + DiFix3D with LoRA fine-tuning and geometry conditioning (LoRA Fine-tune). 
+
+• Full Model: Model C integrated with the progressive self-refinement loop for three iterations (Refine. Loop). 
+
+Effectiveness of the Deformation Field. As shown in Figure 6, the Baseline produces severe artifacts and promi-nent structural ghosting, particularly along the body contours. This occurs because the diffusion-generated video inherently contains multi-view inconsistencies. Forcing a static, canon-ical Gaussian set to strictly satisfy all of these conflicting observations simultaneously leads to severe optimization con-flicts. By integrating the neural deformation field, Model A 
+
+explicitly models these cross-view discrepancies via view-specific residual adjustments, effectively disentangling the canonical geometry from generative noise. However, forcing this deformation field to generalize to a drastically different, perspective-locked view inevitably causes structural degrada-tion, necessitating our subsequent repair modules. 
+
+Effectiveness of LoRA Fine-Tuning. As shown in Figure 6, 
+
+Model B attempts to repair the aforementioned structural artifacts using an off-the-shelf DiFix3D model. However, because the base DiFix3D is pre-trained exclusively on static scene datasets, it suffers from a significant domain gap. Consequently, it fails to rectify the specific degradations induced by the multi-view inconsistencies of our generated canine data. By injecting a lightweight LoRA module trained on our self-supervised dataset and incorporating explicit geometric conditioning, Model C successfully adapts the generic 2D diffusion prior to these targeted degradation patterns, effectively eliminating geometric tearing and texture blurring. 
+
+Effectiveness of the Progressive Self-Refinement Loop. 
+
+Although Model C successfully repairs structural artifacts 14 Y. Wu, W. Li, B. Zhu, Y. Liu, Y. Cai, L. Liu                                                
+
+> Table 2 Quantitative Ablation Study. We incrementally add our proposed modules to the baseline. The Full Model achieves the best performance across all perceptual metrics. Components Dog Wild Dataset Config Def. Field DiFix3D Prior LoRA Fine-tune Refine. Loop FID ↓NIQE ↓CLIP ↑
+> Baseline 26.515 7.719 0.761 Model A ✓25.934 8.201 0.781 Model B ✓✓22.156 7.010 0.779 Model C ✓✓✓20.413 6.502 0.788
+> Full Model ✓✓✓✓19.703 5.754 0.795 (a) (b) (c) (d) (e)
+> Fig. 6 Qualitative Ablation Study. (a) Baseline , (b) Model A ,(c) Model B , (d) Model C , (e) Full Model
+
+in single-step renderings, applying this repair independently across multi-view images cannot guarantee absolute 3D spatial consistency, nor can it fully recover the high-frequency texture details of the original input. Our Full Model wraps this generative repair within an iterative closed-loop design. By systematically rendering, repairing, and re-optimizing the 3DGS parameters across three cycles, the self-refinement loop progressively distills authentic high-frequency details directly into the 3D geometry. 
+
+# 6 Conclusion 
+
+In this paper, we presented CORGI , a novel “generation-then-reconstruction” framework that tackles the highly challenging task of recovering high-fidelity, animatable 3D dogs from a single unconstrained in-the-wild image. To overcome the scarcity of multi-view canine data and the severe cross-view inconsistencies inherent in modern generative models, we strategically decomposed the problem into three synergistic components. First, our Canonical-Driven Orbital Generation (CDOG) module normalizes arbitrary input poses and synthe-sizes reliable pseudo-multi-view sequences without relying on heuristic prompt engineering. Second, we lifted these 2D observations into 3D using the Consistency-Aware De-formable 3DGS (CA-3DGS) module, which anchors Gaussian primitives to a parametric D-SMAL template while explicitly isolating view-dependent generative errors via neural defor-mation fields. Finally, to rectify structural collapse and recover sharp textures, our Deformation-Conditioned Generative Re-pair (DCGR) module effectively leverages a geometry-guided diffusion prior within a self-supervised refinement loop. Ex-tensive evaluations demonstrate that CORGI achieves state-of-the-art reconstruction quality and generalizes seamlessly across a vast diversity of canine breeds and complex poses. By completely eliminating the need for paired 3D training data, our framework produces robust, artifact-free 3D models that are readily applicable to downstream animation and digital content creation. 
+
+References        
+
+> [1] Li Z, Amrani A, Rai S, Laga H. Advances and Trends in the 3D Reconstruction of the Shape and Motion of Animals. arXiv preprint arXiv:2508.16062 , 2025. [2] R¨ uegg N, Tripathi S, Schindler K, Black MJ, Zuffi S. Bite: Beyond Priors for Improved Three-D Dog Pose Estimation. In
+> Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2023, 8867–8876. [3] Zuffi S, Kanazawa A, Jacobs DW, Black MJ. 3D Menagerie: Modeling the 3D Shape and Pose of Animals. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2017, 6365–6373. [4] Sabathier R, Mitra NJ, Novotny D. Animal Avatars: Recon-structing Animatable 3D Animals from Casual Videos. In
+> European Conference on Computer Vision , 2024, 270–287. [5] Li Z, Litvak D, Li R, Zhang Y, Jakab T, Rupprecht C, Wu S, Vedaldi A, Wu J. Learning the 3d Fauna of the Web. In
+
+CORGI: Consistency-Aware 3D D og Reconstruction from a Sin gle Image in the Wild 15 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2024, 9752–9762. [6] Yao CH, Hung WC, Li Y, Rubinstein M, Yang MH, Jampani V. Lassie: Learning Articulated Shapes from Sparse Image En-semble via 3D Part Discovery. Advances in Neural Information Processing Systems , 2022, 35: 15296–15308. [7] Wu S, Li R, Jakab T, Rupprecht C, Vedaldi A. Magicpony: Learning Articulated 3D Animals in the Wild. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2023, 8792–8802. [8] Liu R, Wu R, Van Hoorick B, Tokmakov P, Zakharov S, Vondrick C. Zero-1-to-3: Zero-shot one Image to 3D Object. In Proceedings of the IEEE/CVF International Conference on Computer Vision , 2023, 9298–9309. [9] Liu Y, Lin C, Zeng Z, Long X, Liu L, Komura T, Wang W. Syncdreamer: Generating Multiview-Consistent Images from a Single-View Image. In International Conference on Learning Representations , volume 2024, 2024, 27676–27697. [10] Liu M, Shi R, Chen L, Zhang Z, Xu C, Wei X, Chen H, Zeng C, Gu J, Su H. One-2-3-45++: Fast Single Image to 3D Objects with Consistent Multi-View Generation and 3D Diffusion. 
+
+arXiv preprint arXiv:2311.07885 , 2023. [11] Wu S, Xu C, Huang B, Geiger A, Chen A. Genfusion: Closing the Loop between Reconstruction and Generation via Videos. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2025, 6078–6088. [12] Ren X, Shen T, Huang J, Ling H, Lu Y, Nimier-David M, M¨ uller T, Keller A, Fidler S, Gao J. Gen3c: 3D-Informed World-Consistent Video Generation with Precise Camera Control. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2025, 6121–6132. [13] Cho G, Kang C, Soon D, Joo K. DogRecon: Canine Prior-Guided Animatable 3D Gaussian Dog Reconstruction From A Single Image. International Journal of Computer Vision ,2025, 133(9): 6332–6346. [14] Kerbl B, Kopanas G, Leimk¨ uhler T, Drettakis G, et al.. 3D Gaussian Splatting for Real-Time Radiance Field Rendering. 
+
+ACM Transactions on Graphics (TOG) , 2023, 42(4): 139–1. [15] Li C, Ghorbani N, Broom ´e S, Rashid M, Black MJ, Hernlund E, Kjellstr ¨om H, Zuffi S. Hsmal: Detailed Horse Shape and Pose Reconstruction for Motion Pattern Recognition. arXiv preprint arXiv:2106.10102 , 2021. [16] Zuffi S, Mellbin Y, Li C, Hoeschle M, Kjellstr ¨om H, Polikovsky S, Hernlund E, Black MJ. Varen: Very Accurate and Realistic Equine Network. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2024, 5374– 5383. [17] Yang G, Sun D, Jampani V, Vlasic D, Cole F, Chang H, Ramanan D, Freeman WT, Liu C. Lasr: Learning Articulated Shape Reconstruction from a Monocular Video. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2021, 15980–15989. [18] Rueegg N, Zuffi S, Schindler K, Black MJ. Barc: Learning to Regress 3D Dog Shape from Images by Exploiting Breed Information. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2022, 3876–3884. [19] Lyu J, Zhu T, Gu Y, Lin L, Cheng P, Liu Y, Tang X, An L. Animer: Animal Pose and shape Estimation using Family Aware Transformer. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition , 2025, 17486–17496. [20] Lei J, Wang Y, Pavlakos G, Liu L, Daniilidis K. Gart: Gaussian Articulated Template Models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2024, 19876–19887. [21] Yang G, Vo M, Neverova N, Ramanan D, Vedaldi A, Joo H. Banmo: Building Animatable 3D Neural Models from Many Casual Videos. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2022, 2863–2873. [22] Yao CH, Hung WC, Li Y, Rubinstein M, Yang MH, Jampani V. Hi-Lassie: High-Fidelity Articulated Shape and Skeleton Discovery from Sparse Image Ensemble. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2023, 4853–4862. [23] Liu D, Stathopoulos A, Zhangli Q, Gao Y, Metaxas D. Lepard: Learning Explicit Part Discovery for 3D Articulated Shape Reconstruction. Advances in Neural Information Processing Systems , 2023, 36: 54187–54198. [24] Yao CH, Raj A, Hung WC, Rubinstein M, Li Y, Yang MH, Jam-pani V. Artic3d: Learning Robust Articulated 3D Ahapes from Noisy Web Image Collections. Advances in Neural Information Processing Systems , 2023, 36: 48173–48184. [25] Wu Y, Chen Z, Liu S, Ren Z, Wang S. Casa: Category-Agnostic Skeletal Animal Reconstruction. Advances in Neural Information Processing Systems , 2022, 35: 28559–28574. [26] Kaye B, Jakab T, Wu S, Ruprecht C, Vedaldi A. Dualpm: Dual Posed-Canonical Point Maps for 3D Shape and Pose Reconstruction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2025, 6425– 6435. [27] Wang C, Peng HY, Liu YT, Gu J, Hu SM. Diffusion Models for 3D Generation: A Survey. Computational Visual Media ,2025, 11(1): 1–28. [28] Tatarchenko M, Richter SR, Ranftl R, Li Z, Koltun V, Brox T. What do Single-View 3D Reconstruction Networks Learn? In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2019, 3405–3414. [29] Fu K, Peng J, He Q, Zhang H. Single Image 3D Object Re-construction Based on Deep Learning: A Review. Multimedia Tools and Applications , 2021, 80: 463–498. [30] Kato H, Harada T. Learning view Priors for Single-View 3D Reconstruction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2019, 9778– 9787. [31] Li X, Liu S, Kim K, De Mello S, Jampani V, Yang MH, Kautz J. Self-Supervised Single-View 3D Reconstruction via Semantic 16 Y. Wu, W. Li, B. Zhu, Y. Liu, Y. Cai, L. Liu 
+
+Consistency. In European Conference on Computer Vision ,2020, 677–693. [32] Fahim G, Amin K, Zarif S. Single-View 3D reconstruction: A Survey of Deep Learning Methods. Computers & Graphics ,2021, 94: 164–190. [33] Schwarz K, Liao Y, Niemeyer M, Geiger A. Graf: Generative Radiance Fields for 3D-Aware Image Synthesis. Advances in Neural Information Processing Systems , 2020, 33: 20154– 20166. [34] Niemeyer M, Geiger A. Giraffe: Representing Scenes as Com-positional Generative Neural Feature Fields. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2021, 11453–11464. [35] Gu J, Liu L, Wang P, Theobalt C. Stylenerf: A Style-Based 3D-Aware Generator for High-Resolution Image Synthesis. 
+
+arXiv preprint arXiv:2110.08985 , 2021. [36] Chan ER, Lin CZ, Chan MA, Nagano K, Pan B, De Mello S, Gallo O, Guibas LJ, Tremblay J, Khamis S, et al.. Efficient Geometry-Aware 3D Generative Adversarial Networks. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2022, 16123–16133. [37] Poole B, Jain A, Barron JT, Mildenhall B. Dreamfusion: Text-to-3D using 2D Diffusion. arXiv preprint arXiv:2209.14988 ,2022. [38] Liang Y, Yang X, Lin J, Li H, Xu X, Chen Y. Luciddreamer: Towards High-Fidelity Text-to-3D Generation via Interval Score Matching. arXiv preprint arXiv:2311.11284 , 2023. [39] Qian G, Mai J, Hamdi A, Ren J, Siarohin A, Li B, Lee HY, Skorokhodov I, Wonka P, Tulyakov S, et al.. Magic123: One Image to High-Quality 3D Object Generation using both 2D and 3D Diffusion Priors. In International Conference on Learning Representations , volume 2024, 2024, 48142–48159. [40] Wang Z, Lu C, Wang Y, Bao F, Li C, Su H, Zhu J. Prolific-dreamer: High-Fidelity and Diverse Text-to-3D Generation with Variational Score Distillation. Advances in Neural Infor-mation Processing Systems , 2024, 36. [41] Shi Y, Wang P, Ye J, Mai L, Li K, Yang X. MVDream: Multi-View Diffusion for 3D Generation. In International Conference on Learning Representations , volume 2024, 2024, 39838–39859. [42] Long X, Guo YC, Lin C, Liu Y, Dou Z, Liu L, Ma Y, Zhang SH, Habermann M, Theobalt C, et al.. Wonder3d: Single Image to 3D using Cross-Domain Diffusion. CVPR , 2024. [43] Hong Y, Zhang K, Gu J, Bi S, Zhou Y, Liu D, Liu F, Sunkavalli K, Bui T, Tan H. Lrm: Large Reconstruction Model for Single Image to 3D. arXiv preprint arXiv:2311.04400 , 2023. [44] Wang P, Tan H, Bi S, Xu Y, Luan F, Sunkavalli K, Wang W, Xu Z, Zhang K. Pf-Lrm: Pose-Free Large Reconstruction Model for Joint Pose and Shape Prediction. arXiv preprint arXiv:2311.12024 , 2023. [45] Wang Z, Wang Y, Chen Y, Xiang C, Chen S, Yu D, Li C, Su H, Zhu J. Crm: Single Image to 3D Textured Mesh with Convolutional Reconstruction Model. arXiv preprint arXiv:2403.05034 , 2024. [46] Tang J, Chen Z, Chen X, Wang T, Zeng G, Liu Z. LGM: Large Multi-View Gaussian Model for High-Resolution 3D Content Creation. arXiv preprint arXiv:2402.05054 , 2024. [47] Xu J, Cheng W, Gao Y, Wang X, Gao S, Shan Y. InstantMesh: Efficient 3D Mesh Generation from a Single Image with Sparse-View Large Reconstruction Models. arXiv preprint arXiv:2404.07191 , 2024. [48] Tochilkin D, Pankratz D, Liu Z, Huang Z, Letts A, Li Y, Liang D, Laforte C, Jampani V, Cao YP. Triposr: Fast 3D Object Reconstruction from a Single Image. arXiv preprint arXiv:2403.02151 , 2024. [49] Liu M, Xu C, Jin H, Chen L, Varma T M, Xu Z, Su H. One-2-3-45: Any Single Image to 3D Mesh in 45 Seconds without Per-Shape Optimization. Advances in Neural Information Pro-cessing Systems , 2024, 36. [50] Zhang L, Wang Z, Zhang Q, Qiu Q, Pang A, Jiang H, Yang W, Xu L, Yu J. Clay: A Controllable Large-Scale Generative Model for Creating High-Quality 3D Assets. ACM Transactions on Graphics (TOG) , 2024, 43(4): 1–20. [51] Xiang J, Lv Z, Xu S, Deng Y, Wang R, Zhang B, Chen D, Tong X, Yang J. Structured 3D Latents for Scalable and Versatile 3D Generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2025, 21469– 21480. [52] Xiang J, Chen X, Xu S, Wang R, Lv Z, Deng Y, Zhu H, Dong Y, Zhao H, Yuan NJ, et al.. Native and Compact Structured Latents for 3D Generation. arXiv preprint arXiv:2512.14692 ,2025. [53] Zhao Z, Lai Z, Lin Q, Zhao Y, Liu H, Yang S, Feng Y, Yang M, Zhang S, Yang X, et al.. Hunyuan3d 2.0: Scaling Diffusion Models for High Resolution Textured 3d Assets Generation. 
+
+arXiv preprint arXiv:2501.12202 , 2025. [54] Zwicker M, Pfister H, Van Baar J, Gross M. Ewa Volume Splatting. In Proceedings Visualization, 2001. VIS’01. , 2001, 29–538. [55] Wei J, Leutenegger S, Schaefer S. GSFix3D: Diffusion-Guided Repair of Novel Views in Gaussian Splatting. arXiv preprint arXiv:2508.14717 , 2025. [56] Wu JZ, Zhang Y, Turki H, Ren X, Gao J, Shou MZ, Fidler S, Gojcic Z, Ling H. Difix3d+: Improving 3D Reconstruc-tions with Single-Step Diffusion Models. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2025, 26024–26035. [57] Hu EJ, Shen Y, Wallis P, Allen-Zhu Z, Li Y, Wang S, Wang L, Chen W. LoRA: Low-Rank Adaptation of Large Language Models, 2021. [58] Wu C, Li J, Zhou J, Lin J, Gao K, Yan K, Yin Sm, Bai S, Xu X, Chen Y, et al.. Qwen-Image Technical Report. arXiv preprint arXiv:2508.02324 , 2025. [59] Wan T, Wang A, Ai B, Wen B, Mao C, Xie CW, Chen D, Yu F, Zhao H, Yang J, Zeng J, Wang J, Zhang J, Zhou J, Wang J, CORGI: Consistency-Aware 3D D og Reconstruction from a Sin gle Image in the Wild 17 
+
+Chen J, Zhu K, Zhao K, Yan K, Huang L, Feng M, Zhang N, Li P, Wu P, Chu R, Feng R, Zhang S, Sun S, Fang T, Wang T, Gui T, Weng T, Shen T, Lin W, Wang W, Wang W, Zhou W, Wang W, Shen W, Yu W, Shi X, Huang X, Xu X, Kou Y, Lv Y, Li Y, Liu Y, Wang Y, Zhang Y, Huang Y, Li Y, Wu Y, Liu Y, Pan Y, Zheng Y, Hong Y, Shi Y, Feng Y, Jiang Z, Han Z, Wu ZF, Liu Z. Wan: Open and Advanced Large-Scale Video Generative Models. arXiv preprint arXiv:2503.20314 , 2025. [60] Wang Z, Chen S, Mo L, Gao X, Shen Y, Ding L, Liang W. DogMo: A Large-Scale Multi-View RGB-D Dataset for 4D Canine Motion Recovery. arXiv preprint arXiv:2510.24117 ,2025. [61] Liu S, Li T, Chen W, Li H. Soft Rasterizer: A Differentiable Renderer for Image-based 3D Reasoning. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,2019, 7708–7717. [62] Jiang Y, Liao Q, Li X, Ma L, Zhang Q, Zhang C, Lu Z, Shan Y. Uv Gaussians: Joint Learning of Mesh Deformation and Gaussian Textures for Human Avatar Modeling. Knowledge-Based Systems , 2025, 320: 113470. [63] Gao L, Yang J, Zhang BT, Sun JM, Yuan YJ, Fu H, Lai YK. Real-Time Large-Scale Deformation of Gaussian Splatting. 
+
+ACM Transactions on Graphics (TOG) , 2024, 43(6): 1–17. [64] Igarashi T, Moscovich T, Hughes JF. As-Rigid-as-Possible Shape Manipulation. ACM Transactions on Graphics (TOG) ,2005, 24(3): 1134–1141. [65] Zhang R, Isola P, Efros AA, Shechtman E, Wang O. The Unrea-sonable Effectiveness of Deep Features as a Perceptual Metric. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2018, 586–595. [66] Heusel M, Ramsauer H, Unterthiner T, Nessler B, Hochreiter S. GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium. Advances in Neural Information Processing Systems , 2017, 30: 1–12. [67] Zhang L, Zhang L, Bovik AC. A Feature-Enriched Completely Blind Image Quality Evaluator. IEEE Transactions on Image Processing , 2015, 24(8): 2579–2591. [68] Tang J, Ren J, Zhou H, Liu Z, Zeng G. Dreamgaussian: Gen-erative Gaussian Splatting for Efficient 3D Content Creation. In International Conference on Learning Representations ,volume 2024, 2024, 33879–33896. [69] Zhang X, Zhou Y, Wang K, Wang Y, Li Z, Jiao S, Zhou D, Hou Q, Cheng MM. Ar-1-to-3: Single Image to Consistent 3D Object via Next-View Prediction. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,2025, 26273–26283. [70] Zhou J, Gao H, Voleti V, Vasishta A, Yao CH, Boss M, Torr P, Rupprecht C, Jampani V. Stable Virtual Camera: Generative View Synthesis with Diffusion Models. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,2025, 12405–12414. [71] Huang T, Zheng W, Wang T, Liu Y, Wang Z, Wu J, Jiang J, Li H, Lau RW, Zuo W, Guo C. Voyager: Long-Range and World-Consistent Video Diffusion for Explorable 3D Scene Generation. arXiv preprint arXiv:2506.04225 , 2025.

@@ -1,0 +1,590 @@
+Title: SAMoR: Motion Modelling for Articulated Objects of Any Skeleton and Topology
+
+URL Source: https://arxiv.org/pdf/2607.02148v1
+
+Published Time: Fri, 03 Jul 2026 01:04:56 GMT
+
+Number of Pages: 20
+
+Markdown Content:
+# SAMoR: Motion Modelling for Articulated Objects of Any Skeleton and Topology 
+
+Yuhao Zhang 
+
+Imperial College London 
+
+Gerard Pons-Moll 
+
+University of Tübingen, Tübingen AI Center 
+
+Tolga Birdal 
+
+Imperial College London 
+
+## Abstract 
+
+Modeling motion for articulated objects of arbitrary skeleton topology remains difficult: existing motion generators target a fixed human skeleton, and prior adaptations either fail to share a vocabulary across rigs or discard motion detail through global pooling. Our key observation is that while joint-level motion does not correspond cleanly across species, motion of functional joint groups does—a human arm, a wolf foreleg, and a bird wing share semantic motion structure despite differences in joint count and connectivity, a correspondence that joint names (e.g., “forearm”, “wing_L1”) partially expose even when topology does not. We introduce SAMoR (Skeleton-Aware Motion Representation for Articulated Objects), a cross-topology motion representation that encodes each motion segment as a small fixed number ( K=8 ) of part tokens shared across arbitrary skeletons. SAMoR takes three input signals—per-joint motion features, kinematic graph structure, and joint-name embeddings—and processes them with a graph-transformer encoder, then compresses the resulting heterogeneous per-joint features into part-level tokens via cross-attention pooling and residual vector quantization, yielding a discrete motion codebook shared across rigs. To prevent the part queries from collapsing into redundant global representations, we introduce a topology-agnostic attention supervision loss, combined with random joint-name dropout to prevent over-reliance on text labels; together these encourage the part tokens to cluster joints into functional groups from names, structure, and motion jointly. We curate a unified heterogeneous motion corpus from HumanML3D, Truebones Zoo, and animated Objaverse-XL assets, and evaluate SAMoR on held-out characters with unseen skeletons. The resulting representation supports accurate reconstruction and cross-topology motion transfer, and further enables text-conditioned generation and localized part-wise editing through a MaskGIT token generator. SAMoR reaches 2.75 ×10 −2 normalized MPJPE on cross-topology reconstruction— 5.8× below the strongest adapted variable-J tokenizer baseline— and remains competitive with fixed-skeleton specialists on HumanML3D for both VQ-VAE reconstruction and text-to-motion generation. Our code and extended results can be found at http://circle-group.github.io/research/SaMoR .
+
+## 1 Introduction 
+
+Modeling motion for articulated objects of arbitrary skeleton topology (humans, quadrupeds, birds, in-sects, mechanical rigs, and stylized 3D assets) remains a difficult problem. Recent text-to-motion gen-erators [ 24 , 11 ] achieve impressive fidelity on HumanML3D [ 13 ] and related human benchmarks [ 2 ], but their motion representations are tied to a fixed SMPL human skeleton [ 22 ] with fixed joint count, ordering, and connectivity. Extensions to animal categories have been proposed [ 17 , 41 , 37 , 32 , 20 ], but they likewise assume a predefined skeleton topology one way or the other. Cross-topology motion generators have recently surfaced: SinMDM [ 27 ] trains a separate model from a single motion sequence, while AnyTop [ 9 ] uses a skeleton-conditioned diffusion model that operates at the per-joint level. These methods demonstrate important progress, but they do not provide a fixed-size discrete 
+
+> Preprint.
+> arXiv:2607.02148v1 [cs.CV] 2 Jul 2026
+
+Figure 1: SAMoR enables three downstream tasks from a single cross-topology motion rep-resentation. (A) Cross-topology motion transfer by swapping the skeleton conditioning at decode time (eagle, fire ant, robot). (B) Text-to-motion generation conditioned on a target rig. (C) Part-wise editing: replacing selected part tokens edits only the selected functional groups (e.g., legs) while preserving the rest. Extended generation, editing, and mesh-animation results are provided as supple-mentary videos. motion vocabulary shared across rigs. As a result, directly reusing a learned motion codebook for heterogeneous source-to-target motion transfer or token-based generation remains difficult across characters with different joint counts and connectivity. Arguing that the appropriate abstraction level for cross-topology motion is neither the whole body nor individual joints, but functional groups of joints, we introduce SAMoR , a skeleton-aware cross-topology motion representation for articulated objects. SAMoR uses a graph-transformer encoder to model skeleton structure, cross-attention pooling to compress heterogeneous per-joint motion features into K = 8 part tokens, and residual vector quantization to form a shared discrete motion codebook [ 35 ]. A target-skeleton-conditioned decoder reconstructs motion on the same or a different rig, enabling cross-topology motion transfer directly at decode time. The key challenge is query collapse: without explicit guidance, all K queries attend broadly and produce redundant representations, reducing K=8 to the effective equivalent of K=1 ; we address this with an attention supervision loss that anchors each query toward a distinct functional joint group. We train and evaluate SAMoR on a unified heterogeneous corpus curated from HumanML3D [ 13 ], Truebones Zoo [ 34 ], and animated Objaverse-XL [ 7 ] assets, with held-out characters used to test generalization to unseen skeletons. Importantly, when instantiated in a HumanML3D-compatible setting, SAMoR remains competitive with fixed-skeleton specialists on standard HumanML3D VQ-VAE reconstruction and text-to-motion benchmarks. Yet unlike these specialists, the same part-token architecture extends naturally to heterogeneous skeletons in our cross-topology setting, without requiring per-character models. Overall, our contributions are: • Graph-Transformer-based Motion Tokenization: A cross-topology motion VQ-VAE that com-presses arbitrary-skeleton motion into K=8 shared part tokens via graph-transformer encoding and cross-attention pooling, yielding a single discrete motion vocabulary across heterogeneous skeletons with varying joint counts and connectivity. • Attention Supervision for Query Specialisation: An attention supervision loss that breaks query symmetry by seeding each query toward a distinct functional joint group, preventing collapse. Combined with joint-name dropout, this generalises to unseen skeletons with missing or non-canonical joint names. • Unified Heterogeneous Motion Corpus: We curate a cross-topology corpus of ∼71 k characters and ∼100 k motions from 1 SMPL skeleton (HumanML3D), 65 animal species (Truebones Zoo), 2and ∼71 k animated Objaverse-XL characters, with automated canonical joint-matching, character-level train/val splits, functional-group annotations across diverse morphologies, and per-character motion captions generated via video rendering and vision-language captioning [10]. • Downstream Animation Tasks: We show that the shared part-token space supports cross-topology motion transfer, text-conditioned generation via MaskGIT [ 5], and localized part-wise token editing. Extensive evaluations show that SAMoR substantially outperforms both single-token global repre-sentations ( K = 1 ) and per-joint tokenizations ( K = J), validating intermediate-granularity part tokenization as an effective representation for cross-topology motion modeling. We will make our implementation publicly available. 
+
+## 2 Related Work 
+
+Text-to-Motion Generation. Beyond unconditional pose [ 23 , 14 ] and motion [ 29 , 42 ] generation, text-driven human motion generation has advanced rapidly on benchmarks such as HumanML3D [ 13 ]and KIT-ML [ 26 ]. Existing methods include diffusion-based generators [ 33 , 6 ], autoregressive discrete-token models [ 44 , 18 ], and masked-token generators [ 12 , 25 , 38 , 43 , 15 ], which achieve strong motion quality, but their motion representations are tied to a fixed human skeleton, typically SMPL [ 22 ] with a fixed joint ordering and connectivity. In contrast, SAMoR studies the orthogonal problem of learning a shared discrete motion representation across heterogeneous skeleton topologies. 
+
+Cross-Topology Motion Learning. Cross-skeleton retargeting [ 1 ] and cross-morphology align-ment [ 19 ] enable topology-flexible motion transfer on specific source–target pairs but do not yield a shared representation reusable across arbitrary rigs. Part-based articulated-object methods such as LEPARD [ 21 ] study part discovery for 3D articulated shapes rather than motion generation. On the generative side, SinMDM [ 27 ] trains a dedicated model per character. AnyTop [ 9 ] handles heterogeneous skeletons at the per-joint level ( K=J), preventing vocabulary sharing across different joint counts. Concurrent with our work, NECromancer [ 39 ] adopts a single-token ( K=1 ) formulation. SAMoR takes an intermediate approach: K=8 learned tokens via cross-attention pooling yield a shared codebook that neither K=1 nor K=J supports natively. 
+
+Part-Based Motion Representations. Part-aware methods for human motion synthesis include per-part tokenizers [ 47 ], part-level attention [ 45 ], text-to-part conditioning [ 36 ], and compositional generation [ 3]. All assume a fixed human skeleton with hard-coded part definitions. SAMoR instead learns K functional clusters of joints that generalise across heterogeneous skeletons without requiring hand-defined per-skeleton part assignments at inference time. 
+
+Automatic Rigging and Skinning. Automatic rigging converts raw 3D meshes into animation-ready characters. Classical approaches such as Pinocchio [ 4 ] embed a predefined skeleton template via geometric fitting. Recent learned methods predict skeleton and skinning weights directly from mesh geometry: RigNet [ 40 ] uses a graph neural network, while MagicArticulate [ 31 ], AnyMate [ 8 ], and Puppeteer [ 30 ] extend this to end-to-end skeleton and skinning prediction for diverse 3D objects. SAMoR is complementary to these systems: given a rigged skeleton from any such frontend, SAMoR provides the motion generation and transfer layer. 
+
+## 3 Method 
+
+Overview. SAMoR is a cross-topology motion representation: each motion chunk on an arbitrary skeleton is encoded into a discrete token sequence factorized over K = 8 part-level tokens at every downsampled temporal position (Fig. 2). A skeleton-aware part VQ-VAE pools per-joint features into 
+
+K part queries via cross-attention and quantizes them with residual VQ. A target-skeleton-conditioned decoder expands the part tokens back to any rig, enabling reconstruction and cross-topology transfer. 
+
+Topology representation. We represent a skeleton as a rooted kinematic tree with J joints, parent map pa( j), and a per-joint pose anchor {aj ∈ R3}J−1 
+
+> j=0
+
+describing the target joint geometry used for conditioning. Rooted kinematic trees cover virtually all character animation rigs; the graph structural biases (kinematic-tree hop distance, chain membership, edge type) are defined for tree structures, though the transformer architecture itself does not assume a tree. In the cross-topology setting, aj
+
+is the first-frame joint location; in the HumanML3D-compatible setting, where a canonical SMPL rest pose is available, it is the rest-pose joint location. A motion chunk of length T is represented as X ∈ RT ×J×d, where d = 12 in the full-feature setting (position, velocity, and 6D rotation per 3Positional   
+
+> Embedding
+> CLIP
+> Embedding
+> Joints Features
+> (J, D)
+> Tail
+> Leg
+> Neck
+> …
+> (Randomly Drop)
+> Skeleton Joints Names
+> Linear
+> Element -wise Addition
+> Positional Encoding
+> T: Frame Length
+> K: Number of Parts
+> J: Number of Joints
+> D: Latent Dimension
+> Input Motion
+> Reconstructed Motion
+> Motion Feature
+> (T, J, D)
+> Reconstructed
+> Motion Feature
+> Quantized
+> Part Motion Feature
+> Part Motion Feature
+> (T, K, D)
+> (T, J, D) (T, K, D)
+> Linear
+> Graph
+> Transformer
+> Graph
+> Transformer
+> Cross
+> Attention
+> Cross
+> Attention
+> Attention Supervision
+> Learnable Part Query (K, D)
+
+Motion Encoder Block 
+
+Motion Decoder Block 
+
+Q
+
+KV 
+
+KV 
+
+Q
+
+> Residual VQ -VAE
+
+Figure 2: SAMoR architecture. Per-joint motion features (T, J, D ) are fused with skeleton condi-tioning (pose anchor, joint-name embeddings, and graph biases) by a graph transformer. K = 8 part queries pool the joints via attention-supervised cross-attention into part tokens (T, K, D ), which are quantized by residual VQ. The decoder mirrors the encoder with inverse cross-attention conditioned on the target skeleton, enabling cross-topology motion transfer at decode time. joint) and d = 6 when rotation is omitted. SAMoR encodes this chunk into a discrete token tensor 
+
+Z ∈ { 1, . . . , V }(T / 4) ×K×R, with T / 4 temporal positions after 4× downsampling, K = 8 part queries, and R residual quantization levels from a shared codebook of size V .
+
+3.1 Skeleton-Aware Part VQ-VAE Topology-agnostic motion input. For a joint j at frame t, the full-feature representation is xtj =[ptj , vtj , Rtj ] ∈ R12 , where ptj and vtj are the joint position and velocity, and Rtj is the local joint rotation in the 6D continuous representation [ 46 ]. In the cross-topology setting, local rotations are defined relative to rig-specific rest poses and are not directly comparable across arbitrary skeletons. We therefore use root-normalized joint positions and velocities, xtj = [ ptj , vtj ] ∈ R6, as the shared cross-rig signal. Global root translation is excluded because heterogeneous assets have inconsistent reference frames and rest-pose definitions; for HumanML3D, where the standard evaluator expects the 263-D representation, root channels are modelled by a separate lightweight VQ branch (Sec. 4.2). 
+
+Skeleton conditioning with pose anchors. We condition the encoder and decoder on the target skeleton through three signals. First, a per-joint pose-anchor embedding maps anchor locations 
+
+aj to the model dimension through an MLP and re-injects them at every graph-transformer layer. For cross-topology settings we use the first frame as the anchor (more reliable than asset-provided rest poses for heterogeneous sources such as OXL); for HumanML3D we use the canonical SMPL rest-pose anchor. The pose anchor is a static skeleton-geometry signal only: at transfer or generation time it can be any available posed frame or reference pose of the target rig and is not required to correspond to the source or target motion. Second, we add CLIP [ 28 ] embeddings of raw joint names, projected to the model dimension. Third, we inject graph structure by adding learned biases to spatial attention logits: kinematic-tree hop distance, same-chain indicator, and edge type. 
+
+Graph-transformer encoder. The encoder is a stack of L transformer blocks, each alternating temporal self-attention along T for each joint with spatial self-attention along J for each frame. Spatial attention uses the graph structural biases above; we refer to these blocks as graph-transformer blocks throughout. A strided 1D convolution downsamples the temporal axis by 4×, producing 
+
+H ∈ RB×(T / 4) ×J×D . Full architectural details and hyperparameters are in Sec. A. 
+
+Part pooling: joints to part tokens. K learnable query vectors compress the J encoded joints into 
+
+K fixed-size part tokens via cross-attention, followed by a residual connection, layer normalization, and a K×K self-attention layer for part-to-part communication. This operation is agnostic to skeleton identity: J is variable and the queries impose no constraints on which joints are present—the 4same architecture processes a 5-joint prop, a 22-joint humanoid, and a 96-joint creature without modification. Without supervision, the K queries have no incentive to specialize and collapse toward near-identical attention distributions, making K=8 behave no better than K=1 in practice (Sec. 3.2). To break this symmetry, we supervise the cross-attention maps during training using canonical functional-group labels yj ∈ { 0, . . . , K −1} ∪ {− 1} derived automatically from joint names. Crucially, joints that cannot be matched to any label receive yj =−1 and contribute zero terms to the supervision loss; they are still encoded and routed freely by the learned attention. For skeletons with no canonical joint names at all (mechanical rigs, procedural assets), every joint has yj =−1 and the K slots become purely unsupervised functional buckets, driven by kinematic structure and motion patterns alone. We set K=8 to identify eight functional clusters that, as abstract skeleton semantics, encapsulate the major motion-producing structures across the diverse topologies in our training corpus. For readability, we label these clusters as lower torso , upper torso , head/neck , left arm (forelimb/wing), 
+
+right arm , left leg (hindlimb), right leg , and tail — though these captions are interpretive handles rather than strict anatomical requirements: a cluster labelled ‘arm’ may capture insect appendages, mechanical links, or wing joints depending on the input skeleton. The attention map α ∈ [0 , 1] K×J
+
+is the target of the supervision loss in Sec. 3.2. Inference-time part-assignment visualisations for diverse topologies, including non-biological rigs, are in Sec. H. 
+
+Quantization, decoder, and training objective. Each part token is quantized by an R-level residual VQ module with a shared codebook; quantize-dropout randomly drops deeper RVQ levels during training to improve codebook utilization. The decoder mirrors the encoder: it expands the K quantized part tokens back to J target joints through inverse cross-attention, where target-joint queries are conditioned on the target skeleton’s pose anchor, joint-name embeddings, and graph biases. Since the decoder is conditioned on the target skeleton, the same source tokens can be decoded on a different rig for cross-topology transfer without retraining. The VQ-VAE is trained with smooth-ℓ1 position and velocity reconstruction losses, a VQ commitment loss, a bone-length consistency loss (squared parent-to-child distance error, ablated in Table 3), and the attention supervision loss Lattn (Sec. 3.2). A rotation reconstruction loss is added in the HumanML3D-compatible setting. 
+
+3.2 Attention Supervision for Query Specialisation Part-query collapse in naive training. Given per-frame joint features X = ( x1, . . . , xJ ) ∈ Rd×J
+
+and K learnable part queries {qk}Kk=1 ⊂ Rd, the part-pool cross-attention computes each part token: 
+
+pk = LN 
+
+qk +
+
+> J
+
+X
+
+> j=1
+
+αk,j WV xj
+
+ , αk,j =exp 
+
+
+
+(WQqk)⊤(WK xj )/√d
+
+PJj′=1 exp 
+
+
+
+(WQqk)⊤(WK xj′ )/√d
+
+ . (1) Without supervision on α, the residual connection lets queries differentiate via their learned embed-dings alone, with no incentive for αk,j to differ across k. Empirically, attention maps drift toward near-uniform distributions, and reconstruction quality at K = 8 equals that at K = 1 (Table 3). 
+
+Attention supervision loss. We supervise α directly with per-joint functional-group labels yj ∈{0, . . . , K −1} ∪ {− 1}, where −1 marks unknown joints using the row-wise cross-entropy: 
+
+Lattn = − X 
+
+> k:|Sk|>0
+> J
+
+X
+
+> j=1
+
+Tk,j log αk,j , where Tk,j =
+
+1/|Sk|, if yj = k, 
+
+0, otherwise (2) 
+
+Sk = {j : yj = k} and T is the uniform target distribution for each non-empty part k. Unlabeled joints ( yj =−1) contribute no terms; labels are obtained automatically from joint names via canonical matching (Sec. B). Labels are used only during training; at inference, joints are routed by the learned cross-attention alone. Gradients flow through the softmax to WQ, WK , and the encoder features, encouraging functional cluster specialisation. Eqs. (1) and (2) are written per temporal position; in practice the loss is averaged over batch and time. 
+
+Joint-name dropout. Joint names enter the encoder as CLIP embeddings. We randomly replace each embedding with a shared zero vector during training; since Lattn is still applied, the model learns to route joints from motion patterns and skeleton topology rather than name strings alone, improving robustness to unseen rigs with missing or non-semantic names. 5Figure 3: Cross-topology motion transfer. Each 2×2 panel shows Source Motion , SAMoR (K=8 ), and the single-query Baseline (K=1 , same cross-topology decoder). SAMoR preserves appendage dynamics across topology shifts; K=1 retains coarse body rhythm but loses limb, tail, and wing detail, consistent with the reconstruction and round-trip gaps in Table 3. All visualizations are root-relative. 
+
+3.3 Token Generation, Editing, and Mesh Animation Text-conditioned token generation. We train a MaskGIT [ 5] transformer over the (T / 4) × K
+
+grid of SAMoR tokens, conditioned on text and the target skeleton. The main transformer predicts level-0 RVQ code indices, and a lightweight residual transformer predicts the remaining RVQ levels conditioned on previously decoded codes, following masked-token motion generators. Since generation happens in SAMoR’s shared part-token space, the predicted tokens can be decoded on arbitrary target skeletons through the same target-skeleton-conditioned decoder. 
+
+Part-wise editing and mesh animation. For editing, we encode a motion into SAMoR tokens and mask a selected subset of part slots; the generator in-fills only the masked slots, localizing changes to the selected functional groups. For raw meshes, any off-the-shelf auto-rigging system [ 30 , 31 , 8 ]provides the skeleton and skinning weights; SAMoR then generates or transfers motion, recovering local rotations via IK before applying LBS. 
+
+## 4 Experiments 
+
+4.1 Experimental Setup Datasets. We use three datasets covering the cross-topology spectrum. HumanML3D (H3D) [13 ]provides ∼23K SMPL-22 humanoid motion-caption pairs in the standard 263-D feature format expected by the MoMask evaluator (root trajectory, relative joint positions, 6D joint rotations, joint velocities, and foot-contact indicators concatenated per frame). Truebones Zoo [34 ] is a motion-6capture library of 65 animal species (quadrupeds, birds, reptiles, insects) with varying joint counts and named motion clips. Objaverse-XL (OXL) [7 ] is our curated subset of rigged and skinned animated characters from Objaverse-XL spanning humanoid, quadruped, and non-biological rigs. All motions are converted to a unified format of per-joint positions ptj and velocities vtj ; for OXL and Zoo, the first frame of each motion serves as the pose anchor; for HumanML3D-compatible experiments, the canonical SMPL rest pose is used. Character-level splits guarantee that OXL validation characters are never seen during training. For the optional text-conditioned generator, one motion caption per OXL character is generated by rendering the skeleton motion sequence and textured mesh sequence and captioning the resulting video with a vision-language model (Gemini Flash [ 10 ]); these captions are only used to train the SAMoR MaskGIT generation model. All characters are normalized by mesh bounding box, up-axis, and facing direction. During training, 
+
+T =64 frames are randomly sampled from each motion clip; full preprocessing details are in Sec. F. Table 1 summarises dataset scale. Table 1: Dataset statistics. During training, T =64 frames are randomly sampled from each motion clip at 20 fps. OXL and Zoo splits are character-disjoint; H3D uses the standard split protocol with a single shared SMPL skeleton. Joint counts are the range across the corpus.                          
+
+> Dataset Train entities Val entities Train motions Val motions Joints HumanML3D [13] 1 (SMPL) 1 (SMPL) 23,384 4,384 22 Truebones Zoo [34] 54 species 11 species 939 110 9–71 Objaverse-XL (ours) 67,646 3,528 67,646 3,528 5–96
+> Total 67,701 3,540 91,969 8,022 5–96
+
+Baselines. For HumanML3D (Table 2) we compare against T2M-GPT [ 44 ], MoMask [ 12 ], and MoGenTS [ 43 ] for both text-to-motion generation and VQ-VAE reconstruction. For cross-topology reconstruction (Table 3) we adapt both tokenizers to variable-J skeletons: T2M-GPT is extended with a single-stream wrapper that treats all J joints as a flat per-frame feature ( K=1 style), while MoGenTS is extended to process per-joint position-and-velocity features for arbitrary J, producing a 
+
+T ×J grid of per-joint tokens ( K=J style). Both are padded to the max joint count ( J=96 ); padded positions are masked during attention and loss computation for fairness. These adaptations instantiate two natural tokenizer extremes—global fixed-size tokenization and per-joint tokenization—and are not intended as optimised arbitrary-topology systems. Motion generators such as AnyTop [ 9]synthesize new motions for a given skeleton topology rather than encoding an existing motion into a reusable discrete latent, and therefore do not participate in the reconstruction or transfer evaluations. 
+
+Metrics. On HumanML3D we report FID, R-Precision at Top-1/2/3, MM-Dist, and MPJPE (mm) for VQ-VAE reconstruction. The MPJPE convention is computed on the 22-joint relative-pose representation in the canonical body frame (root excluded); SAMoR-unified enters the same column under the body-joint-only protocol (global root and foot-contact channels excluded) after inverting bounding-box normalization, and is not evaluated under the full 263-D protocol. For cross-topology reconstruction we report MPJPE in 10 −2 normalized units (bounding-box frame, per-frame root subtracted) and bone-length error. Unless otherwise stated, all cross-topology experiments use the shared d=6 position-and-velocity representation; local rotations are used only in HumanML3D-compatible settings where a consistent rest pose is available. Metric definitions are in Sec. C. 
+
+4.2 HumanML3D Benchmark 
+
+To handle the root trajectory and foot-contact channels in HumanML3D’s 263-D representation, we add a parallel 1D-convolutional VQ branch for global channels following MoGenTS [ 43 ]. Table 2 reports both text-to-motion generation (top) and VQ-VAE reconstruction (bottom). 
+
+Results. On generation, SAMoR-H3D’s FID of 0.039 sits between MoGenTS ( 0.033 ) and MoMask (0.045 ); Top-3 R-Precision ties MoGenTS at 0.812 and MM-Dist ( 2.897 ) is competitive, confirming that the cross-topology part tokenizer does not hurt fixed-skeleton generation quality. On reconstruc-tion, SAMoR-H3D ( 17 .3 mm MPJPE, 0.008 FID) beats MoMask and T2M-GPT by large margins and leads MoGenTS on Top-1, Top-3, and MM-Dist despite higher MPJPE. SAMoR-unified is evaluated under the root-excluded body-joint protocol only (no root or foot-contact channels) and does not participate in the full 263-D metrics (FID, R-Precision, MM-Dist); its body-joint MPJPE of 15 .1 mm is comparable within this root-excluded MPJPE protocol, indicating that heterogeneous training preserves a useful humanoid body-joint sub-vocabulary. 7Table 2: HumanML3D benchmark. Top: text-to-motion generation; bottom: VQ-VAE reconstruction. MPJPE in mm (22-joint canonical-frame, root excluded). † numbers from papers. 
+
+Method FID ↓ Top1 ↑ Top2 ↑ Top3 ↑ MM-Dist ↓ MPJPE ↓
+
+Real motion 0.002 ±.000 0.511 ±.003 0.703 ±.003 0.797 ±.002 2.974 ±.008 —
+
+Text-to-motion generation 
+
+T2M-GPT † 0.141 ±.005 0.492 ±.003 0.679 ±.002 0.775 ±.002 3.121 ±.009 —MoMask † 0.045 ±.002 0.521 ±.002 0.713 ±.002 0.807 ±.002 2.958 ±.008 —MoGenTS † 0.033 ±.001 0.529 ±.003 0.719 ±.002 0.812 ±.002 2.867 ±.006 —
+
+SAMoR-H3D 0.039 ±.002 0.523 ±.002 0.715 ±.003 0.812 ±.001 2.897 ±.008 —
+
+VQ-VAE reconstruction 
+
+T2M-GPT † 0.070 0.489 0.676 0.775 3.130 58.0 MoMask † 0.019 ±.000 0.508 ±.003 0.701 ±.002 0.795 ±.002 2.999 ±.006 29.5 MoGenTS † 0.005 ±.000 0.504 ±.002 0.702 ±.002 0.797 ±.002 2.978 ±.006 13.8 SAMoR-H3D 0.008 ±.000 0.514 ±.001 0.701 ±.002 0.798 ±.002 2.977 ±.005 17.3 
+
+Cross-topology model, evaluated on H3D body joints 
+
+SAMoR-unified ‡ (body-joint only) — — — — — 15.1 
+
+> ‡Trained on the full cross-topology corpus; MPJPE is computed under the same root-excluded 22-joint body protocol as the reconstruction baselines and is comparable within this root-excluded MPJPE protocol. Full 263-D metrics (FID, R-Precision, MM-Dist) involving root and foot-contact channels are not reported.
+
+4.3 Cross-Topology Reconstruction and Ablations Setup and baselines. We evaluate on the curated SAMoR validation set: HumanML3D humanoid clips, held-out OXL characters ( zero character overlap with training), and Truebones Zoo animals. Per-source columns in Table 3 isolate each regime. Baseline adaptations are as described in Sec. 4.1; the strongest, MoGenTS (per-joint adapt., K=J), reaches 16 .14 ×10 −2 MPJPE, 5.8× above SAMoR. 
+
+Per-source analysis. SAMoR leads on every source; the gap is largest on H3D ( 2.28 vs. 16 .02 ,
+
+7.0×). Ablation rows trace the gains to structural inductive biases: K=1 raises Zoo MPJPE by +82% ;removing Lattn nearly doubles the average error and consistently degrades every source, while also raising Bone-Error from 0.79 to 1.16 , showing the model loses skeleton fidelity, not just positional accuracy. RVQ provides consistent gains across sources; removing it raises source-macro MPJPE by 
+
+44% .
+
+Ablation summary. The ablations confirm three contribution tiers. Core: K> 1 queries with Lattn 
+
+are essential—removing either raises MPJPE by 83 −100% . Crucially, K=8 without supervision (5.04 ) nearly matches K=1 (5.49 ), confirming that supervision—not query count—drives structured routing; we therefore ablate these two alternatives to isolate query count from cluster specialisation. 
+
+Structural components each contribute 8−10% , with RVQ accounting for +44% when removed. 
+
+Name conditioning costs only 13 −16% when omitted, keeping the pipeline robust to non-semantic rigs; this moderate impact is expected given that canonical label coverage is 100% on H3D but only 
+
+69% on OXL and 81% on Zoo (details in Sec. E). 
+
+Joint-name conditioning. Both name-ablation rows stay within +16% of the full model, confirming SAMoR does not rely on joint-name strings as a shortcut. The full dropout-probability sweep is in Sec. E. Part-query assignment visualizations in Sec. H show that appendages such as insect legs, mechanical limbs, and bird wings are routed to functional arm / leg slots even without joint-name embeddings, indicating that skeleton topology and motion patterns alone recover functionally meaningful routing. 
+
+4.4 Cross-Topology Transfer and Round-Trip Consistency 
+
+Cross-topology transfer does not have paired ground-truth target motions: given a source motion decoded onto a different target skeleton, there is no unique correct target trajectory. Hence, we evaluate transfer with (i) qualitative comparisons in Fig. 3, and (ii) round-trip MPJPE (RT-MPJPE) in Table 3, where a motion is mapped source →canonical SMPL-22 →source and compared against the original. RT-MPJPE is a transfer-consistency proxy; Fig. 3 provides the perceptual complement. 
+
+Transfer baseline and qualitative results. Fixed-skeleton tokenizers cannot decode to unseen skeleton topologies (marked “ −” in Table 3); we therefore use the K=1 variant of SAMoR as the transfer baseline—the same architecture and cross-topology decoder, but with a single part query 8Table 3: Cross-topology reconstruction and round-trip transfer consistency on the SAMoR validation set (character-disjoint from training). MPJPE and BoneErr : reconstruction quality per source split (H3D, OXL, Zoo); All is the macro-average. RT-MPJPE : round-trip MPJPE—source →canonical SMPL-22 →source (pelvis-aligned); reported for OXL and Zoo only (H3D shares the canonical SMPL-22 topology, so cross-topology transfer cost is not defined). − indicates the method does not support cross-topology transfer. Values in ×10 −2 normalized units. MPJPE (×10 −2) ↓ BoneErr RT-MPJPE (×10 −2) ↓
+
+Method / Variant All OXL H3D Zoo (×10 −2) ↓ OXL Zoo 
+
+Baselines (variable-J adaptations) 
+
+T2M-GPT [44] 35.77 35.03 36.59 35.64 11.76 − −
+
+MoGenTS [43] (per-joint adapt.) 16.14 16.36 16.02 16.07 10.42 − −
+
+SAMoR ablations — Architecture 
+
+K=1 (single part query) 5.49 5.72 4.67 6.37 1.25 8.78 10.03 w/o RVQ (single-level VQ) 3.97 4.08 3.38 4.66 0.90 8.16 9.83 w/o graph transformer 3.03 2.93 2.56 3.69 0.88 7.53 9.65 
+
+SAMoR ablations — Losses 
+
+w/o Lattn (K=8 ) 5.04 4.67 4.53 5.98 1.16 8.38 9.89 w/o bone-length loss 2.97 2.62 2.29 3.44 0.91 6.97 9.67 
+
+SAMoR ablations — Joint name conditioning 
+
+w/o joint-name emb. (train) 3.10 2.97 2.50 3.86 0.85 5.87 9.48 w/o joint-name emb. (infer.) 3.19 2.73 2.69 4.06 0.84 6.06 9.27 
+
+SAMoR (full) 2.75 2.46 2.28 3.50 0.79 5.74 8.72 
+
+that collapses all joint features into one global token instead of K=8 specialized part tokens. Fig. 3 shows SAMoR preserves appendage-specific dynamics across topology shifts, while K=1 retains only coarse body rhythm and loses limb, tail, and wing detail, consistent with the reconstruction and round-trip gaps in Table 3. Part-query assignment visualizations are in Sec. H. 
+
+Round-trip consistency. The RT-MPJPE columns in Table 3 provide a quantitative proxy for transfer consistency, routing source motions through a canonical SMPL-22 skeleton and back. SAMoR achieves the lowest OXL RT-MPJPE ( 5.74 ) and Zoo RT-MPJPE ( 8.72 ) among all high-fidelity variants, indicating that the part-token representation preserves source motion through an intermediate topology. K=1 and w/o Lattn substantially increase RT-MPJPE ( 8.78 /8.38 OXL; 10 .03 /9.89 Zoo), showing that collapsed or unsupervised pooling loses transfer-relevant part structure. Removing RVQ or the graph transformer also degrades round-trip consistency, suggesting that both discrete residual coding and graph-aware encoding contribute to robust cross-topology decoding. 
+
+## 5 Conclusion 
+
+We presented SAMoR, a cross-topology motion VQ-VAE that encodes arbitrary-skeleton motion into a fixed set of K=8 shared part-level tokens. The central challenge is that naive multi-query pooling collapses without supervision; our topology-agnostic attention supervision loss addresses this by guiding each query toward a distinct functional joint cluster, while joint-name dropout ensures robustness to unseen rigs with missing or non-semantic joint names. Trained on a unified corpus of humanoid, animal, and cross-topology characters, SAMoR reaches 2.75 ×10 −2 normalized MPJPE— 
+
+5.8× below the strongest adapted variable-J tokenizer baseline—while remaining competitive with fixed-skeleton specialists on HumanML3D. The shared discrete codebook directly enables cross-topology transfer, text-conditioned generation, and localized part-wise editing, with representative qualitative examples in the main paper, additional qualitative results in Sec. H, and videos on our project website. 
+
+Limitations and future work. SAMoR operates on joint positions rather than rotations in the cross-topology setting, because heterogeneous assets lack a unified rest-pose reference that makes local rotations comparable across rigs. Recovering bone rotations for LBS mesh animation therefore requires an IK post-process, which introduces twist ambiguity; accurate twist recovery from positions 9alone remains an open problem. The K=8 functional grouping is also a fixed design choice; learning the number and structure of groups automatically is a natural direction for future work. 
+
+## Acknowledgments and Disclosure of Funding 
+
+TB acknowledges support from the UKRI Engineering and Physical Sciences Research Council (EPSRC) through the Future Leaders Fellowship [grant number MR/Y018818/1]. GPM is a member of the Machine Learning Cluster of Excellence, EXC number 2064/1 – Project number 390727645, and is endowed by the Carl Zeiss Foundation. 
+
+## References 
+
+[1] Kfir Aberman, Peizhuo Li, Dani Lischinski, Olga Sorkine-Hornung, Daniel Cohen-Or, and Baoquan Chen. Skeleton-aware networks for deep motion retargeting. ACM Transactions on Graphics , 39(4):62:1–62:14, 2020. [2] Nikos Athanasiou, Alpár Ceske, Markos Diomataris, Michael J. Black, and Gül Varol. Mo-tionFix: Text-driven 3d human motion editing. In SIGGRAPH Asia 2024 Conference Papers ,2024. [3] Nikos Athanasiou, Mathis Petrovich, Michael J Black, and Gül Varol. Sinc: Spatial composition of 3d human motions for simultaneous action generation. In ICCV , pages 9984–9995, 2023. [4] Ilya Baran and Jovan Popovi´ c. Automatic rigging and animation of 3d characters. ACM TOG ,26(3):72–es, 2007. [5] Huiwen Chang, Han Zhang, Lu Jiang, Ce Liu, and William T Freeman. Maskgit: Masked generative image transformer. In CVPR , pages 11315–11325, 2022. [6] Xin Chen, Biao Jiang, Wen Liu, Zilong Huang, Bin Fu, Tao Chen, and Gang Yu. Executing your commands via motion diffusion in latent space. In CVPR , pages 18000–18010, 2023. [7] Matt Deitke, Ruoshi Liu, Matthew Wallingford, Huong Ngo, Oscar Michel, Aditya Kusupati, Alan Fan, Christian Laforte, Vikram Voleti, Samir Yitzhak Gadre, et al. Objaverse-xl: A universe of 10m+ 3d objects. NeurIPS , 36:35799–35813, 2023. [8] Yufan Deng, Yuhao Zhang, Chen Geng, Shangzhe Wu, and Jiajun Wu. Anymate: A dataset and baselines for learning 3d object rigging. In Proceedings of the Special Interest Group on Computer Graphics and Interactive Techniques Conference Papers , pages 1–10, 2025. [9] Inbar Gat, Sigal Raab, Guy Tevet, Yuval Reshef, Amit Haim Bermano, and Daniel Cohen-Or. Anytop: Character animation diffusion with any topology. In SIGGRAPH , pages 1–10, 2025. [10] Gemini Team, Google. Gemini 1.5: Unlocking multimodal understanding across millions of tokens of context. arXiv preprint arXiv:2403.05530 , 2024. [11] Chuan Guo, Inwoo Hwang, Jian Wang, and Bing Zhou. Snapmogen: Human motion generation from expressive texts. In The Thirty-ninth Annual Conference on Neural Information Processing Systems , 2026. [12] Chuan Guo, Yuxuan Mu, Muhammad Gohar Javed, Sen Wang, and Li Cheng. Momask: Generative masked modeling of 3d human motions. In CVPR , pages 1900–1910, 2024. [13] Chuan Guo, Shihao Zou, Xinxin Zuo, Sen Wang, Wei Ji, Xingyu Li, and Li Cheng. Generating diverse and natural 3d human motions from text. In CVPR , pages 5152–5161, 2022. [14] Yannan He, Garvita Tiwari, Tolga Birdal, Jan Eric Lenssen, and Gerard Pons-Moll. Nrdf: Neural riemannian distance fields for learning articulated pose priors. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 1661–1671, 2024. 10 [15] Yannan He, Garvita Tiwari, Xiaohan Zhang, Pankaj Bora, Tolga Birdal, Jan Eric Lenssen, and Gerard Pons-Moll. Molingo: Motion–language alignment for text-to-human motion generation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,2026. [16] Jonathan Ho and Tim Salimans. Classifier-free diffusion guidance. NeurIPS 2021 Workshop on Deep Generative Models and Downstream Applications , 2022. [17] Tomas Jakab, Ruining Li, Shangzhe Wu, Christian Rupprecht, and Andrea Vedaldi. Farm3d: Learning articulated 3d animals by distilling 2d diffusion. In 2024 International Conference on 3D Vision (3DV) , pages 852–861. IEEE, 2024. [18] Biao Jiang, Xin Chen, Wen Liu, Jingyi Yu, Gang Yu, and Tao Chen. Motiongpt: Human motion as a foreign language. NeurIPS , 36:20067–20079, 2023. [19] Peizhuo Li, Sebastian Starke, Yuting Ye, and Olga Sorkine-Hornung. WalkTheDog: Cross-morphology motion alignment via phase manifolds. In ACM SIGGRAPH 2024 Conference Papers , 2024. [20] Zizhang Li, Dor Litvak, Ruining Li, Yunzhi Zhang, Tomas Jakab, Christian Rupprecht, Shangzhe Wu, Andrea Vedaldi, and Jiajun Wu. Learning the 3d fauna of the web. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 9752–9762, 2024. [21] Di Liu, Anastasis Stathopoulos, Qilong Zhangli, Yunhe Gao, and Dimitris Metaxas. Lepard: Learning explicit part discovery for 3d articulated shape reconstruction. Advances in Neural Information Processing Systems , 36:54187–54198, 2023. [22] Matthew Loper, Naureen Mahmood, Javier Romero, Gerard Pons-Moll, and Michael J. Black. SMPL: A skinned multi-person linear model. ACM Trans. Graphics (Proc. SIGGRAPH Asia) ,34(6):248:1–248:16, October 2015. [23] Jebastin Nadar, Simone Foti, and Tolga Birdal. Posed-flow: Versatile and guided flow matching model of human pose. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 21165–21175, 2026. [24] Mathis Petrovich, Michael J Black, and Gül Varol. Tmr: Text-to-motion retrieval using con-trastive 3d human motion synthesis. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 9488–9497, 2023. [25] Ekkasit Pinyoanuntapong, Pu Wang, Minwoo Lee, and Chen Chen. Mmm: Generative masked motion model. In CVPR , pages 1546–1555, 2024. [26] Matthias Plappert, Christian Mandery, and Tamim Asfour. The kit motion-language dataset. 
+
+Big data , 4(4):236–252, 2016. [27] Sigal Raab, Inbal Leibovitch, Guy Tevet, Moab Arar, Amit H Bermano, and Daniel Cohen-Or. Single motion diffusion. arXiv preprint arXiv:2302.05905 , 2023. [28] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In ICML , pages 8748–8763. PmLR, 2021. [29] Davis Rempe, Tolga Birdal, Aaron Hertzmann, Jimei Yang, Srinath Sridhar, and Leonidas J Guibas. Humor: 3d human motion model for robust pose estimation. In Proceedings of the IEEE/CVF international conference on computer vision , pages 11488–11499, 2021. [30] Chaoyue Song, Xiu Li, Fan Yang, Zhongcong Xu, Jiacheng Wei, Fayao Liu, Jiashi Feng, Guosheng Lin, and Jianfeng Zhang. Puppeteer: Rig and animate your 3d models. arXiv preprint arXiv:2508.10898 , 2025. [31] Chaoyue Song, Jianfeng Zhang, Xiu Li, Fan Yang, Yiwen Chen, Zhongcong Xu, Jun Hao Liew, Xiaoyang Guo, Fayao Liu, Jiashi Feng, et al. Magicarticulate: Make your 3d models articulation-ready. In CVPR , pages 15998–16007, 2025. 11 [32] Keqiang Sun, Dor Litvak, Yunzhi Zhang, Hongsheng Li, Jiajun Wu, and Shangzhe Wu. Pony-mation: Learning articulated 3d animal motions from unlabeled online videos. In European Conference on Computer Vision , pages 100–119. Springer, 2024. [33] Guy Tevet, Sigal Raab, Brian Gordon, Yonatan Shafir, Daniel Cohen-Or, and Amit H Bermano. Human motion diffusion model. arXiv preprint arXiv:2209.14916 , 2022. [34] Truebones Motions Animation Studios. Truebones. https://truebones.gumroad.com/ ,2022. Accessed: 2026-05-03. [35] Aaron Van Den Oord, Oriol Vinyals, et al. Neural discrete representation learning. NeurIPS , 30, 2017. [36] Yin Wang, Mu Li, Jiapeng Liu, Zhiying Leng, Frederick WB Li, Ziyao Zhang, and Xiaohui Liang. Fg-t2m++: Llms-augmented fine-grained text driven human motion generation. IJCV ,133(7):4277–4293, 2025. [37] Shangzhe Wu, Tomas Jakab, Christian Rupprecht, and Andrea Vedaldi. Dove: Learn-ing deformable 3d objects by watching videos. International Journal of Computer Vision ,131(10):2623–2634, 2023. [38] Lixing Xiao, Shunlin Lu, Huaijin Pi, Ke Fan, Liang Pan, Yueer Zhou, Ziyong Feng, Xiaowei Zhou, Sida Peng, and Jingbo Wang. Motionstreamer: Streaming motion generation via diffusion-based autoregressive model in causal latent space. In ICCV , pages 10086–10096, 2025. [39] Mingxi Xu, Qi Wang, Zhengyu Wen, Phong Dao Thien, Zhengyu Li, Ning Zhang, Xiaoyu He, Wei Zhao, Kehong Gong, and Mingyuan Zhang. Necromancer: Breathing life into skeletons via bvh animation. arXiv preprint arXiv:2602.06548 , 2026. [40] Zhan Xu, Yang Zhou, Evangelos Kalogerakis, Chris Landreth, and Karan Singh. Rignet: Neural rigging for articulated characters. arXiv preprint arXiv:2005.00559 , 2020. [41] Chun-Han Yao, Wei-Chih Hung, Yuanzhen Li, Michael Rubinstein, Ming-Hsuan Yang, and Varun Jampani. Lassie: Learning articulated shapes from sparse image ensemble via 3d part discovery. Advances in Neural Information Processing Systems , 35:15296–15308, 2022. [42] Zhengdi Yu, Simone Foti, Linguang Zhang, Amy Zhao, Cem Keskin, Stefanos Zafeiriou, Tolga Birdal, et al. Geometric neural distance fields for learning human motion priors. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 2232–2242, 2026. [43] Weihao Yuan, Yisheng He, Weichao Shen, Yuan Dong, Xiaodong Gu, Zilong Dong, Liefeng Bo, and Qixing Huang. Mogents: Motion generation based on spatial-temporal joint modeling. 
+
+NeurIPS , 37:130739–130763, 2024. [44] Jianrong Zhang, Yangsong Zhang, Xiaodong Cun, Yong Zhang, Hongwei Zhao, Hongtao Lu, Xi Shen, and Ying Shan. Generating human motion from textual descriptions with discrete representations. In CVPR , pages 14730–14740, 2023. [45] Chongyang Zhong, Lei Hu, Zihao Zhang, and Shihong Xia. Attt2m: Text-driven human motion generation with multi-perspective attention mechanism. In ICCV , pages 509–519, 2023. [46] Yi Zhou, Connelly Barnes, Jingwan Lu, Jimei Yang, and Hao Li. On the continuity of rotation representations in neural networks. In CVPR , pages 5745–5753, 2019. [47] Qiran Zou, Shangyuan Yuan, Shian Du, Yu Wang, Chang Liu, Yi Xu, Jie Chen, and Xiangyang Ji. Parco: Part-coordinating text-to-motion synthesis. In ECCV , pages 126–143. Springer, 2024. 12 Appendix A Implementation Details 
+
+A.1 SAMoR Stage 1: Part VQ-VAE Architecture hyperparameters. Table 4 summarises the key architectural parameters. The encoder and decoder each consist of L=4 ChainAwareGraphTransformerBlock layers. Each block alternates temporal self-attention (standard multi-head attention along the T axis per joint) and spatial graph-transformer attention (along the J axis per frame) with a two-layer FFN. Temporal downsampling by 
+
+4× is achieved through two stacked strided Conv1d layers (stride 2 each), producing (T / 4) temporal positions. Table 4: SAMoR Stage 1 architecture and training hyperparameters. 
+
+Parameter Value Note 
+
+Model dimension D 512 Encoder/decoder blocks L 4 + 4 Attention heads 4 head dim = 128 
+
+FFN hidden dim 1024 Temporal downsampling 4× two stride-2 Conv1d Max joints Jmax 96 padded; real joints masked Clip length T 64 frames randomly sampled Part queries K 8RVQ depth R 6Codebook size V 512 per RVQ level, EMA updates Quantize-dropout prob. 0.5 drops deeper RVQ levels Name-dropout prob. p 0.3 Max hop distance 20 clamped for bias lookup Edge types 6 see Sec. A.2 Dropout 0.1 Batch size 64 Learning rate 10 −4 5% linear warmup Optimizer AdamW β1=0 .9, β2=0 .999 
+
+Precision bf16 EMA decay 0.99 on codebook entries Epochs 100 Hardware 4× GH200 96 GB Training time ∼96 h wall-clock 
+
+Training losses. The VQ-VAE is trained with the weighted sum: 
+
+L = λpos Lpos + λvel Lvel + λvq Lvq + λbone Lbone + λsmooth Lsmooth + λattn Lattn , (3) where Lpos and Lvel are smooth-ℓ1 losses on root-relative joint positions and frame-to-frame velocities; 
+
+Lvq is the VQ commitment loss; Lbone is the bone-length consistency loss (squared parent-to-child distance error); Lsmooth penalises temporal variation of the quantized part-token latents ( ∥zt+1  
+
+> q
+
+− ztq ∥2
+
+averaged over time); and Lattn is the attention supervision loss. Weights are given in Table 5. A rotation reconstruction loss is added only in the HumanML3D-compatible setting. Table 5: Loss weights used during Stage 1 training. 
+
+Loss Weight Description 
+
+Lpos 1.0 smooth-ℓ1 on joint positions 
+
+Lvel 0.5 smooth-ℓ1 on joint velocities 
+
+Lvq 1.0 VQ commitment + entropy 
+
+Lbone 2.0 bone-length consistency 
+
+Lsmooth 0.01 latent temporal smoothness 
+
+Lattn 1.0 attention supervision 
+
+13 A.2 Graph Structural Biases 
+
+Each spatial self-attention layer in the graph-transformer encoder and decoder adds learned structural biases to the pre-softmax attention logits. For a query joint i and key joint j, the total bias is: 
+
+b(i, j ) = q⊤ 
+
+> i
+
+wtq d(i,j ) + k⊤ 
+
+> j
+
+wtk d(i,j ) + q⊤ 
+
+> i
+
+weq e(i,j ) + k⊤ 
+
+> j
+
+wek e(i,j ) + q⊤ 
+
+> i
+
+wcq c(i,j ) + k⊤ 
+
+> j
+
+wck c(i,j ), (4) where qi, kj ∈ RD/H are per-head query and key vectors, and w·· are learned embedding vectors looked up by three integer indices. 
+
+Hop-distance bias ( d(i, j )). d(i, j ) is the shortest-path distance between joints i and j on the kinematic tree, computed via Floyd–Warshall and clamped to dmax =20 . Two embedding tables (wtq and wtk , each of size (dmax +1) × D) provide query-side and key-side biases that decay with skeleton distance, encouraging joints that are close in the kinematic tree to attend more strongly to one another. 
+
+Semantic edge-type bias ( e(i, j )). Six semantic categories capture the directed structural relationship between every pair of joints:               
+
+> Type Condition 0i=j, non-leaf joint (self) 1jis the direct parent of i
+> 2jis a direct child of i
+> 3iand jshare the same direct parent (siblings) 4all other pairs (no direct relation) 5i=j, leaf joint (end-effector)
+
+Two embedding tables ( weq , wek , each 6 × D) provide query-side and key-side biases. Types 1–3 distinguish the immediate kinematic neighbourhood; type 5 specialises end-effectors, which often carry distinctive motion signatures (hands, feet, tail tips). 
+
+Same-chain binary bias ( c(i, j )). c(i, j ) ∈ { 0, 1} indicates whether joints i and j belong to the same kinematic chain —a maximal linear path in the tree with no branching nodes between them. Chain membership is computed once per skeleton via DFS from the root: single-child nodes continue the current chain; branching nodes start new chains for each child. Two embedding tables ( wcq , wck ,each 2 × D) encourage joints on the same chain (e.g., all vertebrae of a spine, all segments of a tail) to form coherent part representations. All bias terms in Eq. (4) are summed and added to the standard scaled dot-product scores before softmax, and are shared across all heads within a block but independent across blocks. Padded joints (beyond the true skeleton size) are masked to −∞ before the softmax. 
+
+A.3 Stage 2: MaskGIT Token Generator 
+
+A MaskGIT transformer is trained over the (T / 4) ×K grid of SAMoR part tokens, conditioned on a text embedding and the target skeleton. The main transformer (12 layers, D=512 , 8 heads) predicts level-0 RVQ code indices; a lightweight residual transformer (4 layers, same D) predicts the remaining R−1 RVQ levels conditioned on the decoded level-0 codes. Text is encoded by a frozen CLIP text encoder [28] and injected via cross-attention at every layer. 
+
+Training objective. Both the main and residual transformers are trained with cross-entropy loss computed only over masked positions (unmasked positions are excluded via ignore_index ): 
+
+LS2 = − X
+
+> m∈M
+
+log pθ
+
+ ˆcm | c\M , y, S, (5) where M is the set of masked token positions, ˆcm is the ground-truth code at position m, y is the CLIP text embedding, and S is the skeleton conditioning. Label smoothing ϵ=0 .1 is applied. 
+
+Training details. Stage 2 is trained for 300 epochs with batch size 32, learning rate 10 −4, and a cosine decay schedule with linear warm-up, on 4 × GH200 96 GB GPUs ( ∼12 h wall-clock). Tokens 14 are masked with a mixed strategy: each batch randomly applies either temporal-frame masking (masking all K parts in selected frames) or random-token masking (independently masking tokens across the (T / 4) ×K grid), with equal probability. The masking ratio is sampled from a cosine schedule r ∼ cos −1(u) · 2 
+
+> π
+
+for u ∼ U [0 , 1] , and a BERT-style corruption is applied: 88% of masked positions receive a special M ASK token, 10% are replaced with a random code, and 2% are left unchanged. 
+
+Inference. Tokens are generated iteratively in 18 MaskGIT decoding steps. At each step, the model predicts all masked positions simultaneously; the least-confident tokens are re-masked according to a cosine unmasking schedule, and confident tokens are committed. Classifier-free guidance [ 16 ]with scale s=4 .0 and temperature 1.0 is used at inference; the null condition drops both the text embedding and the skeleton conditioning. 
+
+A.4 Mesh-to-Animation Frontend 
+
+The mesh-to-animation qualitative results in the main paper and supplementary videos use Pup-peteer [ 30 ] as the automatic rigging and skinning frontend. Given a raw textured mesh, Puppeteer predicts a skeleton and per-vertex skinning weights; the resulting rigged character is then passed directly to SAMoR for motion generation or transfer. Other off-the-shelf auto-rigging systems such as MagicArticulate [31] and AnyMate [8] are compatible with the same pipeline. 
+
+## B Canonical Joint-Name Matching 
+
+Per-joint functional-group labels yj ∈ { 0, . . . , 7} ∪ {− 1} are derived automatically from raw joint name strings in two stages. 
+
+Stage 1: name cleaning. Raw names undergo a sequence of normalisation steps: (i) strip namespace and vendor prefixes ( mixamorig: , Bip01_ , BN_ , etc.) applied iteratively up to three times to handle nested prefixes; (ii) convert left/right suffix conventions ( _L , R_ , _left , etc.) to a canonical 
+
+Left /Right prefix; (iii) split CamelCase tokens ( LeftForeArm → Left Fore Arm ); (iv) replace underscores and dots with spaces and collapse whitespace. 
+
+Stage 2: canonical lookup. Cleaned names are matched against a dictionary of ∼130 synonym groups, each mapping surface variants to a canonical name (e.g., upper arm , upperarm , uarm →
+
+left upper arm ). Unresolved names undergo progressive fallback: strip residual numeric suffixes, drop unknown leading tokens, and apply keyword-based regex patterns (e.g., wing , thigh , toe ). Joints that remain unmatched after all fallback steps receive yj =−1 and contribute no terms to the attention supervision loss. 
+
+Label coverage. Applying the pipeline above, canonical part labels are successfully assigned to 
+
+100% of joints in H3D (standardised MoCap names), 81% in Zoo (semi-standard creature rigs), and 
+
+69% in OXL (highly diverse artist-authored rigs with vendor-specific naming conventions). The remaining unlabelled joints are treated as unknown at both training and inference; name dropout during training ensures the model does not rely on label availability. 
+
+8-slot functional-group mapping. Matched canonical names are mapped to one of eight part indices via the table in Table 6. Labels are used only during training; at inference, joints are routed by the learned cross-attention. 
+
+## C Metric Definitions 
+
+MPJPE (normalised). For cross-topology evaluation, all positions are expressed in a bounding-box normalised coordinate frame (character scaled to unit bounding box) with the per-frame root joint subtracted. Mean Per-Joint Position Error is then: MPJPE = 1
+
+T J real 
+
+> T
+
+X
+
+> t=1
+
+X
+
+> j∈J
+
+ˆptj − ptj 2, (6) where J indexes non-padded joints and values are reported in units of 10 −2 (i.e., 1% of bounding-box diameter). For HumanML3D, MPJPE is computed on the 22-joint relative-pose representation in the canonical body frame (root excluded) in millimetres, following the standard MoMask evaluator. 15 Table 6: Canonical-name-to-part mapping for the K=8 functional-group slots. Entries in each cell are canonical names; starred entries cover indexed variants ( tail1 –tail5 , left leg1 –left leg4 ,etc.).                   
+
+> Index Part name Canonical joint names
+> 0lower torso hips, body 1upper torso spine, spine1–3, chest 2head / neck neck, neck1–2, head, jaw, left/right eye, nose, left/right ear, tongue, tongue2, left/right eyebrow 3left arm left clavicle, left shoulder, left upper arm, left elbow, left forearm, left wrist, left hand, left finger0–4, left wing1–4 4right arm right clavicle, right shoulder, right upper arm, right elbow, right forearm, right wrist, right hand, right finger0–4, right wing1–4 5left leg left upper leg, left knee, left leg, left horse link, left ankle, left foot, left toe, left toe end, left heel, left leg1–4 ∗
+> 6right leg right upper leg, right knee, right leg, right horse link, right ankle, right foot, right toe, right toe end, right heel, right leg1–4 ∗
+> 7tail tail, tail1–5 ∗
+
+Bone-length error. Squared deviation of predicted bone lengths from ground truth, averaged over all parent–child pairs and frames: 
+
+Lbone = 1
+
+T |E| 
+
+> T
+
+X
+
+> t=1
+
+X
+
+> (j,p )∈E
+
+
+
+∥ˆptj − ˆptp∥2 − ∥ ptj − ptp∥2
+
+2
+
+, (7) where E is the set of parent–child edges and p=pa( j). Reported in the same normalised units as MPJPE. 
+
+HumanML3D metrics. FID, R-Precision (Top-1/2/3), and MM-Dist are computed using the standard feature extractor and evaluation protocol from MoMask [ 12 ], applied to 263-D SMPL motion sequences. We follow the same evaluation script without modification. 
+
+## D Baseline Adaptation Details 
+
+Both fixed-skeleton tokenizers are adapted to variable-J inputs using a unified padding scheme: skeletons are zero-padded to Jmax =96 joints, with padded positions masked to −∞ in attention and excluded from the loss computation. 
+
+T2M-GPT (K=1 flat). T2M-GPT [ 44 ] is a single-stream VQ-VAE that encodes each frame as one global token. We adapt it to arbitrary skeletons by concatenating all J per-joint position-and-velocity features into a single flat per-frame feature vector of dimension Jmax ×6, then applying the original 1D-convolutional encoder unchanged. This gives one token per downsampled frame ( K=1 style) with no joint-wise structure. 
+
+MoGenTS (K=J per-joint grid). MoGenTS [ 43 ] uses a 2D grid of tokens over time and joints. We extend it to arbitrary J by replacing the fixed SMPL-22 joint set with a variable number of joints: each joint receives its own d=6 position-and-velocity feature (no rotation), producing a T ×J grid of per-joint tokens ( K=J style). The architecture (1D convolutions along each axis independently) is applied unchanged; padded joint positions receive zero features and are masked during attention and loss. Both baselines are trained on the same unified heterogeneous corpus as SAMoR with the same data splits, loss functions (position + velocity smooth-ℓ1), and training budget, to ensure a fair comparison. 
+
+## E Joint-Name Conditioning Analysis 
+
+We expand on the two name-conditioning rows of the cross-topology ablation ( labels-only and drop name @ inference ) with the full training-time dropout sweep and a per-source sensitivity analysis. 
+
+Dropout-probability sweep. We train SAMoR variants with name-dropout probability p ∈{0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0} on the full cross-topology training corpus and evaluate each check-16 point twice: once with joint-name embeddings ( with-name ), and once with all embeddings replaced by zero at inference time ( drop-name ). Table 7 reports both columns, the absolute gap, and the relative gap. The trade-off forms a clean Pareto frontier: p=0 .0 achieves the best with-name MPJPE (2.63 × 10 −2) but is brittle under name removal ( +80% relative gap). SAMoR’s default p=0 .3
+
+preserves 95% of the p=0 accuracy while reducing the gap from 80% to 16% , so a single checkpoint deploys on both well-named and unnamed rigs. Table 7: Name-dropout sweep on the SAMoR validation set. All values are MPJPE in 10 −2
+
+normalized units (root translation excluded, consistent with the HumanML3D convention). Gap (rel.) 
+
+is (drop-name − with-name )/with-name .
+
+p with-name drop-name gap (abs.) gap (rel.) Notes 
+
+0.0 2.63 4.74 2.11 80% best with-name; brittle 
+
+0.1 2.67 4.27 1.60 60% 0.3 2.75 3.19 0.44 16% SAMoR default 
+
+0.5 2.85 3.27 0.42 15% balanced 
+
+0.7 2.95 3.22 0.27 9% 0.9 3.05 3.17 0.12 4% 1.0 3.10 3.10 0 0% labels-only; fully robust 
+
+Per-source sensitivity. The drop-name penalty is source-dependent. H3D is most name-sensitive: at p=0 , removing names inflates H3D MPJPE from (3 .19 → 7.96) ×10 −2 (+150% ), because the model exploits the well-vocabularised SMPL joint names. OXL shows an intermediate 76% jump ((3 .91 → 6.88) × 10 −2). Zoo is most robust: only 53% ((5 .30 → 8.13) × 10 −2), because cross-species diversity forces reliance on structural priors. At p=1 .0, all three sources become statistically indistinguishable, indicating zero name dependence. Bone error and jitter are largely insensitive to dropout, indicating that name embeddings primarily affect positional accuracy rather than skeleton consistency or temporal smoothness. 
+
+Practical implication. The drop-name @ inference row uses the p=0 .3 checkpoint evaluated without names, giving the worst-case behaviour on rigs with no semantic joint labels. The labels-only row trains a separate p=1 .0 checkpoint and shows the lower bound achievable with zero name dependence. In deployment we ship the p=0 .3 checkpoint; unnamed inputs fall through to the drop-name path with the modest cost reported in the ablation table. 
+
+## F Dataset Details 
+
+Dataset statistics are summarised in Table 1 of the main paper; here we give additional preprocessing details. 
+
+Shared normalization. All three sources undergo the same geometric normalization before training. Each character is centered and scaled to unit size using the mesh bounding box. The up axis is corrected to +Z using foot and leg joint keyword detection on the skeleton. The facing direction is aligned to +Y using hip–shoulder or foot-pair landmarks. Finally, the skeleton is translated so that the lowest foot joint lies at Z=0 (Z-floor alignment). For OXL and Zoo, the first frame of each motion clip serves as the pose anchor injected into the encoder and decoder at every graph-transformer layer; for HumanML3D-compatible experiments, the canonical SMPL rest pose is used instead. 
+
+HumanML3D. We follow the standard HumanML3D 263-D feature extraction: root trajectory, relative joint positions, 6D joint rotations, joint velocities, and binary foot-contact indicators, con-catenated per frame. In addition, we augment the dataset with additional humanoid characters by fitting SMPL meshes to posed bodies, applying skeleton augmentation (random perturbations to bone lengths and proportions), and normalizing the resulting meshes to unit size with the same up-axis and facing-direction convention as OXL and Zoo. The official train/val split is used unchanged. 
+
+Truebones Zoo. Raw FBX files are processed in Blender to extract the skeleton hierarchy, per-vertex skinning weights, and motion sequences, which are exported as BVH. The shared normalization is then applied. Motions are split at the species level: 54 species for training and 11 species for validation, ensuring zero species overlap between splits. Validation species are: Ant, Buzzard, Chicken, Crocodile, Elephant, Flamingo, Lion, Ostrich, PolarBearB, Puppy, and SandMouse. At 17 training time, T =64 frames are randomly sampled from each motion; the full motion is used at evaluation. 
+
+Objaverse-XL. Starting from the raw GLB assets, we run a Blender Python pipeline that (i) exports the skinned mesh at the first animation frame as object.obj (with UV and texture maps), and (ii) exports the full animation as a BVH in which all joint rotations are expressed relative to the first frame ( Rrel  
+
+> t
+
+= R−10 Rt). The shared normalization is applied after export. The resulting assets pass through a multi-stage curation pipeline: 1. Rigging validity. Characters whose skeleton root bone lies outside the mesh bounding box are discarded, along with a manually curated exclusion list of visually confirmed broken rigs. 2. Inside-mesh filter. We voxelize the mesh at 64 3 resolution and discard any character for which more than 50% of skeleton joints fall outside the mesh volume, indicating a misaligned or broken rig. 3. Near-static filter. Characters whose maximum per-joint rotation standard deviation across time falls below a threshold, combined with low joint displacement, are removed as effectively pose-only assets. 4. Repetition filter. Pairs of characters sharing identical joint counts, identical parent connections, and near-identical joint positions on five randomly sampled frames are treated as duplicates; all but one are discarded. 5. Joint count. Characters with fewer than 5 or more than 96 joints are excluded. 6. Short clip filter. Motion clips shorter than 16 frames at 20 fps are discarded. 7. Out-of-bounds filter. Before training, clips in which any joint position exceeds 3.0 normalised units from the origin after shared normalisation are removed, as these indicate residual normalisa-tion failures. After curation, the remaining characters are split at the character level (zero character overlap between train and val). 
+
+OXL character type distribution. We generate one motion caption per character by rendering a 
+
+4×4 keyframe strip (front/side views × mesh/skeleton) and prompting Gemini Flash [ 10 ] to classify the character type and produce short, medium, and detailed captions. Characters for which Gemini returns no type label (API non-responses) are assigned the G ENERIC type. Table 8 reports the resulting type distribution. Table 8: OXL character type distribution over all 71,174 curated characters. Characters without a Gemini-assigned label are counted as G ENERIC .                 
+
+> Type Characters %HUMANOID 24,596 34.6 GENERIC 31,374 44.1 BIPED OTHER 5,866 8.2 QUADRUPED 4,592 6.5 WINGED 3,099 4.4 MULTI -LIMB 1,647 2.3
+> Total 71,174 100.0
+
+## G Pose Anchor Design 
+
+SAMoR injects a per-character pose anchor into every graph-transformer layer to condition the encoder and decoder on skeleton geometry. When a canonical rest pose is available—as in Hu-manML3D, where all characters share the SMPL rest pose—we use it directly. For heterogeneous cross-topology assets (OXL, Zoo), rest poses are not consistently defined across rigs: different exporters and artists produce T-poses, A-poses, or arbitrary bind poses that are not comparable across species or asset styles. Using an ill-defined rest pose as the anchor would introduce inconsistent geometry conditioning, reducing the model’s ability to generalize across the diverse topologies in our corpus. 18 We therefore use the first frame of each motion clip as the pose anchor for OXL and Zoo. This is a principled choice: the first frame is always available, is free of exporter inconsistencies, and—because different characters start from different first-frame configurations—encourages the model to learn motion representations that are robust to diverse starting poses rather than overfitting to a fixed rest-pose convention. For reconstruction, the first frame belongs to the input clip and is available at test time; since MPJPE is computed in per-frame root-relative coordinates, the absolute starting pose does not inflate the reconstruction metric. At transfer or generation time the pose anchor is drawn exclusively from the target rig and carries no information from the source motion, so cross-topology evaluation is free of motion-cue leakage through the anchor. 
+
+## H Additional Qualitative Results 
+
+We now provide additional qualitative evaluations regarding the part assignment of SAMoR, followed by end-to-end mesh animation and part composition. 
+
+Part assignment visualizations. Fig. 4 shows inference-time part assignment of SAMoR’s right-arm and right-leg queries on six held-out characters with no joint names provided. The model routes functionally corresponding appendages to corresponding functional slots across biological (Chicken, Buzzard, Crocodile), non-biological (Robot), insect (Fire Ant), and humanoid rigs. 
+
+End-to-end mesh animation and part composition. Fig. 5 shows two complete mesh-animation pipelines—driving an AI-generated, auto-rigged mesh by text-conditioned generation and by cross-topology motion transfer—together with a part-based motion composition example that blends the upper- and lower-body part tokens of different source motions. Video versions of all examples are on our project website. 
+
+Figure 4: Functional-query alignment across skeleton topologies. Dominant joint assignment of SAMoR’s right-arm-like (red) and right-leg-like (green) queries on six held-out characters (Chicken, Buzzard, Fire Ant, Crocodile, Humanoid, Robot) at inference time (no joint names provided). Each query localizes to functionally corresponding appendage chains—forelimbs, wings, and leading insect legs for the arm-like query; hindlimbs and walking-leg pairs for the leg-like query—showing that 
+
+Lattn (Sec. 3.2) induces functional group routing that generalizes across biological, non-biological, and mechanical rigs. 19 Mesh Animation Pipeline 
+
+Part-Based Motion Composition 
+
+> Prompt
+> “The character does a round kick with left leg”
+
+Generation Transfer 
+
+Upper-Body Motion (Eagle) 
+
+Lower-Body Motion (Humanoid) 
+
+AI Generated Image AI Generated Mesh Rigged Mesh Auto-Rigging Auto-Rigging Rigged Mesh AI Generated Mesh AI Generated Image 
+
+AI Generated Image AI Generated Mesh Rigged Mesh 
+
+Generation 
+
+> Prompt
+> “The character is walking”
+
+Upper-Body Motion (Humanoid A) 
+
+Lower-Body Motion (Humanoid B) 
+
+Composed Motion (Humanoid C) 
+
+Composed Motion (Chicken) 
+
+Auto-Rigging 
+
+Transfer 
+
+Auto-Rigging Rigged Mesh AI Generated Mesh AI Generated Image Figure 5: End-to-end mesh animation and part-based motion composition. Top — Mesh An-imation Pipeline: from a single AI-generated image we reconstruct a 3D mesh, auto-rig it, and drive it with SAMoR via text-conditioned generation and cross-topology motion transfer. Bottom — Part-Based Motion Composition: SAMoR’s per-part tokens let us compose a new motion by pairing the upper-body part tokens of one source motion with the lower-body part tokens of another, yielding a coherent blended motion. Video versions of all examples are on our project website. 20

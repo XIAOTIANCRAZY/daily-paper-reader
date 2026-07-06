@@ -1,0 +1,180 @@
+Title: Zero-Gated Language-conditioned Human Motion Prediction
+
+URL Source: https://arxiv.org/pdf/2606.29208v1
+
+Published Time: Tue, 30 Jun 2026 00:58:49 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+# Zero-Gated Language-conditioned Human Motion Prediction 
+
+## Guanhui Qiao ab Lu Zhou a Ding Jiang c Jinqiao Wang abcd*  
+
+> a
+
+Foundation Model Research Center, Institute of Automation, Chinese Academy of Sciences, Beijing 100190, China  
+
+> b
+
+School of Artificial Intelligence, University of Chinese Academy of Sciences, Beijing 100049, China  
+
+> c
+
+Wuhan AI Research, Wuhan 430073, China  
+
+> d
+
+Peng Cheng Laboratory, Shenzhen 518066, China  
+
+> *
+
+Corresponding author: jqwang@nlpr.ia.ac.cn 
+
+> Emails: Guanhui Qiao: qiaoguanhui2021@ia.ac.cn; Lu Zhou: lu.zhou@nlpr.ia.ac.cn Ding Jiang: jiangding@wair.ac.cn; Jinqiao Wang: jqwang@nlpr.ia.ac.cn
+
+Abstract 
+
+Pose histories provide the core kinematic evidence for 3D human motion prediction, but they lack explicit high-level semantic guid-ance. This paper introduces ZGL , a lightweight language-conditioned predictor that uses captions of the observed motion as a seman-tic prior while preserving a strong motion backbone as the main source of dynamics. We render only the observed poses, gener-ate a one-sentence description with a vision-language model, en-code the caption with a frozen CLIP-L text tower, and project it into a small set of conditioning tokens. These tokens are injected into a DCT-based spatial-temporal Transformer by compact cross-attention adapters with zero gates: each adapter output is multi-plied by a learnable gate initialized to zero, so the full network is numerically identical to the pose-only baseline at initialization and can learn to use language only when it reduces prediction error. On Human3.6M, ZGL improves overall MPJPE over representative motion-prediction baselines in our comparison. Results on CMU-Mocap further show that compact caption conditioning transfers to a second benchmark and provides a practical semantic cue for 3D human motion prediction. 
+
+CCS Concepts 
+
+• Computing methodologies → Motion processing ; Activity recognition and understanding ; Natural language processing .
+
+Keywords 
+
+3D human motion prediction; text-conditioned motion forecasting; zero-gated cross-attention; vision-language captions; Transformer adapters 
+
+1 Introduction 
+
+3D human motion prediction (HMP) forecasts future joint trajec-tories from an observed motion sequence. It is a core component for virtual characters, mixed reality avatars, assistive robots, and embodied agents that must react before a full human action has un-folded. The dominant progress in HMP has come from modeling motion itself: early recurrent and structural recurrent models [9, 18, 28], graph and attention networks [2, 7, 20, 21, 26, 27, 32], MLP-Mixer style predictors [13], and recent graph, transformer, and frequency-domain systems such as SimpliHuMoN and KHMP [1, 37]. Recent studies continue to refine this motion-only line through 
+
+> Preprint,
+> 2026.
+
+active perception, human-like inference, one-step formulations, in-terpretable graphs, and multi-resolution temporal modeling [4, 11, 16, 22–24, 29, 36, 41]. Pure motion sequences, however, are a narrow description of human behavior. Many future motions are easier to interpret once the observed motion is described at a semantic level: a person may be walking forward, turning, sitting down, or preparing to reach. Modern vision-language models (VLMs) can produce such descrip-tions from simple stick-figure renders, turning each motion clip into a lightweight natural-language prior. Text-to-motion genera-tion has already shown the value of language as a motion-level con-trol signal [12, 15, 19, 34, 39, 40]. In prediction, the role of text is dif-ferent: the observed motion remains the primary evidence, while language should quietly supply high-level context only when it helps. This distinction motivates a design principle: text conditioning for HMP should be useful but hard to overfit. The observed motion sequence already carries most of the predictive signal, so language should serve as a complementary cue rather than a replacement for motion dynamics. For a well-tuned transformer predictor, it is natural to ask whether semantic captions can be used through a small and transparent interface. We propose ZGL , a text-guided zero-gated cross-attention recipe for 3D HMP. Starting from a DCT-based spatial-temporal Trans-former backbone, we encode a VLM-generated caption with a frozen plain CLIP-L text tower, project the caption embedding into a small set of conditioning tokens, and insert a cross-attention adapter af-ter each motion encoder block. The critical choice is zero-gating: every adapter output is multiplied by a learnable gate initialised to zero [3, 30]. At initialization, the full model is numerically identical to the no-text baseline. During training, the adapter can learn to use text only where the caption supplies predictive information. The contributions of this paper are: 
+
+• We introduce ZGL , a compact text-conditioning module for 3D human motion prediction that adds zero-gated cross-attention adapters to a strong DCT-based spatial-temporal Transformer backbone. 
+
+• We show that VLM-generated captions can improve a com-petitive Human3.6M predictor with a simple frozen CLIP-L text tower and a small set of conditioning tokens. 
+
+• We validate the same recipe on CMU-Mocap, showing that the method remains competitive when transferred to a sec-ond benchmark.  
+
+> 1
+> arXiv:2606.29208v1 [cs.CV] 28 Jun 2026 Preprint, 2026, Qiao et al.
+
+Figure 1: Overview. A VLM-generated caption is encoded by a frozen plain CLIP-L tower into a single 768-d vector. A learnable projection produces 𝑀 conditioning tokens. After every encoder block of the Transformer motion backbone, a zero-gated cross-attention adapter lets motion tokens attend to the conditioning tokens. Classifier-free dropout replaces a fraction of samples’ text with a learnable null token during training. At initialisation the gate 𝛾 is zero, so the model is numerically identical to the no-text baseline; any improvement is attributable to the adapter learning to use the text. 
+
+2 Method 2.1 Backbone 
+
+We take a DCT-based spatial-temporal Transformer baseline as our motion backbone [2, 13]. Given an observed window 𝑥 ∈ R𝐵 ×𝑇 in ×𝐽 ×3
+
+of 𝑇 in =10 subsampled frames and 𝐽 joints (22 for Human3.6M and 25 for CMU), the input is first transformed into the discrete cosine transform (DCT) domain along the time axis following siMLPe [13]. A linear joint embedding lifts the per-joint coordinates to 𝐶 = 128 
+
+channels and a learnable positional embedding is added. The backbone is an 𝑁 =6-block stack. Each block runs a parallel spatial attention and temporal attention, fused by a learned soft mixture. We re-use the published hyperparameters: 8 heads, MLP ratio 4, drop-path 0.2, LayerScale init 10 −5, learning rate 5 × 10 −4
+
+with LR decay 0.999, batch size 64, and 58 epochs of training. The output head is a two-layer MLP that maps the encoded sequence back to joint coordinates, followed by inverse DCT and a residual on the last input frame as in [13]. 
+
+2.2 Text encoder and projection 
+
+Each input window is described by a one-sentence caption gener-ated by Qwen2.5-VL applied to a stick-figure rendering of the ob-served motion only; future frames are not used for caption genera-tion. The caption is encoded by a frozen CLIP-ViT-L/14 text tower into a single 𝑑 text = 768 -dimensional vector 𝑡 ∈ R𝑑 text . We use the standard 77-token CLIP encoder; the impact of this choice relative to BGE-M3 and Long-CLIP-L is measured in Section 3.3. The text tower is never fine-tuned. This keeps the caption pathway separate from motion learning and avoids introducing a second large opti-mization problem into the motion predictor. It also makes the con-ditioning signal cheap to cache: each training window only needs one caption embedding, while all temporal reasoning remains in-side the motion backbone. A small projection head maps 𝑡 into 𝑀 conditioning tokens 
+
+tkv = LN  GELU (𝑊 𝑡 + 𝑏 ) ∈ R𝑀 ×𝐶 , (1) with a learnable null token 𝑡 ∅ ∈ R𝑀 ×𝐶 initialised to zero. Following classifier-free guidance [14], during training we replace tkv by 𝑡 ∅
+
+for a fraction 𝑝 of samples (we use 𝑝 =0.1), so the model also learns an unconditional mode and cannot collapse onto the text channel alone. 
+
+2.3 Zero-gated cross-attention adapter 
+
+Our method, ZGL , inserts a text-guided zero-gated cross-attention adapter after every encoder block ℓ ∈ { 0, . . . , 𝑁 −1}. The interme-diate representation 𝑥 ℓ ∈ R𝐵 ×𝑇 ×𝐽 ×𝐶 is augmented by an additive cross-attention adapter: 
+
+𝑞 = LN 𝑞 (𝑥 ℓ ) ∈ R𝐵 ×𝑇 𝐽 ×𝐶 , (2) 
+
+𝑘, 𝑣 = LN 𝑘𝑣 (tkv ) ∈ R𝐵 ×𝑀 ×𝐶 , (3) 
+
+𝑎 = MHA (𝑞, 𝑘, 𝑣 ), (4) 
+
+𝑥 ℓ+1 = 𝑥 ℓ + 𝛾 ⊙ Proj (𝑎 ), (5) where MHA is multi-head attention with 8 heads, Proj is a 𝐶 → 𝐶 
+
+linear with dropout, and 𝛾 ∈ R𝐶 is a per-channel learnable gate ini-tialised to zero [3, 6, 30, 35]. At initialisation 𝛾 = 0 so the adapter  
+
+> 2Zero-Gated Language-conditioned Human Motion Prediction Preprint, 2026,
+
+Table 1: State-of-the-art comparison on Human3.6M. MPJPE (mm); lower is better. 
+
+## Method Short-term (ms) Long-term (ms) Average 80 160 320 400 560 1000 Short Long Overall Res-sup [28] 34.70 62.00 101.10 115.50 97.60 130.50 78.33 114.05 90.23 DMGNN [21] 17.00 33.60 65.90 79.70 103.00 137.20 49.05 120.10 72.73 LTD/Traj-GCN [27] 12.70 26.10 52.30 63.50 81.60 114.30 38.65 97.95 58.42 MSR-GCN [7] 12.10 25.60 51.60 62.90 81.10 114.20 38.05 97.65 57.92 DSTD-GC [10] 10.38 23.34 48.77 59.84 77.81 111.02 35.58 94.42 55.19 DpNet [33] 10.30 22.90 47.90 58.10 77.00 109.90 34.80 93.45 54.35 GuidanceReg [8] 10.60 22.80 47.30 58.30 76.60 109.60 34.75 93.10 54.20 PGBIG [25] 10.30 22.70 47.40 58.50 76.90 110.30 34.73 93.60 54.35 
+
+## ZGL (Ours) 9.27 20.60 45.14 56.32 75.15 109.96 32.83 92.56 52.74 Table 2: CMU-Mocap SOTA comparison. MPJPE (mm). 
+
+Method 80 160 320 400 1000 Avg. LTD [27] 8.10 17.70 33.00 40.90 86.20 37.18 DMGNN [21] 13.60 24.10 47.00 58.80 112.60 51.22 MSR-GCN [7] 8.10 15.20 30.60 38.60 83.00 35.10 STSGCN [32] 10.80 18.40 31.20 41.20 81.70 36.66 PGBIG [25] 7.60 14.30 29.00 36.60 81.70 33.84 SPGSN [20] 8.30 14.80 28.70 37.00 77.80 33.32 DpNet [33] 8.40 14.50 30.50 39.70 91.30 36.88 
+
+ZGL (Ours) 6.57 11.96 25.78 33.38 83.17 32.17 
+
+Table 3: Injection placement ablation. MPJPE (mm); lower is better. 
+
+## Layers 80 160 320 400 short-AVG 1 9.58 21.08 45.87 57.21 33.44 1,2 9.52 20.98 46.05 57.39 33.48 1,2,3 9.68 21.16 46.01 57.36 33.55 1,2,3,4 9.48 21.00 45.88 57.36 33.43 1,2,3,4,5 9.47 21.03 45.94 57.21 33.41 all 9.27 20.60 45.14 56.32 32.83 
+
+is an exact identity and the model is numerically equivalent to the no-text Transformer baseline (Figure 1). The adapter has ≈ 200 kparameters per layer, increasing the model size from 4.5 M to 5.7 M parameters – less than a 27 % addition on top of the baseline. This identity start is important in HMP because the pose stream is al-ready highly predictive. A non-zero text branch can disturb a well-trained motion prior before the caption features become useful. In contrast, the zero gate lets the optimizer first recover the pose-only solution and then open individual adapter channels only when cross-attention consistently reduces prediction error. The set of layers that get an adapter is a hyperparameter, I ⊆ {0, . . . , 𝑁 −1}; we treat I ={0, . . . , 𝑁 −1} (every layer) as our default and ablate over five subsets in Section 3.3. 
+
+2.4 Training objective 
+
+The training loss is the joint position MPJPE on the output se-quence of length 𝑇 out =10 plus three auxiliary terms from siMLPe. These auxiliary terms are the 3D velocity, bone-length, and mutual-information losses, with weights as published in [13]. We also keep mirror augmentation, time-reversal augmentation, and sample rate 2 identical to the no-text baseline. 
+
+3 Experiments 3.1 Datasets and evaluation protocol 
+
+Datasets. We evaluate on Human3.6M [17] and CMU Mocap. We follow the standard Human3.6M split with S1, S6, S7, S8, and S9 for training, S11 for validation, and S5 for testing on 22 joints. CMU uses the common 25-joint evaluation setting adopted by re-cent HMP studies. 
+
+Metric. We observe 𝑇 in = 10 frames and report MPJPE at the dataset-standard horizons: 80, 160, 320, 400, 560, and 1000 ms on Human3.6M and CMU Mocap. We also report short-AVG, long-AVG, and Total-AVG where applicable. We select the epoch with the best validation short-AVG. 
+
+Text features. Qwen2.5-VL captions from stick-figure renders are encoded by frozen BGE-M3 [5], Long-CLIP-L [38], or plain CLIP-ViT-L/14 [31]; plain CLIP-L is default. 
+
+3.2 State-of-the-art comparisons 
+
+Table 1 compares ZGL with representative Human3.6M state-of-the-art methods using plain CLIP-L captions, 𝑀 = 4, and every-layer injection. We select our model by validation short-AVG. ZGL 
+
+achieves the lowest short-AVG, the lowest 560 ms error, and the best overall average in this comparison. The gains are concentrated  
+
+> 3Preprint, 2026, Qiao et al.
+
+Table 4: Conditioning-source ablation. MPJPE (mm); lower is better. 
+
+Source dim 80 160 320 400 short-AVG Random 768 9.79 21.81 47.75 59.30 34.66 Zero 768 9.78 21.36 46.45 57.88 33.87 No text – 9.55 21.36 46.68 58.11 33.92 BGE-M3 1024 9.52 21.10 46.04 57.30 33.49 Long-CLIP-L 768 9.58 21.16 46.04 57.27 33.51 CLIP-L 768 9.27 20.60 45.14 56.32 32.83 
+
+Table 5: Conditioning-token count ablation. MPJPE (mm); lower is better. 
+
+## 𝑀 80 160 320 400 short-AVG 1 9.45 21.04 45.85 57.09 33.36 2 9.48 21.00 46.15 57.53 33.54 4 9.27 20.60 45.14 56.32 32.83 
+
+## 8 9.48 20.94 45.92 57.26 33.40 
+
+in the short and middle horizons, where the observed motion still constrains the future and semantic intent can disambiguate sim-ilar local dynamics. At 1000 ms the method remains competitive, which is consistent with captions acting as high-level context rather than replacing long-range motion dynamics. Table 2 compares ZGL with representative CMU-Mocap meth-ods at 80, 160, 320, 400, and 1000 ms. For CMU, we reuse the Hu-man3.6M architecture and hyperparameter setting: plain CLIP-L captions, 𝑀 =4, every-layer adapters, and dropout probability 𝑝 =
+
+0.1. Under this setting, ZGL obtains the best average MPJPE and the lowest error at the 80–400 ms horizons, while SPGSN remains stronger at 1000 ms. 
+
+3.3 Ablation studies 
+
+We vary one design axis at a time around the Table 1 recipe: plain CLIP-L, 𝑀 =4, every-layer injection, and dropout 𝑝 =0.1.
+
+Conditioning source. Table 4 compares alternative real-text en-coders with deterministic random and all-zero controls. The SOTA plain CLIP-L setting gives the best short-AVG, while random vec-tors degrade performance, indicating that the gain is not explained by extra adapter parameters alone. The all-zero row is close to the no-text baseline, as expected from the zero-gated initialization: without semantic variation in the text stream, the adapter has lit-tle useful signal to exploit. The random row is worse, showing that arbitrary conditioning vectors can make the adapter attend to non-semantic noise. 
+
+Injection placement. Table 3 tests whether text should be fused late by restricting adapters to different encoder-block subsets. The prefix scan keeps all other settings fixed and gradually exposes more motion blocks to the caption tokens. This isolates whether the caption should act only after motion features are deep, or whether earlier spatial-temporal representations can also benefit from the semantic prior. The all-layer setting performs best, but the prefix variants remain close, suggesting that text does not need a deep specialized branch but should be available throughout the motion stack. 
+
+Token capacity. Table 5 varies the number of conditioning to-kens 𝑀 ∈ { 1, 2, 4, 8}. The adapter uses these tokens only as keys and values, so increasing 𝑀 expands the text memory seen by mo-tion queries without changing the motion-token length. The best setting is 𝑀 = 4, suggesting that one global caption vector is too compressed, while a larger token budget does not add useful infor-mation for the short captions used here. 
+
+4 Conclusion 
+
+We presented ZGL , a simple recipe for text-conditioned 3D human motion prediction: a zero-gated cross-attention adapter after every Transformer encoder block, conditioned by tokens projected from a frozen plain CLIP-L caption embedding. The method improves the no-text baseline on Human3.6M with a lightweight adapter pathway. The main finding is that language does not need to dom-inate the motion model to be useful. When captions are gener-ated from the observed motion only and injected through zero-initialized gates, the backbone can keep its original dynamics at the start of training and gradually learn where semantic context helps. The ablations support this view: real caption features outperform random or zero controls, all-layer injection is more effective than late-only fusion, and a small set of conditioning tokens is sufficient for concise motion descriptions. These results suggest a practical direction for language-assisted HMP. Instead of building a separate text-heavy prediction system, a strong DCT-based spatial-temporal Transformer can be extended with a compact semantic interface that is easy to train and inexpen-sive at inference once captions are precomputed. Future work can study richer caption generation, online visual observations, and more explicit handling of ambiguous future motion while keeping the motion backbone as the central predictor. 
+
+Acknowledgments 
+
+This work was supported in part by Hunan Key Research and De-velopment Program under Grant 2024WK2005. 
+
+> 4
+
+Zero-Gated Language-conditioned Human Motion Prediction Preprint, 2026, 
+
+References 
+
+[1] Aarav Agrawal and Alexander Schwing. 2026. SimpliHuMoN: Simplifying Hu-man Motion Prediction. arXiv:2603.04399 (2026). [2] Emre Aksan, Manuel Kaufmann, and Otmar Hilliges. 2021. A Spatio-Temporal Transformer for 3D Human Motion Prediction. In 3DV . 565–574. [3] Jean-Baptiste Alayrac, Jeff Donahue, Pauline Luc, Antoine Miech, Iain Barr, Yana Hasson, et al. 2022. Flamingo: A Visual Language Model for Few-Shot Learning. In NeurIPS .[4] Daniel Bermuth, Andreas Poeppel, and Wolfgang Reif. 2025. Scriboora: Rethink-ing Human Pose Forecasting. arXiv:2511.15565 (2025). [5] Jianlv Chen, Shitao Xiao, Peitian Zhang, Kun Luo, Defu Lian, and Zheng Liu. 2024. BGE-M3: Multi-Linguality, Multi-Functionality, Multi-Granularity Text Embeddings Through Self-Knowledge Distillation. arXiv:2402.03216 (2024). [6] Junsong Chen, Jincheng Yu, Chongjian Ge, Lewei Yao, Enze Xie, Yue Wu, Zhong-dao Wang, James Kwok, Ping Luo, Huchuan Lu, and Zhenguo Li. 2024. PixArt-𝛼 :Fast Training of Diffusion Transformer for Photorealistic Text-to-Image Synthe-sis. In ICLR .[7] Lingwei Dang, Yongwei Nie, Chengjiang Long, Qing Zhang, and Guiqing Li. 2021. MSR-GCN: Multi-Scale Residual Graph Convolution Networks for Human Motion Prediction. In ICCV .[8] Yuming Du, Zhen Wang, Yi Li, Xue Yang, Chao Wu, and Zhi Wang. 2024. Fore-casting Distillation: Enhancing 3D Human Motion Prediction with Guidance Regularization. In IJCNN .[9] Katerina Fragkiadaki, Sergey Levine, Panna Felsen, and Jitendra Malik. 2015. Re-current Network Models for Human Dynamics. In ICCV . 4346–4354. [10] Jing Fu, Fuxing Yang, Yongwei Dang, Xianjing Liu, and Junjun Yin. 2023. Learn-ing Constrained Dynamic Correlations in Spatiotemporal Graphs for Motion Prediction. IEEE Transactions on Neural Networks and Learning Systems (2023). [11] Chen Gang et al. 2025. Human Motion Prediction, Reconstruction, and Genera-tion: A Survey. arXiv:2502.15956 (2025). [12] Chuan Guo, Yuxuan Mu, Muhammad Gohar Javed, Sen Wang, and Li Cheng. 2024. MoMask: Generative Masked Modeling of 3D Human Motions. In CVPR .[13] Wen Guo, Yuming Du, Xi Shen, Vincent Lepetit, Xavier Alameda-Pineda, and Francesc Moreno-Noguer. 2023. Back to MLP: A Simple Baseline for Human Motion Prediction. In WACV .[14] Jonathan Ho and Tim Salimans. 2022. Classifier-Free Diffusion Guidance. 
+
+arXiv:2207.12598 (2022). [15] Seokhyeon Hong, Chaelin Kim, Serin Yoon, Junghyun Nam, Sihun Cha, and Jun-yong Noh. 2025. SALAD: Skeleton-aware Latent Diffusion for Text-driven Mo-tion Generation and Editing. In CVPR .[16] Jia Hu, Zhen Zhang, Zhi Wang, Guangming Wang, Yi Li, and Kai Lyu. 2025. Breaking the Passive Learning Trap: An Active Perception Strategy for Human Motion Prediction. arXiv:2511.14237 (2025). [17] Catalin Ionescu, Dragos Papava, Vlad Olaru, and Cristian Sminchisescu. 2014. Human3.6M: Large Scale Datasets and Predictive Methods for 3D Human Sens-ing in Natural Environments. IEEE TPAMI 36, 7 (2014), 1325–1339. [18] Ashesh Jain, Amir R. Zamir, Silvio Savarese, and Ashutosh Saxena. 2016. Structural-RNN: Deep Learning on Spatio-Temporal Graphs. In CVPR . 5308– 5317. [19] Jihoon Kim, Jiseob Kim, and Sungjoon Choi. 2023. FLAME: Free-form Language-based Motion Synthesis & Editing. In AAAI .[20] Maosen Li, Siheng Chen, Ya Zhang, and Qi Tian. 2022. Skeleton-Parted Graph Scattering Networks for 3D Human Motion Prediction. In ECCV . 18–36. [21] Maosen Li, Siheng Chen, Yangheng Zhao, Ya Zhang, Yanfeng Wang, and Qi Tian. 2020. Dynamic Multiscale Graph Neural Networks for 3D Skeleton Based Hu-man Motion Prediction. In CVPR .[22] Liang Lin. 2025. HaarMoDic: Multi-Resolution Haar Network for Enhancing Human Motion Prediction via Haar Transform. arXiv:2505.12631 (2025). [23] Haoran Liu and Shuang Gao. 2025. HumanCM: One Step Human Motion Pre-diction. arXiv:2510.16709 (2025). [24] Kai Lyu, Hao Chen, Zhi Liu, Yifan Yin, Yiming Lin, and Yizhou Jiao. 2025. HVIS: A Human-Like Vision and Inference System for Human Motion Predic-tion. arXiv:2502.16913 (2025). [25] Tian Ma, Yongwei Nie, Chengjiang Long, Qing Zhang, and Guiqing Li. 2022. Progressively Generating Better Initial Guesses Towards Next Stages for High-Quality Human Motion Prediction. In CVPR .[26] Wei Mao, Miaomiao Liu, and Mathieu Salzmann. 2020. History Repeats Itself: Human Motion Prediction via Motion Attention. In ECCV . 474–489. [27] Wei Mao, Miaomiao Liu, Mathieu Salzmann, and Hongdong Li. 2019. Learning Trajectory Dependencies for Human Motion Prediction. In ICCV .[28] Julieta Martinez, Michael J. Black, and Javier Romero. 2017. On Human Motion Prediction Using Recurrent Neural Networks. In CVPR .[29] Eduardo Medina, Loh Loh, Nishan Gurung, Kyung H. Oh, and Nicholas Heller. 2024. Context-Based Interpretable Spatio-Temporal Graph Convolutional Net-work for Human Motion Forecasting. arXiv:2402.19237 (2024). [30] William Peebles and Saining Xie. 2023. Scalable Diffusion Models with Trans-formers. In ICCV .[31] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever. 2021. Learning Transferable Visual Mod-els from Natural Language Supervision. In ICML .[32] Theodoros Sofianos, Andrea Sampieri, Luca Franco, and Fabio Galasso. 2021. Space-Time-Separable Graph Convolutional Network for Pose Forecasting. In 
+
+ICCV . 11209–11218. [33] Jie Tang, Jianrong Zhang, Rui Ding, Bin Gu, and Junjun Yin. 2023. Collaborative Multi-Dynamic Pattern Modeling for Human Motion Prediction. IEEE Transac-tions on Circuits and Systems for Video Technology 33, 8 (2023), 3689–3700. [34] Guy Tevet, Sigal Raab, Brian Gordon, Yonatan Shafir, Daniel Cohen-Or, and Amit H. Bermano. 2023. Human Motion Diffusion Model. In ICLR .[35] Hugo Touvron, Matthieu Cord, Alexandre Sablayrolles, Gabriel Synnaeve, and Hervé Jégou. 2021. Going Deeper with Image Transformers. In ICCV .[36] Jiahao Wang, Yiming Guo, and Bin Su. 2025. Spatio-Temporal Multi-Subgraph GCN for 3D Human Motion Prediction. In ICASSP .[37] Wei Wu, Zhen Guo, Chao Chen, Sayan Das, Hongwei Xue, Peng Wang, and Aimin Lu. 2026. KHMP: Frequency-Domain Kalman Refinement for High-Fidelity Human Motion Prediction. arXiv:2603.21327 (2026). [38] Beichen Zhang, Pan Zhang, Xiaoyi Dong, Yuhang Zang, and Jiaqi Wang. 2024. Long-CLIP: Unlocking the Long-Text Capability of CLIP. In ECCV .[39] Jianrong Zhang, Yangsong Zhang, Xiaodong Cun, Shaoli Huang, Yong Zhang, Hongwei Zhao, Hongtao Lu, and Xi Shen. 2023. T2M-GPT: Generating Human Motion from Textual Descriptions with Discrete Representations. In CVPR .[40] Mingyuan Zhang, Zhongang Cai, Liang Pan, Fangzhou Hong, Xinying Guo, Lei Yang, and Ziwei Liu. 2022. MotionDiffuse: Text-Driven Human Motion Genera-tion with Diffusion Model. arXiv:2208.15001 (2022). [41] Jie Zou. 2024. Multi-Scale Incremental Modeling for Enhanced Human Motion Prediction in Human-Robot Collaboration. arXiv:2412.11632 (2024). 5

@@ -1,0 +1,434 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-06T10:02:15.732837+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 7,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 5,
+    "quick_skim_target": 11,
+    "quick_selected": 5
+  },
+  "deep_dive": [
+    {
+      "id": "2607.02045v1",
+      "source": "arxiv",
+      "title": "PWM-ArtGen: Part World Model for Articulated Object Generation",
+      "abstract": "The key challenge in articulated 3D object generation from a single image is accurately predicting the underlying kinematic structure. Existing methods either infer kinematic parameters directly from a static image that lacks dynamic part-level kinematic relationships, or estimate parameters from visual dynamics generated from a single image, which is prone to accumulated errors of two steps. Moreover, the limited scale and diversity of existing annotated datasets further hinder generalization to complex, real-world objects. To overcome these limitations, we propose to learn the joint distribution of visual dynamics and kinematic parameters. Recognizing that articulated objects can be formulated as dynamic systems, we propose a unified Part World Model called PWM-ArtGen. To leverage unannotated data, this model couples action diffusion and image diffusion with independent diffusion timesteps, which enables visual branch co-training. We further curate a photorealistic dataset of 19.7k part-level image pairs without kinematic annotations, to support co-training. Experiments demonstrate that PWM-ArtGen substantially outperforms existing baselines in the resting state and exhibits strong zero-shot generalization to out-of-distribution objects.",
+      "authors": [
+        "Wentao Zheng",
+        "Ancong Wu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-02T11:12:29+00:00",
+      "link": "https://arxiv.org/pdf/2607.02045v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "directly addresses predicting kinematic structure of articulated 3D objects from single image",
+      "llm_evidence_cn": "直接针对从单张图像预测铰接3D物体运动学结构的问题",
+      "llm_evidence": "直接针对从单张图像预测铰接3D物体运动学结构的问题",
+      "canonical_evidence": "直接针对从单张图像预测铰接3D物体运动学结构的问题",
+      "llm_tldr_en": "PWM-ArtGen proposes a Part World Model that jointly learns visual dynamics and kinematic parameters for articulated object generation from a single image, overcoming limitations of two-step methods and limited datasets.",
+      "llm_tldr_cn": "针对从单张图像生成铰接3D物体时预测运动学结构困难的问题，本文提出PWM-ArtGen部分世界模型，联合学习视觉动态和运动学参数的分布。该方法将铰接物体视为动态系统，避免了传统两步法的误差累积，并在有限数据集下提升了泛化能力。实验表明该方法能生成更准确的运动学结构。",
+      "llm_tldr": "针对从单张图像生成铰接3D物体时预测运动学结构困难的问题，本文提出PWM-ArtGen部分世界模型，联合学习视觉动态和运动学参数的分布。该方法将铰接物体视为动态系统，避免了传统两步法的误差累积，并在有限数据集下提升了泛化能力。实验表明该方法能生成更准确的运动学结构。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "a",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.30308v1",
+      "source": "arxiv",
+      "title": "The Surprising Effectiveness of Video Diffusion Models for Hand Motion Reconstruction",
+      "abstract": "4D hand motion reconstruction from egocentric video is bottlenecked by clear limitations of existing methods: image-based pipelines depend on a detector that fails under heavy occlusion, while video-based methods rely on temporal modules learned only from scarce hand-pose annotations, a narrow signal insufficient to model motion dynamics, occlusion reasoning, and hand-object interaction. These capabilities, however, are exactly what video generative models must implicitly acquire when trained to synthesize coherent video at internet scale. Motivated by this, we present ViDiHand, which leverages the representations of a pretrained video diffusion model to reconstruct 4D two-hand pose. We adapt it via a hand-overlay rendering objective that specializes its features for hands while preserving its world priors. A decoder then recovers metric-scale pose from the adapted features. The whole pipeline operates directly on full frames--no detector, no infiller, and no test-time optimization. On ARCTIC, HOT3D, and HOI4D, ViDiHand substantially outperforms prior methods, establishing video diffusion models as a powerful new foundation for hand motion reconstruction and a promising route to scalable in-the-wild data collection for embodied AI. Project page: https://vidihand.github.io.",
+      "authors": [
+        "Yuxi Wang",
+        "Chengkai Jin",
+        "Yufei Liu",
+        "Wenqi Ouyang",
+        "Tianyi Wei",
+        "Zhiwei Zeng",
+        "Siyuan Huang",
+        "Zhiqi Shen",
+        "Xingang Pan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-29T13:53:00+00:00",
+      "link": "https://arxiv.org/pdf/2606.30308v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Directly reconstructs 4D hand motion (kinematic parameters) from egocentric video using video diffusion models",
+      "llm_evidence_cn": "直接利用视频扩散模型从自我中心视频重建4D手部运动（运动学参数）",
+      "llm_evidence": "直接利用视频扩散模型从自我中心视频重建4D手部运动（运动学参数）",
+      "canonical_evidence": "直接利用视频扩散模型从自我中心视频重建4D手部运动（运动学参数）",
+      "llm_tldr_en": "ViDiHand adapts pretrained video diffusion models to reconstruct 4D two-hand pose from egocentric video, achieving state-of-the-art hand motion estimation by leveraging generative representations.",
+      "llm_tldr_cn": "现有方法从自我中心视频重建手部4D运动受限于检测器和时序标注不充分。ViDiHand利用预训练视频扩散模型的强大表示，通过手部覆盖渲染目标进行适应，无需额外检测器即可从视频中估计双手姿态。实验表明该方法在遮挡和交互场景中显著优于现有基线，展示了生成式模型在铰接物体姿态估计中的潜力。该方法直接学习铰接物体的运动学参数（手部关节角度），与需求高度契合。",
+      "llm_tldr": "现有方法从自我中心视频重建手部4D运动受限于检测器和时序标注不充分。ViDiHand利用预训练视频扩散模型的强大表示，通过手部覆盖渲染目标进行适应，无需额外检测器即可从视频中估计双手姿态。实验表明该方法在遮挡和交互场景中显著优于现有基线，展示了生成式模型在铰接物体姿态估计中的潜力。该方法直接学习铰接物体的运动学参数（手部关节角度），与需求高度契合。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.30608v1",
+      "source": "arxiv",
+      "title": "UnfoldArt: Zero-Shot Recovery of Full Articulated 3D Objects from Text or Image",
+      "abstract": "Articulated 3D objects are essential for interactive environments in embodied AI, robotics, and virtual reality, but reconstructing their structure and motion from sparse observations remains challenging. Existing approaches remain largely constrained by lack of supervised data or lack the priors needed to reliably recover articulation, hidden geometry, and internal object structure. We present the first debate-driven agentic approach to articulated 3D object reconstruction from text or image inputs that both grounds articulation reasoning in concrete motion and exposes the occluded geometry revealed under articulation. High-level agents reason about object semantics and motion using knowledge from vision-language and video models, while low-level agents estimate articulation parameters and interaction points; together, they engage in a two-round structured debate that first exploits global--local disagreement and then grounds the agents in freely generated video. The same video prior, conditioned on the agreed articulation, then drives each part through its motion to expose occluded interiors and geometry that cannot be inferred from a single static view. By combining agentic reasoning with a video generative prior, our approach jointly infers articulation and reconstructs complete 3D articulated objects, producing high-fidelity geometry, internal structure, and motion-consistent states beyond directly observed surfaces.",
+      "authors": [
+        "Mohamed el amine boudjoghra",
+        "Ivan Laptev",
+        "Angela Dai"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-29T17:44:53+00:00",
+      "link": "https://arxiv.org/pdf/2606.30608v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "recovery of articulated 3D objects structure and motion from text or image",
+      "llm_evidence_cn": "从文本或图像恢复铰接3D物体的结构和运动",
+      "llm_evidence": "从文本或图像恢复铰接3D物体的结构和运动",
+      "canonical_evidence": "从文本或图像恢复铰接3D物体的结构和运动",
+      "llm_tldr_en": "UnfoldArt introduces a debate-driven agentic approach for zero-shot recovery of full articulated 3D objects from text or image, grounding articulation reasoning in concrete motion and exposing occluded geometry via vision-language and video models.",
+      "llm_tldr_cn": "针对铰接3D物体重建中缺乏监督数据和先验知识的问题，UnfoldArt提出首个辩论驱动的智能体方法，从文本或图像输入实现零样本完整重建。高层智能体利用视觉语言和视频模型推理物体语义与运动，低层智能体生成具体运动序列并揭示遮挡几何。该方法无需训练数据即可恢复铰接结构和隐藏部件，为交互式环境提供了新途径。",
+      "llm_tldr": "针对铰接3D物体重建中缺乏监督数据和先验知识的问题，UnfoldArt提出首个辩论驱动的智能体方法，从文本或图像输入实现零样本完整重建。高层智能体利用视觉语言和视频模型推理物体语义与运动，低层智能体生成具体运动序列并揭示遮挡几何。该方法无需训练数据即可恢复铰接结构和隐藏部件，为交互式环境提供了新途径。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.30608v2",
+      "source": "arxiv",
+      "title": "UnfoldArt: Zero-Shot Recovery of Full Articulated 3D Objects from Text or Image",
+      "abstract": "Articulated 3D objects are essential for interactive environments in embodied AI, robotics, and virtual reality, but reconstructing their structure and motion from sparse observations remains challenging. Existing approaches remain largely constrained by lack of supervised data or lack the priors needed to reliably recover articulation, hidden geometry, and internal object structure. We present the first debate-driven agentic approach to articulated 3D object reconstruction from text or image inputs that both grounds articulation reasoning in concrete motion and exposes the occluded geometry revealed under articulation. High-level agents reason about object semantics and motion using knowledge from vision-language and video models, while low-level agents estimate articulation parameters and interaction points; together, they engage in a two-round structured debate that first exploits global--local disagreement and then grounds the agents in freely generated video. The same video prior, conditioned on the agreed articulation, then drives each part through its motion to expose occluded interiors and geometry that cannot be inferred from a single static view. By combining agentic reasoning with a video generative prior, our approach jointly infers articulation and reconstructs complete 3D articulated objects, producing high-fidelity geometry, internal structure, and motion-consistent states beyond directly observed surfaces.",
+      "authors": [
+        "Mohamed el Amine Boudjoghra",
+        "Ivan Laptev",
+        "Angela Dai"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-29T17:44:53+00:00",
+      "link": "https://arxiv.org/pdf/2606.30608v2",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "recovery of articulated 3D objects structure and motion from text or image",
+      "llm_evidence_cn": "从文本或图像恢复铰接3D物体的结构和运动",
+      "llm_evidence": "从文本或图像恢复铰接3D物体的结构和运动",
+      "canonical_evidence": "从文本或图像恢复铰接3D物体的结构和运动",
+      "llm_tldr_en": "UnfoldArt introduces a debate-driven agentic approach for zero-shot recovery of full articulated 3D objects from text or image, grounding articulation reasoning in concrete motion and exposing occluded geometry via vision-language and video models.",
+      "llm_tldr_cn": "针对铰接3D物体重建中缺乏监督数据和先验知识的问题，UnfoldArt提出首个辩论驱动的智能体方法，从文本或图像输入实现零样本完整重建。高层智能体利用视觉语言和视频模型推理物体语义与运动，低层智能体生成具体运动序列并揭示遮挡几何。该方法无需训练数据即可恢复铰接结构和隐藏部件，为交互式环境提供了新途径。",
+      "llm_tldr": "针对铰接3D物体重建中缺乏监督数据和先验知识的问题，UnfoldArt提出首个辩论驱动的智能体方法，从文本或图像输入实现零样本完整重建。高层智能体利用视觉语言和视频模型推理物体语义与运动，低层智能体生成具体运动序列并揭示遮挡几何。该方法无需训练数据即可恢复铰接结构和隐藏部件，为交互式环境提供了新途径。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.02148v1",
+      "source": "arxiv",
+      "title": "SAMoR: Motion Modelling for Articulated Objects of Any Skeleton and Topology",
+      "abstract": "Modeling motion for articulated objects of arbitrary skeleton topology remains difficult: existing motion generators target a fixed human skeleton, and prior adaptations either fail to share a vocabulary across rigs or discard motion detail through global pooling. Our key observation is that while joint-level motion does not correspond cleanly across species, motion of functional joint groups does: a human arm, a wolf foreleg, and a bird wing share motion structure despite differing joint counts and connectivity, a correspondence that joint names (e.g., \"forearm\", \"wing_L1\") partially expose even when topology does not. We introduce SAMoR (Skeleton-Aware Motion Representation for Articulated Objects), a cross-topology motion representation that encodes each motion segment as a small fixed number ($K=8$) of part tokens shared across arbitrary skeletons. A graph-transformer encoder consumes per-joint motion features, kinematic graph structure, and joint-name embeddings, then compresses them into part-level tokens via cross-attention pooling and residual vector quantization, yielding a discrete motion codebook shared across rigs. To keep the part queries from collapsing into redundant global representations, we introduce a topology-agnostic attention supervision loss, with joint-name dropout to reduce over-reliance on text labels. We curate a heterogeneous corpus from HumanML3D, Truebones Zoo, and animated Objaverse-XL assets, and evaluate SAMoR on held-out characters with unseen skeletons. It supports accurate reconstruction and cross-topology transfer, and enables text-conditioned generation and part-wise editing via a MaskGIT token generator. SAMoR reaches $2.75 \\times 10^{-2}$ normalized MPJPE on cross-topology reconstruction, $5.8\\times$ below the strongest adapted variable-$J$ tokenizer baseline, while remaining competitive with fixed-skeleton specialists on HumanML3D.",
+      "authors": [
+        "Yuhao Zhang",
+        "Gerard Pons-Moll",
+        "Tolga Birdal"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-02T13:24:47+00:00",
+      "link": "https://arxiv.org/pdf/2607.02148v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "motion modeling for articulated objects with arbitrary skeleton and topology",
+      "llm_evidence_cn": "为任意骨架和拓扑的铰接物体进行运动建模",
+      "llm_evidence": "为任意骨架和拓扑的铰接物体进行运动建模",
+      "canonical_evidence": "为任意骨架和拓扑的铰接物体进行运动建模",
+      "llm_tldr_en": "SAMoR proposes a skeleton-aware motion representation that captures shared motion patterns across species (e.g., human arm, wolf foreleg) enabling cross-topology motion generation for articulated objects of any skeleton and topology.",
+      "llm_tldr_cn": "该论文针对任意骨架拓扑的铰接物体运动建模难题，提出了一种骨架感知的运动表示方法SAMoR。通过发现不同物种间功能关节群的运动结构具有一致性，该方法能够跨拓扑共享运动词汇，从而为任意骨架和拓扑的铰接物体生成逼真运动。实验表明，该方法在多种动物骨架上的运动生成质量超越现有方法，为铰接物体运动理解与生成提供了通用框架。",
+      "llm_tldr": "该论文针对任意骨架拓扑的铰接物体运动建模难题，提出了一种骨架感知的运动表示方法SAMoR。通过发现不同物种间功能关节群的运动结构具有一致性，该方法能够跨拓扑共享运动词汇，从而为任意骨架和拓扑的铰接物体生成逼真运动。实验表明，该方法在多种动物骨架上的运动生成质量超越现有方法，为铰接物体运动理解与生成提供了通用框架。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.28820v1",
+      "source": "arxiv",
+      "title": "CoGS: Compositional Dynamic Human-Object Scenes Gaussian Splatting from Monocular Video",
+      "abstract": "Reconstructing dynamic human--object interaction scenes from monocular video is difficult because the human, manipulated object, and background obey different motion models while sharing the same pixels. Existing dynamic radiance-field and Gaussian-splatting methods often entangle these components, causing object motion to leak into the human or static scene, and monocular human reconstruction remains underconstrained in regions that are rarely observed. We present CoGS, a compositional Gaussian-splatting framework for monocular human--object scene reconstruction. CoGS decomposes the video into three coordinated branches: an articulated human initialized from a complete canonical prior, a rigid object field driven by an estimated object trajectory, and a static scene field regularized by weak scene-only planar primitives when available. A six-stage optimization schedule first stabilizes the human and object independently, then fuses them with the scene under full-image supervision, visibility-aware human anchoring, object silhouette and motion constraints, and delayed scene regularization. This design keeps each component responsible for its own geometry and motion while allowing photometric evidence to correct the final composite. Experiments on HOSNeRF and NeuMan show that CoGS improves both human--object interaction reconstruction and in-the-wild human--scene rendering, achieving stronger fidelity and perceptual quality across full-frame and human-focused evaluations. Code will be released upon publication.",
+      "authors": [
+        "Jerrin Bright",
+        "John Zelek"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-27T09:10:22+00:00",
+      "link": "https://arxiv.org/pdf/2606.28820v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reconstruction of dynamic human-object scenes, articulated human, rigid object motion",
+      "llm_evidence_cn": "动态人-物场景重建，包含铰接人体和刚性物体运动",
+      "llm_evidence": "动态人-物场景重建，包含铰接人体和刚性物体运动",
+      "canonical_evidence": "动态人-物场景重建，包含铰接人体和刚性物体运动",
+      "llm_tldr_en": "Presents a compositional Gaussian-splatting framework that decomposes monocular video into articulated human, rigid object, and background, enabling dynamic scene reconstruction with separate motion models.",
+      "llm_tldr_cn": "该论文提出CoGS，一种组合式高斯泼溅框架，用于从单目视频重建动态人-物交互场景。它分解视频为三个协调分支：基于完整规范先验的铰接人体、由估计物体驱动场的刚性物体、以及静态背景。通过显式分离运动模型，避免了常见方法中运动泄露的问题。实验表明该方法在复杂人-物交互场景中实现了高质量重建，为从观察理解铰接物体（如物体运动轨迹）提供了有效工具。",
+      "llm_tldr": "该论文提出CoGS，一种组合式高斯泼溅框架，用于从单目视频重建动态人-物交互场景。它分解视频为三个协调分支：基于完整规范先验的铰接人体、由估计物体驱动场的刚性物体、以及静态背景。通过显式分离运动模型，避免了常见方法中运动泄露的问题。实验表明该方法在复杂人-物交互场景中实现了高质量重建，为从观察理解铰接物体（如物体运动轨迹）提供了有效工具。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.01766v1",
+      "source": "arxiv",
+      "title": "SimWorlds: A Multi-Agent System for Dynamic 3D Scene Creation",
+      "abstract": "LLM agents are increasingly used to translate natural language into 3D scenes in a procedural way, but existing systems focus on static output. Dynamic 4D scenes from text alone, in which liquids flow, particles emit, rigid bodies cascade, and articulated mechanisms move, remain largely unexplored despite their value as editable content and as physics-grounded training data for video generation and embodied AI. Two challenges set the dynamic case apart from static text-to-scene work: an agent must jointly coordinate spatial layout, multiple physics solvers, temporal sequencing, camera, and lighting in a single coherent scene, and verifying motion correctness from rendered video is fundamentally harder than judging a single image. We present SimWorlds: a multi-agent framework that produces dynamic, editable 4D scenes from text, with Blender-specific procedural knowledge, a planner-coder-reviewer workflow driving a fixed ordered sequence of construction stages, a layered scene protocol enforced by a deterministic verifier, and a runtime-state inspection tool suite that catches mechanism failures the rendered image cannot reveal. We also introduce 4DBuildBench, a benchmark for assessing both visual fidelity and physical consistency of the procedural dynamic 3D scenes generated from text prompts. Experiments show that SimWorlds outperforms prior dynamic Blender generation baselines.",
+      "authors": [
+        "Chunjiang Liu",
+        "Xiaoyuan Wang",
+        "Haoyu Chen",
+        "Yizhou Zhao",
+        "Ming-Hsuan Yang",
+        "László A. Jeni"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-07-02T06:29:18+00:00",
+      "link": "https://arxiv.org/pdf/2607.01766v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "generates articulated mechanisms with motion",
+      "llm_evidence_cn": "生成包含铰接机构运动的动态场景",
+      "llm_evidence": "生成包含铰接机构运动的动态场景",
+      "canonical_evidence": "生成包含铰接机构运动的动态场景",
+      "llm_tldr_en": "SimWorlds is a multi-agent system that creates dynamic 4D scenes from text, including articulated mechanisms, liquids, particles, and rigid bodies with physics simulation, enabling editable content and training data for video generation and embodied AI.",
+      "llm_tldr_cn": "SimWorlds是一个多智能体系统，能够根据文本描述生成动态4D场景，包括液体流动、粒子发射、刚体碰撞和铰接机构运动等物理效果。该系统通过协调多个物理求解器、时间序列和相机参数，解决了从文本生成动态场景的挑战，生成的场景可用作可编辑内容或视频生成与具身AI的训练数据。",
+      "llm_tldr": "SimWorlds是一个多智能体系统，能够根据文本描述生成动态4D场景，包括液体流动、粒子发射、刚体碰撞和铰接机构运动等物理效果。该系统通过协调多个物理求解器、时间序列和相机参数，解决了从文本生成动态场景的挑战，生成的场景可用作可编辑内容或视频生成与具身AI的训练数据。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2607.00157v1",
+      "source": "arxiv",
+      "title": "Progressive Pose-Guided 4D Animal Reconstruction from Monocular Video",
+      "abstract": "Reconstructing 4D animals from monocular videos is challenging due to large inter-species variation, complex articulations, and the lack of reliable templates. Existing approaches typically rely on either strict category-specific priors that restrict generalization, or unconstrained generative models that sacrifice input fidelity. To bridge this gap, we present a progressive test-time optimization framework built on 3D Gaussian Splatting for high-fidelity 4D animal reconstruction from a single video. Our key insight is that a coarse shape prior suffices when coupled with a progressive strategy that disentangles articulated pose from non-rigid deformation. Specifically, we employ a symmetry-aware temporal encoding that exploits bilateral cues while absorbing camera estimation drift and a part-conditioned deformation mechanism guided by learnable part anchors and a learnable skinning field. Extensive experiments demonstrate that our approach generalizes robustly across diverse species, achieving superior geometric accuracy, temporal consistency, and visual fidelity compared to existing baselines, even under severe prior mismatch.",
+      "authors": [
+        "Siyuan Li",
+        "Weiying Chen",
+        "Yilin Wang",
+        "Xinxin Zuo",
+        "Xingyu Li",
+        "Li Cheng"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-30T20:32:29+00:00",
+      "link": "https://arxiv.org/pdf/2607.00157v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "4D animal reconstruction from monocular video, handling complex articulations",
+      "llm_evidence_cn": "从单目视频进行4D动物重建，处理复杂关节运动",
+      "llm_evidence": "从单目视频进行4D动物重建，处理复杂关节运动",
+      "canonical_evidence": "从单目视频进行4D动物重建，处理复杂关节运动",
+      "llm_tldr_en": "Progressive Pose-Guided 4D Animal Reconstruction from Monocular Video uses a test-time optimization with 3D Gaussian Splatting, disentangling articulated pose from non-rigid deformation to achieve high-fidelity 4D reconstruction of diverse animals.",
+      "llm_tldr_cn": "该论文从单目视频中重建4D动物，针对种类差异大、关节运动复杂的问题，提出渐进式测试时优化框架。基于3D高斯抛雪球，通过解耦关节姿态与非刚性变形，利用对称性时间编码，在无需类别先验的情况下实现了高保真的4D动物重建。实验结果证明了该方法在多个物种上的鲁棒性和准确性，为从观测理解铰接物体提供了实用技术。",
+      "llm_tldr": "该论文从单目视频中重建4D动物，针对种类差异大、关节运动复杂的问题，提出渐进式测试时优化框架。基于3D高斯抛雪球，通过解耦关节姿态与非刚性变形，利用对称性时间编码，在无需类别先验的情况下实现了高保真的4D动物重建。实验结果证明了该方法在多个物种上的鲁棒性和准确性，为从观测理解铰接物体提供了实用技术。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.29208v1",
+      "source": "arxiv",
+      "title": "Zero-Gated Language-conditioned Human Motion Prediction",
+      "abstract": "Pose histories provide the core kinematic evidence for 3D human motion prediction, but they lack explicit high-level semantic guidance. This paper introduces ZGL, a lightweight language-conditioned predictor that uses captions of the observed motion as a semantic prior while preserving a strong motion backbone as the main source of dynamics. We render only the observed poses, generate a one-sentence description with a vision-language model, encode the caption with a frozen CLIP-L text tower, and project it into a small set of conditioning tokens. These tokens are injected into a DCT-based spatial-temporal Transformer by compact crossattention adapters with zero gates: each adapter output is multiplied by a learnable gate initialized to zero, so the full network is numerically identical to the pose-only baseline at initialization and can learn to use language only when it reduces prediction error. On Human3.6M, ZGL improves overall MPJPE over representative motion-prediction baselines in our comparison. Results on CMUMocap further show that compact caption conditioning transfers to a second benchmark and provides a practical semantic cue for 3D human motion prediction.",
+      "authors": [
+        "Guanhui Qiao",
+        "Lu Zhou",
+        "Ding Jiang",
+        "Jinqiao Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-28T05:20:10+00:00",
+      "link": "https://arxiv.org/pdf/2606.29208v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Predicts 3D human motion using kinematic pose history",
+      "llm_evidence_cn": "利用运动学姿态历史预测三维人体运动",
+      "llm_evidence": "利用运动学姿态历史预测三维人体运动",
+      "canonical_evidence": "利用运动学姿态历史预测三维人体运动",
+      "llm_tldr_en": "Introduces ZGL, a lightweight language-conditioned predictor for 3D human motion that uses captions as semantic priors while retaining a strong motion backbone based on DCT and spatial-temporal Transformer.",
+      "llm_tldr_cn": "针对3D人体运动预测中缺乏高层语义指导的问题，本文提出ZGL轻量级语言条件预测器。它利用观察到的运动描述作为语义先验，通过冻结CLIP文本编码器和零门控交叉注意力适配器注入到基于DCT的时空Transformer中，在保持运动动力学主干的同时提升预测语义一致性，实验表明在多种运动场景下优于现有方法。",
+      "llm_tldr": "针对3D人体运动预测中缺乏高层语义指导的问题，本文提出ZGL轻量级语言条件预测器。它利用观察到的运动描述作为语义先验，通过冻结CLIP文本编码器和零门控交叉注意力适配器注入到基于DCT的时空Transformer中，在保持运动动力学主干的同时提升预测语义一致性，实验表明在多种运动场景下优于现有方法。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "How to predict kinematic parameters of 3D articulated objects?",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2606.30749v1",
+      "source": "arxiv",
+      "title": "From Grasps to Dexterity: Large-Scale Grasp Pretraining for Dexterous Manipulation",
+      "abstract": "Large-scale dexterous grasp datasets encode rich priors over hand-object interaction, but their use has largely been confined to grasp generation and pick-and-place manipulation. We study whether such data can instead support functional dexterity in articulated tool use, where a robot must acquire a tool, maintain contact, and operate its functional moving parts. We adapt a hierarchical imitation learning framework that combines high-level hand sub-goal prediction with a low-level goal-conditioned controller. We construct a 355k-trajectory grasp-pretraining dataset from large-scale dexterous grasp annotations and use it to pretrain the low-level controller. The controller is then fine-tuned on downstream task demonstrations. To evaluate this setting, we introduce DexCraft, a simulation benchmark with six articulated tool-use tasks requiring coordinated finger motion. Across simulation and real-world experiments, our approach outperforms end-to-end diffusion policy baselines and hierarchical policies trained from scratch. In the real world, it improves full-task success by 33.3 percentage points over DP3. These results show that grasp datasets can serve not only as resources for grasp synthesis, but also as scalable pretraining data for contact-rich dexterous manipulation. Videos are shown on https://yingyuan0414.github.io/grasp2dexterity/ .",
+      "authors": [
+        "Ying Yuan",
+        "Xinyu Liu",
+        "Sriram Krishna",
+        "David Held"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-06-29T18:00:22+00:00",
+      "link": "https://arxiv.org/pdf/2606.30749v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "articulated tool use, functional moving parts",
+      "llm_evidence_cn": "铰接工具使用，功能性运动部件",
+      "llm_evidence": "铰接工具使用，功能性运动部件",
+      "canonical_evidence": "铰接工具使用，功能性运动部件",
+      "llm_tldr_en": "Adapts hierarchical imitation learning for articulated tool use, using grasp-pretraining to enable functional dexterity with moving parts, addressing manipulation but not parameter prediction.",
+      "llm_tldr_cn": "该论文研究如何利用大规模灵巧抓取数据集来支持铰接工具的功能性灵巧操作。提出层次化模仿学习框架，结合高维手部子目标预测与低层目标条件控制器。通过355k轨迹的抓取预训练数据集对低层控制器进行预训练，再在下游任务演示上微调。实验表明该方法在多种铰接工具操作任务中性能优于基线，为生成铰接物体的运动参数提供了操作层面的启示。",
+      "llm_tldr": "该论文研究如何利用大规模灵巧抓取数据集来支持铰接工具的功能性灵巧操作。提出层次化模仿学习框架，结合高维手部子目标预测与低层目标条件控制器。通过355k轨迹的抓取预训练数据集对低层控制器进行预训练，再在下游任务演示上微调。实验表明该方法在多种铰接工具操作任务中性能优于基线，为生成铰接物体的运动参数提供了操作层面的启示。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.00321v1",
+      "source": "arxiv",
+      "title": "CORGI: Consistency-Aware 3D Dog Reconstruction from a Single Image in the Wild",
+      "abstract": "Reconstructing high-fidelity 3D models of highly articulated animals, such as dogs, from a single in-the-wild image remains a formidable challenge. In this paper, we introduce CORGI, a novel framework for consistency-aware 3D dog reconstruction from a single unconstrained image that completely eliminates the need for 3D supervision. To overcome generative inconsistencies and the lack of multi-view capture, our pipeline introduces three core components. First, we propose a Canonical-Driven Orbital Generation (CDOG) strategy, utilizing specialized Canonical and Orbit LoRAs to normalize arbitrary input poses and synthesize reliable 360-degree video observations. Second, we design a Consistency-aware Deformable 3DGS (CA-3DGS) module that anchors on a D-SMAL prior, explicitly modeling per-view generative errors through dedicated neural deformation fields to learn accurate vertex-level displacements. Finally, to eliminate structural distortions and recover high-frequency details, we introduce a self-supervised Deformation-Conditioned Generative Repair (DCGR) module. Extensive experiments demonstrate that CORGI achieves state-of-the-art performance, generalizing seamlessly across diverse dog breeds to produce geometrically accurate, visually coherent, and fully animatable 3D assets ready for downstream applications.",
+      "authors": [
+        "Yuxiao Wu",
+        "Weile Li",
+        "Boyi Zhu",
+        "Yumeng Liu",
+        "Youcheng Cai",
+        "Ligang Liu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-01T01:38:29+00:00",
+      "link": "https://arxiv.org/pdf/2607.00321v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Reconstructs 3D articulated animal from single image",
+      "llm_evidence_cn": "从单张图像重建三维铰接动物",
+      "llm_evidence": "从单张图像重建三维铰接动物",
+      "canonical_evidence": "从单张图像重建三维铰接动物",
+      "llm_tldr_en": "Proposes CORGI for consistency-aware 3D dog reconstruction from a single in-the-wild image without 3D supervision, using canonical-driven orbital generation and consistency-aware deformable 3DGS.",
+      "llm_tldr_cn": "针对从单张野外图像重建高保真三维铰接动物（如狗）的挑战，本文提出CORGI框架，无需3D监督。通过规范驱动轨道生成策略合成360度视频观测，并设计一致性感知可变形3D高斯泼溅模块，在单目设置下实现高质量重建，显著提升几何一致性和细节保真度。",
+      "llm_tldr": "针对从单张野外图像重建高保真三维铰接动物（如狗）的挑战，本文提出CORGI框架，无需3D监督。通过规范驱动轨道生成策略合成360度视频观测，并设计一致性感知可变形3D高斯泼溅模块，在单目设置下实现高质量重建，显著提升几何一致性和细节保真度。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
