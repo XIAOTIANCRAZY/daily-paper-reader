@@ -1,0 +1,1130 @@
+Title: Invariant Kalman filtering for extended pose estimation in multi-IMU articulated rigid-body systems
+
+URL Source: https://arxiv.org/pdf/2606.25083v1
+
+Published Time: Thu, 25 Jun 2026 00:08:37 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Invariant Kalman filtering for extended pose estimation in multi-IMU articulated rigid-body systems 
+
+Sven Goffin 1, C´ edric Schwartz 2, Silv` ere Bonnabel 3, Olivier Br¨ uls 4, and Pierre Sacr´ e1
+
+Abstract — Accurate extended pose estimation (orientation, velocity, and position) for IMU-instrumented articulated rigid-body systems is a key challenge in robotics and human motion analysis. The invariant extended Kalman filter (IEKF) addresses this problem for a single rigid body with conver-gence guarantees and consistency under unobservability, but extending these properties to articulated systems is nontrivial: inter-body pose coupling prevents a direct application, and incorporating joint kinematic constraints within the invariant framework remains an open problem. To address this gap, we introduce the relative L-extended pose, a Lie group represen-tation for kinematic-tree systems. With one IMU per body, it yields group-affine dynamics and allows joint constraints to be expressed in invariant form. We incorporate these constraints as noise-free pseudo-measurements within an iterated IEKF (IterIEKF), thereby preserving the convergence and consistency guarantees of invariant filtering. Validated on both a UR5e robot and a human leg, the proposed IterIEKF outperforms all EKF, IterEKF, and absolute-pose IterIEKF baselines. It converges faster, exhibits lower run-to-run variability, and consistently achieves the lowest RMSE, with reductions of at least 50% compared to the second-best filter across all scenarios considered in this work. 
+
+I. I NTRODUCTION 
+
+Over the past decade, wearable inertial measurement units (IMUs) have become a method of choice for motion tracking in robotics and human movement analysis [1]. Unlike vision-based systems, which require bulky external infrastructure, operate within a finite capture volume, and are sensitive to occlusions, IMUs are small and self-contained, enabling large-scale motion capture in constrained or open environ-ments. As a result, IMU-based pose estimation has found broad applications in exoskeletons [2], legged robots [3]–[5], and human motion analysis [6]–[8]. Stochastic filtering is the standard framework for IMU-based pose estimation, with the extended Kalman filter (EKF) [9] and its variants being the most widely used meth-ods for articulated systems [10]. These methods, however, do not exploit the Lie group structure of rigid-body motion. Geometric filtering addresses this limitation [11]–[15]. In particular, the invariant extended Kalman filter (IEKF) [16],                     
+
+> S. Goffin is a FRIA grantee of the Fonds de la Recherche Scientifique -FNRS.
+> 1S. Goffin and P. Sacr´ eare with the Department of Electri-cal Engineering and Computer Science, University of Li` ege, Belgium (sven.goffin@uliege.be; p.sacre@uliege.be).
+> 2C. Schwartz is with the Department of Physical Activity and Rehabilita-tion Sciences, University of Li` ege, Belgium (Cedric.Schwartz@uliege.be).
+> 3S. Bonnabel is with the Department of Mathematics and Systems, Mines Paris – PSL, France (silvere.bonnabel@mines-paristech.fr).
+> 4O. Br¨ uls is with the Department of Aerospace and Mechanical Engi-neering, University of Li` ege, Belgium (o.bruls@uliege.be).
+> Fig. 1. Rigid-body system with a tree structure, composed of two movable bodies and a base fixed in F0. An IMU is mounted on each movable body. Our goal is to estimate the extended pose (position, velocity, orientation) of the full articulated system, from the IMU outputs only.
+
+[17] achieves convergence guarantees and consistency under unobservability for single-body extended pose (orientation, velocity, position) estimation [17]–[22]. Extending these properties to articulated rigid-body systems remains, how-ever, an open problem: inter-body pose coupling prevents a direct application of the IEKF to such systems, and incorpo-rating kinematic constraints while preserving its convergence and consistency guarantees is nontrivial. In this paper, we reformulate the problem of extended pose estimation for kinematic-tree articulated systems as an invari-ant filtering problem and we advocate the use of the relative 
+
+L-extended pose as a Lie group state representation for such systems equipped with L IMUs (Fig. 1 shows L = 2 ). This representation yields group-affine dynamics and allows joint constraints to be expressed in invariant form, enabling their incorporation as noise-free pseudo-measurements within an iterated IEKF (IterIEKF) [23]. The result is a principled extension of invariant filtering to articulated rigid-body systems, with the associated convergence and consistency guarantees. The proposed method is experimentally validated on two extended-pose estimation tasks: a UR5e pick-and-place sequence and a human-leg forward-lunge sequence. In both cases, the proposed IterIEKF outperforms an IterIEKF based on absolute body poses, as well as all EKF and iterated EKF (IterEKF) baselines under either representation. The contributions of this paper are: (i) the introduction of the relative L-extended pose, a Lie group state representation for multi-IMU articulated rigid-body systems, which admits group-affine dynamics and invariant joint constraints; (ii) an IterIEKF formulation based on the proposed representation that incorporates spherical and hinge joint constraints as noise-free pseudo-measurements; and (iii) an experimental evaluation on a robotic arm and a human-leg sequence, validating the approach across diverse articulated systems. 
+
+> arXiv:2606.25083v1 [cs.RO] 23 Jun 2026
+
+II. P ROBLEM STATEMENT 
+
+We consider an articulated system of L rigid bodies arranged in a kinematic tree, with one rigidly mounted IMU per body (Fig. 1 shows L = 2 ). Bodies and joints follow Featherstone’s indexing [24]: body 0 is the fixed base, anchored in the inertial frame F0, and frame Fi denotes the frame of body i, which we take to coincide with its IMU frame without loss of generality. For joint Jj , p(j) and 
+
+s(j) are the predecessor and successor body indices, and 
+
+ρj , ςj ∈ R3 are the vectors from Fp(j) and Fs(j) to Jj . For any vector or matrix quantity, the bottom-right index is the time step and the top-right superscript identifies the frames involved. If specified, the top-left superscript indicates the expression frame. This way, Rij k ∈ SO (3) is the rotation from Fj to Fi at time k, and lvij k , lpij k ∈ R3 are the velocity and position of Fj with respect to (w.r.t.) Fi, expressed in Fl.Neglecting IMU biases and without motion priors, each body follows the inertial navigation dynamics 
+
+R0ik+1 = R0ik exp SO (3) (( iωik + wi, ω 
+
+> k
+
+)dt ), (1a) 
+
+> 0
+
+v0ik+1 = 0v0ik +
+
+(
+
+R0ik (iaik + wi, a 
+
+> k
+
+) + 0g
+
+)
+
+dt, (1b) 
+
+> 0
+
+p0ik+1 = 0p0ik + 0v0ik dt +
+
+(
+
+R0ik (iaik + wi, a 
+
+> k
+
+) + 0g
+
+) dt 2
+
+2 ,
+
+(1c) where iωik, iaik ∈ R3 are the IMU angular velocity and specific force in Fi, 0g is gravity in F0, dt is the time step, and wik = ( wi, ω 
+
+> k
+
+, wi, a 
+
+> k
+
+) ∼ N (06×1, Qik) is the process noise. Joints couple the body poses through kinematic constraints; for the spherical joints in Fig. 1: 
+
+J1 : 0p01  
+
+> k
+
++ R01  
+
+> k1
+
+ς1 = 0ρ1, (2a) 
+
+J2 : 0p02  
+
+> k
+
++ R02  
+
+> k2
+
+ς2 = 0p01  
+
+> k
+
++ R01  
+
+> k1
+
+ρ2, (2b) where p(j)ρj , s(j)ςj ∈ R3 with j ∈ { 1, 2} are known from calibration. Our goal is to estimate the extended pose Xk
+
+(orientation, velocity, position) of the full articulated system, from the IMU outputs only .Two state representations are commonly used to address this problem, each with a fundamental limitation. In the free-segment model, each body has an independent pose w.r.t. F0 and joint constraints are imposed as stochastic pseudo-measurements. This approach cannot properly han-dle the noise-free constraints (2): enforcing them as noisy measurements in an EKF update [7] leaves residual con-straint violations [25], while handling them via a particle filter [26] incurs substantially higher computational cost. The constrained-optimization approach [27] shares the same difficulty. The kinematic-tree model avoids this issue by combining the root pose w.r.t. F0 with relative poses between adjacent segments in minimal coordinates, so that constraints are satisfied by construction. In [28], relative orientations are parameterized by Euler angles and, together with their first and second derivatives, are estimated with an EKF using a constant angular-acceleration model and an IMU-based measurement model. [29] applies the same idea using the Denavit-Hartenberg hinge-joint rotation angle. The resulting dynamics of such approach are often a poor approximation of real motion, and the measurement model is highly nonlinear, in such a way that repeated linearization about the current estimate can hinder convergence. Those limitations ultimately stem from the choice of state representation. A Lie group representation of the state compatible with the invariant filtering framework would overcome the shortcomings of both the free-segment and kinematic-tree models. As we show in the next section, the relative L-extended pose provides such a representation. III. M ODELING THE EXTENDED POSE OF RIGID -BODY SYSTEMS WITHIN THE INVARIANT FRAMEWORK 
+
+The invariant filtering framework requires the state Xk to evolve on a matrix Lie group and imposes two conditions on the system model [16]: 1) Group-affine dynamics: 
+
+Xk+1 = f (Xk, uk, wk),
+
+where, up to first order in the process noise wk ∼N (0, Qk), f admits the factorization f (Xk , uk, wk) = ¯f (Xk , uk)g(wk , uk), with g(0, uk) = I and 
+
+¯f (μν , uk) = ¯f (μ, uk)¯f (I, uk)−1¯f (ν, uk), (3) for all inputs uk and all states μ, ν. Here, 0 and I de-note the zero vector and identity matrix of appropriate dimension. 2) Measurements in invariant form: 
+
+yk = Xkdk + nk or yk = X−1 
+
+> k
+
+dk + nk, (4) with nk ∼ N (0, Nk) and dk a known column vector. The key contribution of this section is to show that the rela-tive L-extended pose, defined below, satisfies both conditions for the articulated system described in Section II, thereby casting the problem into the invariant filtering framework. In single-body pose estimation, the IEKF represents the extended pose of body i w.r.t. F0, expressed in F0, by the matrix 0χ0ik ∈ SE 2(3) , where SE 2(3) is the matrix Lie group of extended poses [30]: 
+
+> 0
+
+χ0ik := 
+
+[ R0ik
+
+> 0
+
+v0ik
+
+> 0
+
+p0ik
+
+02×3 I2
+
+]
+
+∈ SE 2(3) , (5) where IN ∈ RN ×N and 0N ×M ∈ RN ×M denote the identity and zero matrices. Using SE 2(3) as a building block, we define the group of L-extended poses as follows. 
+
+Definition 1: The Lie group of L-extended poses is the set of block-diagonal matrices in R5L×5L composed of L
+
+individual elements of SE 2(3) :
+
+SE L 
+
+> 2
+
+(3) := 
+
+{
+
+blkdiag( χ1, . . . , χL)
+
+∣∣∣∣
+
+χi ∈ SE 2(3) ,i = 1 , . . . , L 
+
+}
+
+.The exponential map and Lie algebra identification on 
+
+SE L 
+
+> 2
+
+(3) are induced blockwise by those of SE 2(3) . Specif-ically, define the block-diagonal lifting operator (·)⊡ for any function fvec : Rn → RN ×N or fmat : RN ×N → RN ×N by 
+
+f ⊡
+
+> vec
+
+(x) := blkdiag ( fvec (x1), . . . , fvec (xL)) ,
+
+f ⊡
+
+> mat
+
+(X) := blkdiag ( fmat (X1), . . . , fmat (XL)) ,
+
+for any vector x = ( x1, . . . , xL) ∈ RLn and matrix X =blkdiag( X1, . . . , XL) ∈ RLN ×LN . Then: 
+
+exp SE L  
+
+> 2(3)
+
+:= exp ⊡
+
+> SE 2(3)
+
+, Lse L  
+
+> 2(3)
+
+:= L⊡
+
+> se 2(3)
+
+.
+
+See Appendix I for the definition of Lse 2 (3) .It is tempting to use the free-segment model with SE L 
+
+> 2
+
+(3) ,yielding Xk = blkdiag( 0χ01  
+
+> k
+
+, 0χ02  
+
+> k
+
+) for Fig. 1. Although each block has group-affine dynamics [31], the constraint (2b) cannot be written in invariant form under this represen-tation, because it couples the poses of two distinct bodies w.r.t. F0. This motivates working instead with relative poses. 
+
+Definition 2 (Relative L-extended pose): The relative L-extended pose of a rigid-body system arranged as a kinematic tree is the element Xk ∈ SE L 
+
+> 2
+
+(3) given by 
+
+Xk = blkdiag 
+
+(p(1) χp(1) s(1)  
+
+> k
+
+, . . . , p(L)χp(L)s(L)
+
+> k
+
+)
+
+,
+
+where the jth diagonal block (Xk)j = p(j)χp(j)s(j) 
+
+> k
+
+is the extended pose of Fs(j) w.r.t. Fp(j), expressed in Fp(j).This definition combines the structural simplicity of rela-tive coordinates with the geometric consistency of SE L 
+
+> 2
+
+(3) .We now show that it yields group-affine dynamics (Sec-tion III-A) and allows the constraints (2) to be expressed in invariant form (Section III-B). 
+
+A. Dynamics of the relative L-extended pose 
+
+The relative L-extended pose has group-affine dynamics, as stated in the following theorem. The proof builds on the single-body result of [31], which shows that the dynamics (1) can be written up to first order in the process noise as 
+
+> 0
+
+χ0ik+1 = ΓΦ (0χ0ik )Υ(uik) exp SE 2(3) (Gikwik), (6) where uik = ( iωik, iaik) and the mapping Φ is an automor-phism. The expressions of matrices Γ, Φ(0χ0ik ), Υ(uik) ∈
+
+R5×5 and Gik ∈ R9×6 are given in Appendix I. 
+
+Theorem 1: The relative L-extended pose of a kinematic-tree rigid-body system admits the following first-order dy-namics approximation w.r.t. the process noise wk:
+
+Xk+1 = Λ(Xk , upk, usk) exp SE L 
+
+> 2(3)
+
+(Gkwk),
+
+where 
+
+Λ(Xk , upk, usk) = Υ⊡(upk)−1Φ⊡(Xk )Υ⊡(usk),
+
+upk =
+
+(
+
+up(1)  
+
+> k
+
+, . . . , up(L)
+
+> k
+
+)
+
+,
+
+usk =
+
+(
+
+us(1)  
+
+> k
+
+, . . . , us(L)
+
+> k
+
+)
+
+,
+
+wk = (w1
+
+> k
+
+, . . . , wLk
+
+) ,
+
+and the jth sub-vector of size 9 in Gkwk is given by 
+
+(Gk wk)j = Gs(j) 
+
+> k
+
+ws(j) 
+
+> k
+
+− Ad ∆−1
+
+> j
+
+Gp(j) 
+
+> k
+
+wp(j) 
+
+> k
+
+,
+
+with ∆j = Υ(up(j) 
+
+> k
+
+)−1Φ(p(j)χp(j)s(j) 
+
+> k
+
+)Υ(us(j) 
+
+> k
+
+). Moreover, the function Λ(·, upk, usk) satisfies group-affine property (3). 
+
+Proof: To simplify notation, set exp( ·) := exp SE 2(3) (·).Substituting (6) into the identity 
+
+> p(j)
+
+χp(j)s(j) 
+
+> k
+
+=
+
+(0χ0p(j)
+
+> k
+
+)−1 (0χ0s(j)
+
+> k
+
+)
+
+, (8) which follows from the frame-composition rule, yields: 
+
+(
+
+Xk+1 
+
+) 
+
+> j
+
+= exp( − Gp(j) 
+
+> k
+
+wp(j) 
+
+> k
+
+)Υ(up(j) 
+
+> k
+
+)−1Φ(0χ0p(j) 
+
+> k
+
+)−1
+
+· Φ(0χ0s(j) 
+
+> k
+
+)Υ(us(j) 
+
+> k
+
+) exp( Gs(j) 
+
+> k
+
+ws(j) 
+
+> k
+
+),
+
+= exp( − Gp(j) 
+
+> k
+
+wp(j) 
+
+> k
+
+)Υ(up(j) 
+
+> k
+
+)−1Φ(( Xk )j )
+
+· Υ(us(j) 
+
+> k
+
+) exp( Gs(j) 
+
+> k
+
+ws(j) 
+
+> k
+
+),
+
+where we used the automorphism property Φ(μ)−1Φ(ν) = 
+
+Φ(μ−1ν). Defining ∆j := Υ(up(j) 
+
+> k
+
+)−1Φ(( Xk)j )Υ(us(j) 
+
+> k
+
+)
+
+and using the adjoint matrix Ad ∆−1
+
+> j
+
+detailed in Appendix I to move the left exponential to the right, it comes: 
+
+(
+
+Xk+1 
+
+) 
+
+> j
+
+=Υ(up(j) 
+
+> k
+
+)−1Φ(( Xk )j )Υ(us(j) 
+
+> k
+
+)
+
+· exp( −Ad ∆−1
+
+> j
+
+Gp(j) 
+
+> k
+
+wp(j) 
+
+> k
+
+) exp( Gs(j) 
+
+> k
+
+ws(j) 
+
+> k
+
+),
+
+=Υ(up(j) 
+
+> k
+
+)−1Φ(( Xk )j )Υ(us(j) 
+
+> k
+
+)
+
+· exp( Gs(j) 
+
+> k
+
+ws(j) 
+
+> k
+
+− Ad ∆−1
+
+> j
+
+Gp(j) 
+
+> k
+
+wp(j) 
+
+> k
+
+),
+
+where the last line following from a first-order approximation of the Baker–Campbell–Hausdorff formula. Assembling the L blocks and building Gk in such a way that (Gkwk)j = Gs(j) 
+
+> k
+
+ws(j) 
+
+> k
+
+− Ad ∆−1
+
+> j
+
+Gp(j) 
+
+> k
+
+wp(j) 
+
+> k
+
+give: 
+
+Xk+1 =Υ⊡(upk)−1Φ⊡(Xk)Υ⊡(usk) exp ⊡(Gkwk),
+
+=Λ(Xk, upk, usk) exp SE L 
+
+> 2(3)
+
+(Gk wk).
+
+The operator (·)⊡ preserves automorphisms, and Φ⊡ satisfies 
+
+Φ⊡(μν ) = Φ⊡(μ)Φ⊡(ν) for all μ, ν ∈ SE L 
+
+> 2
+
+(3) , yielding 
+
+Λ(μν , upk, usk)= Υ⊡(upk)−1Φ⊡(μν )Υ⊡(usk),
+
+= Υ⊡(upk)−1Φ⊡(μ)Φ⊡(ν)Υ⊡(usk),
+
+= Υ⊡(upk)−1Φ⊡(μ)Υ⊡(usk )Υ⊡(usk)−1
+
+· Φ⊡(I)−1Υ⊡(upk )Υ⊡(upk)−1Φ⊡(ν)Υ⊡(usk),
+
+= Λ(μ, upk, usk)Λ(I, upk, usk)−1Λ(ν, upk, usk),
+
+where we used Φ⊡(I) = I. The function Λ(·, upk , usk) thus satisfies (3), proving that the dynamics are group-affine. 
+
+B. Constraints on the relative L-extended pose 
+
+Some common joint constraints admit an invariant form under the relative L-extended pose representation, as estab-lished by the following theorem and its corollary. TABLE I SPHERICAL AND HINGE JOINT CONSTRAINTS EXPRESSED USING THE RELATIVE L-EXTENDED POSE . T HE VECTORS p(j)ρj , s(j)ςj , p(j)θj ,
+
+> s(j)
+
+θj ∈ R3 ARE KNOWN FROM CALIBRATION . T HE ELEMENT (Xk )j ∈ SE 2(3) DENOTES THE jth DIAGONAL BLOCK OF Xk ∈ SE L 
+
+> 2
+
+(3) .
+
+Joint type Constraints in invariant form 
+
+Spherical 
+
+(
+
+Xk
+
+)
+
+> j
+
+
+
+> s(j)
+
+ςj
+
+01
+
+ =
+
+
+
+> p(j)
+
+ρj
+
+01
+
+
+
+Hinge (
+
+Xk
+
+)
+
+> j
+
+
+
+> s(j)
+
+ςj
+
+01
+
+ =
+
+
+
+> p(j)
+
+ρj
+
+01
+
+(
+
+Xk
+
+)
+
+> j
+
+
+
+> s(j)
+
+θj
+
+00
+
+ =
+
+
+
+> p(j)
+
+θj
+
+00
+
+
+
+Theorem 2: Let the constraint enforced by joint Jj be-tween bodies p(j) and s(j) be given by 
+
+φk
+
+(0χ0p(j) 
+
+> k
+
+, 0χ0s(j)
+
+> k
+
+)
+
+= 0. (9) If φk takes the form 
+
+φk
+
+(0χ0p(j) 
+
+> k
+
+, 0χ0s(j)
+
+> k
+
+)
+
+= R0p(j) 
+
+> k
+
+ak − R0s(j) 
+
+> k
+
+bk
+
++ αk
+
+(0v0p(j) 
+
+> k
+
+− 0v0s(j)
+
+> k
+
+)
+
++ βk
+
+(0p0p(j) 
+
+> k
+
+− 0p0s(j)
+
+> k
+
+)
+
+, (10) where ak, bk ∈ R3 and αk, β k ∈ R are known and indepen-dent of the body poses ( 0χ0p(j) 
+
+> k
+
+, 0χ0s(j) 
+
+> k
+
+, and p(j)χp(j)s(j) 
+
+> k
+
+), then the constraint admits the invariant form based on 
+
+(Xk)j ∈ SE 2(3) :
+
+(Xk )j dk = yk, (11) where dk = ( bk , α k, β k) and yk = ( ak , α k, β k).
+
+Proof: Left-multiplying (9) by (R0p(j) 
+
+> k
+
+)T , substitut-ing (8), and rearranging terms yield 
+
+Rp(j)s(j) 
+
+> k
+
+bk + αk p(j)vp(j)s(j) 
+
+> k
+
++ βk p(j)pp(j)s(j) 
+
+> k
+
+= ak .
+
+Appending the identities αk = αk and βk = βk gives (11). 
+
+It may be preferable to express a constraint directly in terms of the relative pose of the connected bodies. The next corollary states the counterpart of Theorem 2 in this setting. 
+
+Corollary 1: Let the constraint enforced by joint Jj be-tween bodies p(j) and s(j) be given by 
+
+φk
+
+(p(j)χp(j)s(j)
+
+> k
+
+)
+
+= 0. (12) It admits the form (11) if φk can be expressed as 
+
+φk
+
+(p(j)χp(j)s(j)
+
+> k
+
+)
+
+= Rp(j)s(j) 
+
+> k
+
+bk
+
++ αk p(j) vp(j)s(j) 
+
+> k
+
++ βk p(j) pp(j)s(j) 
+
+> k
+
+− ak , (13) where ak , bk ∈ R3 and αk, β k ∈ R are known and independent of p(j)χp(j)s(j) 
+
+> k
+
+.Both spherical-joint constraints in (2) match (10) and thus admit an invariant form under the relative L-extended pose. Table I reports the corresponding invariant form for spherical joints, as well as for hinge joints. 
+
+Remark 1: In order to impose non-holonomic constraints, 
+
+ak, bk, αk, and βk may depend on the gyroscope measure-ments p(j)ωp(j) 
+
+> k
+
+and s(j)ωs(j) 
+
+> k
+
+, in which case the pseudo-measurement (11) should include an additional noise term to account for gyroscope noise. IV. E XPERIMENTS 
+
+We evaluate an IterIEKF, an EKF, and an IterEKF on two real-world extended-pose estimation tasks: a UR5e robot performing pick-and-place motions and a human leg during a forward-lunge exercise. For each filter, the state is rep-resented either as the relative L-extended pose or as the collection of individual body poses w.r.t. F0 (free-segment model), referred to as the relative and absolute represen-tations, respectively. Quantities expressed in the absolute representation are denoted with a bar. The IterIEKF is formulated using the left-invariant error: 
+
+(ξk|l)j = log SE 2(3) 
+
+(
+
+( ˆXk|l)−1 
+
+> j
+
+(Xk)j
+
+)
+
+, (14) 
+
+(¯ξk|l)j = log SE 2(3) 
+
+(
+
+(0 ˆχ0s(j) 
+
+> k|l
+
+)−1 0χ0s(j)
+
+> k
+
+)
+
+, (15) while the EKF and IterEKF use the standard error 
+
+(ek|l)j =
+
+
+
+log SO (3) 
+
+(
+
+( ˆRp(j)s(j) 
+
+> k|l
+
+)T Rp(j)s(j)
+
+> k
+
+)
+
+> p(j)
+
+vp(j)s(j) 
+
+> k
+
+− p(j) ˆvp(j)s(j)
+
+> k|lp(j)
+
+pp(j)s(j) 
+
+> k
+
+− p(j) ˆpp(j)s(j)
+
+> k|l
+
+ , (16) 
+
+(¯ ek|l)j =
+
+
+
+log SO (3) 
+
+(
+
+( ˆR0s(j) 
+
+> k|l
+
+)T R0s(j)
+
+> k
+
+)
+
+> 0
+
+v0s(j) 
+
+> k
+
+− 0 ˆv0s(j)
+
+> k|l
+> 0
+
+p0s(j) 
+
+> k
+
+− 0 ˆp0s(j)
+
+> k|l
+
+ . (17) All error terms are modeled as zero-mean Gaussian. To ensure a fair comparison, all filters are initialized from the same state (expressed in either absolute or relative form), with covariances chosen so that the induced state distributions match to first order. The covariance matrices are further selected such that states drawn from the initial distribution satisfy the kinematic constraints up to first order. In all experiments, joint constraints are decomposed into positional and rotational components and incorporated as pseudo-measurements with a small regularizing noise to pre-vent numerical issues. The corresponding standard deviations are reported in Tables II and IV. 
+
+A. UR5e experiment 
+
+The first task estimates the extended pose of a UR5e robot. The UR5e comprises a fixed base and six movable rigid bodies in a kinematic chain, connected by hinge joints. Four Awinda (Xsens) IMUs are mounted on the first four movable bodies. The last two bodies remain fixed relative to their parents (Fig. 2). Ground truth is obtained from joint-encoder measurements recorded during an arbitrary pick-and-place sequence. The vectors p(j)ρj , s(j) ςj , p(j)θj , and s(j)θj (see Table I) are known from calibration. IMU biases are estimated offline from static data and subtracted from the measurements. All filters are initialized with the parameters in Table II and evaluated over 100 trials on the same ground-truth trajectory, with initial states randomly sampled from the relative-representation IterIEKF distribution.             
+
+> TABLE II PARAMETERS FOR THE UR5 E EXPERIMENT .
+> Parameter Value
+> Initial orientation error around joint axis (std.) π/ 6 rad
+> Pos. constraint noise along each axis (std.) 10 −2.5m
+> Rot. constraint noise along each axis (std.) 10 −2.5rad
+> Gyroscope noise along each axis (std.) 10 −2rad s −1
+> Accelerometer noise along each axis (std.) 10 −1m s −2
+> IMU frequency 100 Hz
+
+Figure 3 reports the mean and one standard deviation of the rotation, velocity, and position error norms for the four IMUs, evaluated in the absolute representation. Since yaw about gravity is unobservable, this component is removed at each time step before computing the errors. The orientation error of IMU 1 is identically zero because its joint axis θ1
+
+is collinear with 0g, placing it entirely in the unobservable subspace. The initial velocity error is zero for all filters, as the trajectory starts from rest.  
+
+> Fig. 2. UR5e robot equipped with IMUs on its first four movable segments.
+
+The relative-representation IterIEKF converges essentially immediately and with negligible run-to-run variability. All other filters converge markedly more slowly, exhibit a sharp transient increase in velocity error before gradually recover-ing, and show substantially larger dispersion. This indicates that the relative representation, not merely the invariant filter structure, is the decisive factor in performance. Table III reports the root mean squared error (RMSE) for IMU orientation, velocity, and position, computed across trials, time, and IMUs. The relative-representation IterIEKF achieves the lowest RMSE in all three categories. In partic-ular, it reduces RMSE by 50% for orientation, 87 .7% for velocity, and 59 .7% for position compared to the relative-representation EKF, which performs second best.                           
+
+> TABLE III RMSE OF THE ROTATION ,VELOCITY ,AND POSITION COMPONENTS OF THE STATE FOR EACH TESTED FILTER IN THE UR5 E EXPERIMENT .LOWEST VALUES ARE INDICATED IN BOLD . E RRORS ARE COMPUTED AFTER CORRECTING FOR THE UNOBSERVABLE STATE COMPONENTS .
+> Rot. RMSE Vel. RMSE Pos. RMSE [rad ][m s −1][m]
+> EKF (abs.) 0.108 0.232 0.068
+> EKF (rel.) 0.096 0.171 0.057
+> IterEKF (abs.) 0.115 0.246 0.072
+> IterEKF (rel.) 0.100 0.176 0.059
+> IterIEKF (abs.) 0.119 0.249 0.063
+> IterIEKF (rel.) 0.048 0.021 0.023
+
+B. Human-leg experiment 
+
+The second task estimates the extended pose of a human leg during forward lunges. Two Trigno IMUs (Delsys) are mounted on the thigh and shank. Ground-truth IMU poses are obtained from a nine-camera Qualisys motion-capture system using reflective markers placed on rigid frames attached to each IMU. Additional markers on the malleoli, femoral epicondyles, and iliac spines are used to reconstruct joint-center trajectories, which serve as ground truth (Fig. 4). The ankle and knee are modeled as hinge joints. Their centers are defined as the midpoints between the medial and lateral malleoli markers and between the medial and lateral epicondyle markers, respectively. Joint axes are estimated as the mean direction of the line joining the corresponding markers over a calibration sequence. The hip joint center is estimated using the Harrington regression from leg length and pelvic width and depth. The ankle joint center is assumed fixed in F0, making the problem fully observable. We label the ankle and knee joints J1 and J2. The vectors p(j) ρj ,
+
+> s(j)
+
+ςj , p(j) θj , and s(j) θj with j ∈ {1, 2} are computed from motion-capture ground truth and treated as constant. Soft-tissue artifacts induce small IMU-to-joint displacements that have limited impact on position constraints but affect rotation constraints more severely. Indeed, errors in the joint-axis direction are amplified by the joint-to-IMU lever arm, potentially leading to large position estimation errors. For this reason, the rotation-constraint regularization noise is set Fig. 3. Mean and standard deviation of the orientation, velocity, and position error norms for each IMU over time, computed over 100 runs of the UR5e experiment. The relative-representation IterIEKF (rel.) outperforms the absolute free-segment IterIEKF (abs.) and all EKF and IterEKF baselines under either extended pose representation, with negligible run-to-run variance.  
+
+> Fig. 4. Human leg instrumented with IMUs on the shank and thigh. Each IMU carries a rigid marker frame to provide ground-truth IMU pose from motion capture. Eight additional markers on the malleoli, femoral epicondyles, and iliac spines provide ground-truth joint-center trajectories.
+
+higher than in the UR5e experiment. IMU biases are esti-mated offline from ground truth and subtracted from the IMU outputs. All parameters are reported in Table IV. We run 100 
+
+estimations of the same trajectory with initial states sampled from the relative-representation IterIEKF distribution. Figure 5 reports the mean and one standard deviation of the rotation, velocity, and position error norms for the two IMUs. The relative-representation IterIEKF converges quickly with negligible run-to-run variability across all                
+
+> TABLE IV PARAMETERS FOR THE HUMAN -LEG EXPERIMENT .
+> Parameter Value
+> Initial orientation error around joint axis (std.) π/ 3 rad
+> Pos. constraint noise along each axis (std.) 10 −2.5m
+> Rot. constraint noise along each axis (std.) 10 −0.5rad
+> Gyroscope noise along each axis (std.) 8·10 −3rad s −1
+> Accelerometer noise along each axis (std.) 5·10 −2m s −2
+> IMU frequency 200 Hz
+
+state components. The other five alternatives converge more slowly, often exhibit an initial error peak, and show substan-tially higher variability. Overall, for each filter, the relative representation outperforms the absolute one. Figure 6 shows the mean and standard deviation of the ankle (AJC), knee (KJC), and hip (HJC) joint-center position error norms. The same trend holds: the relative-representation IterIEKF performs best, converging quickly with minimal run-to-run variance. As expected, errors accu-mulate along the kinematic chain, increasing with distance from the ankle reference. After convergence, all filters retain small residual errors due to unmodeled soft-tissue artifacts and the hinge-joint as-sumption at the ankle and knee. For applications such as ex-oskeleton operation or robot programming-by-demonstration, these errors are negligible. However, more precise motion-Fig. 5. Mean and standard deviation of the orientation, velocity, and position error norms for each IMU, computed over 100 runs of the human-leg experiment. The relative-representation IterIEKF (rel.) converges within a few time steps with negligible run-to-run variance, outperforming the absolute-representation IterIEKF (abs.) and all EKF and IterEKF baselines under either representation. 
+
+estimation tasks will require explicitly accounting for these effects, which we leave for future work. Table V presents the RMSE for IMU orientation, velocity, and position, averaged across trials, time, and IMUs. The results confirm the superiority of the relative-representation IterIEKF, achieving RMSE reductions of 60 .7% , 92 .4% , and 
+
+85 .6% for orientation, velocity, and position, respectively, compared to the second-best filter in each category. V. C ONCLUSION 
+
+The results presented in this paper demonstrate that an appropriate Lie group representation is the key ingredient for extending invariant filtering to articulated rigid-body systems. By working in relative coordinates and representing the extended pose of a kinematic-tree system as an element of 
+
+SE L 
+
+> 2
+
+(3) , the filtering problem naturally acquires the group-affine dynamics and invariant measurement structure required by the IEKF framework. Joint kinematic constraints, which are difficult to enforce exactly in standard formulations, are seamlessly incorporated as noise-free pseudo-measurements without sacrificing the convergence and consistency guaran-tees of invariant filtering. Experiments on a UR5e robot and a human leg confirm this: the proposed IterIEKF consistently outperforms all EKF, IterEKF, and absolute-pose IterIEKF                             
+
+> Fig. 6. Mean and standard deviation of the ankle (AJC), knee (KJC), and hip (HJC) joint-center position error norms, computed over 100 runs of the human-leg experiment. The relative-representation IterIEKF (rel.) converges within a few time steps and yields lower errors for all three joint centers than the absolute-representation IterIEKF (abs.) and all EKF and IterEKF baselines under either representation, with negligible run-to-run variance. TABLE V RMSE OF THE ROTATION ,VELOCITY ,AND POSITION COMPONENTS OF THE STATE FOR EACH TESTED FILTER IN THE HUMAN -LEG EXPERIMENT .LOWEST VALUES ARE INDICATED IN BOLD .
+> Rot. RMSE Vel. RMSE Pos. RMSE [rad ][m s −1][m]
+> EKF (abs.) 0.289 0.882 0.290
+> EKF (rel.) 0.230 0.627 0.194
+> IterEKF (abs.) 0.285 0.860 0.279
+> IterEKF (rel.) 0.224 0.629 0.199
+> IterIEKF (abs.) 0.241 0.545 0.181
+> IterIEKF (rel.) 0.088 0.041 0.026
+
+baselines, with faster convergence and markedly lower run-to-run variability, and the performance gap persists across both tasks and all state components. These results establish the relative L-extended pose as a principled foundation for IMU-based pose estimation in articulated systems. In the coming months, we will extend the framework to full-body human pose estimation, targeting applications such as exoskeleton control and programming-by-demonstration. We will also consider additional joint models, including cylindrical, prismatic, and planar joints. Finally, we will investigate principled strategies to compensate for soft-tissue artifacts, with the goal of preserving performance under less controlled measurement conditions. APPENDIX IThe matrices involved in dynamics (6) are given by 
+
+Γ =
+
+[
+
+I3 0gdt 0g dt 2
+
+> 2
+
+02×3 I2
+
+]
+
+, (18) 
+
+Φ(χ) = 
+
+[ R v p + vdt 
+
+02×3 I2
+
+]
+
+, (19) 
+
+Υ(u) = 
+
+[
+
+exp SO (3) (ωdt ) adt a dt 2
+
+> 2
+
+02×3 I2
+
+]
+
+, (20) 
+
+Gik =
+
+
+
+J− iωi  
+
+> kdt
+
+03×3
+
+03×3 exp SO (3) (− iωikdt )dt 
+
+03×3 exp SO (3) (− iωikdt ) dt 2
+
+> 2
+
+ . (21) The Lie algebra of the group SE 2(3) , denoted by se 2(3) , is identified with R9 via the following linear map: 
+
+Lse 2(3) 
+
+φνρ
+
+ =
+
+[ (φ)× ν ρ
+
+02×3 02×2
+
+]
+
+∈ se 2(3) , (22) where φ, ν, ρ ∈ R3 and (φ)× is the skew-symmetric matrix associated with the vector cross product in R3. Given χ ∈
+
+SE 2(3) , the adjoint of χ is defined as 
+
+Ad χ =
+
+
+
+R 03×3 03×3(v) 
+
+> ×
+
+R R 03×3
+
+(p) 
+
+> ×
+
+R 03×3 R
+
+ , (23) such that χ exp( ξ)χ−1 = exp( Ad χξ ) for all ξ ∈ R9.REFERENCES [1] M. Field, Z. Pan, D. Stirling, and F. Naghdy, “Human motion capture sensors and analysis in robotics,” Industrial Robot: An International Journal , vol. 38, no. 2, pp. 163–171, 2011. [2] F. E. Xavier, G. Burger, M. P´ etriaux, J.-E. Deschaud, and F. Goulette, “Multi-imu proprioceptive state estimator for humanoid robots,” in 
+
+2023 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . IEEE, 2023, pp. 10 880–10 887. [3] M. Bloesch, M. Hutter, M. A. Hoepflinger, S. Leutenegger, C. Gehring, C. D. Remy, and R. Siegwart, “State estimation for legged robots-consistent fusion of leg kinematics and IMU,” Robotics , vol. 17, pp. 17–24, 2013. [4] N. Rotella, M. Bloesch, L. Righetti, and S. Schaal, “State estimation for a humanoid robot,” in 2014 IEEE/RSJ International Conference on Intelligent Robots and Systems . IEEE, 2014, pp. 952–958. [5] P.-C. Lin, H. Komsuoglu, and D. E. Koditschek, “Sensor data fusion for body state estimation in a hexapod robot with dynamical gaits,” 
+
+IEEE Transactions on Robotics , vol. 22, no. 5, pp. 932–943, 2006. [6] A. Filippeschi, N. Schmitz, M. Miezal, G. Bleser, E. Ruffaldi, and D. Stricker, “Survey of motion tracking methods based on inertial sensors: A focus on upper limb human motion,” Sensors , vol. 17, no. 6, p. 1257, 2017. [7] D. Roetenberg, H. Luinge, P. Slycke et al. , “Xsens MVN: Full 6DOF human motion tracking using miniature inertial sensors,” Xsens Motion Technologies BV, Tech. Rep , vol. 1, no. 2009, pp. 1–7, 2009. [8] T. L. Baldi, F. Farina, A. Garulli, A. Giannitrapani, and D. Prattichizzo, “Upper body pose estimation using wearable inertial sensors and multiplicative Kalman filter,” IEEE Sensors Journal , vol. 20, no. 1, pp. 492–500, 2019. [9] R. E. Kalman, “A new approach to linear filtering and prediction problems,” Transactions of the ASME–Journal of Basic Engineering ,vol. 82, no. Series D, pp. 35–45, 1960. [10] R. Pastorino, D. Richiedei, J. Cuadrado, and A. Trevisani, “State estimation using multibody models and non-linear Kalman filters,” 
+
+International Journal of Non-Linear Mechanics , vol. 53, pp. 83–90, 2013. [11] S. Bonnabel and P. Rouchon, “On invariant observers,” Control and observer design for nonlinear finite and infinite dimensional systems ,pp. 53–65, 2005. [12] R. Mahony, T. Hamel, and J.-M. Pflimlin, “Nonlinear complementary filters on the special orthogonal group,” IEEE Transactions on auto-matic control , vol. 53, no. 5, pp. 1203–1218, 2008. [13] R. Mahony and J. Trumpf, “Equivariant filter design for kinematic systems on Lie groups,” IFAC-PapersOnLine , vol. 54, no. 9, pp. 253– 260, 2021. [14] P. van Goor, R. Mahony, T. Hamel, and J. Trumpf, “A geometric observer design for visual localisation and mapping,” in 2019 IEEE 58th Conference on Decision and Control (CDC) . IEEE, 2019, pp. 2543–2549. [15] R. Mahony, T. Hamel, and J. Trumpf, “An homogeneous space geometry for simultaneous localisation and mapping,” Annual Reviews in Control , vol. 51, pp. 254–267, 2021. [16] A. Barrau and S. Bonnabel, “The invariant extended Kalman filter as a stable observer,” IEEE Transactions on Automatic Control , vol. 62, no. 4, pp. 1797–1812, 2016. [17] ——, “Invariant Kalman filtering,” Annual Review of Control, Robotics, and Autonomous Systems , vol. 1, no. 1, pp. 237–257, 2018. [18] N. van Der Laan, M. Cohen, J. Arsenault, and J. R. Forbes, “The invariant Rauch-Tung-Striebel smoother,” IEEE Robotics and Automa-tion Letters , vol. 5, no. 4, pp. 5067–5074, 2020. [19] R. Hartley, M. Ghaffari, R. M. Eustice, and J. W. Grizzle, “Contact-aided invariant extended Kalman filtering for robot state estimation,” 
+
+The International Journal of Robotics Research , vol. 39, no. 4, pp. 402–430, 2020. [20] N. Pavlasek, A. Walsh, and J. R. Forbes, “Invariant extended kalman filtering using two position receivers for extended pose estimation,” in 2021 IEEE International Conference on Robotics and Automation (ICRA) , 2021, pp. 5582–5588. [21] K. Wu, T. Zhang, D. Su, S. Huang, and G. Dissanayake, “An invariant-EKF VINS algorithm for improving consistency,” in 2017 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) ,Sep. 2017, pp. 1578–1585. [22] A. Barrau and S. Bonnabel, “The geometry of navigation problems,” 
+
+IEEE Transactions on Automatic Control , vol. 68, no. 2, pp. 689–704, 2023. [23] S. Goffin, A. Barrau, S. Bonnabel, O. Br¨ uls, and P. Sacr´ e, “Iterated invariant extended Kalman filter (IterIEKF),” IEEE Transactions on Automatic Control , 2025. [24] R. Featherstone, Rigid body dynamics algorithms . Springer, 2008. [25] S. Goffin, S. Bonnabel, O. Br¨ uls, and P. Sacr´ e, “Invariant Kalman filtering with noise-free pseudo-measurements,” in 2023 62nd IEEE Conference on Decision and Control (CDC) , 2023, pp. 8665–8671. [26] Z.-Q. Zhang and J.-K. Wu, “A novel hierarchical information fusion method for three-dimensional upper limb motion estimation,” IEEE transactions on instrumentation and measurement , vol. 60, no. 11, pp. 3709–3719, 2011. [27] M. Kok, J. D. Hol, and T. B. Sch¨ on, “An optimization-based approach to human body motion capture using inertial sensors,” IFAC Proceed-ings Volumes , vol. 47, no. 3, pp. 79–85, 2014. [28] G. Bleser, D. Damen, A. Behera, G. Hendeby, K. Mura, M. Miezal, A. Gee, N. Petersen, G. Mac ¸ ˜ aes, H. Domingues et al. , “Cognitive learning, monitoring and assistance of industrial workflows using egocentric sensor networks,” PloS one , vol. 10, no. 6, p. e0127769, 2015. [29] M. Miezal, G. Bleser, N. Schmitz, and D. Stricker, “A generic approach to inertial tracking of arbitrary kinematic chains,” in Proceedings of the 8th international conference on body area networks , 2013, pp. 189–192. [30] A. Barrau, “Non-linear state error based extended Kalman filters with applications to navigation,” Ph.D. dissertation, Mines Paristech, 2015. [31] M. Brossard, A. Barrau, P. Chauchat, and S. Bonnabel, “Associating uncertainty to extended poses for on Lie group IMU preintegration with rotating earth,” IEEE Transactions on Robotics , vol. 38, no. 2, pp. 998–1015, 2021.

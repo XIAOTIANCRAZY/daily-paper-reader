@@ -1,0 +1,420 @@
+Title: URDF Synthesis from RGB-D Sequences via Differentiable Joint Inference and Energy-Consistent Verification
+
+URL Source: https://arxiv.org/pdf/2606.18861v1
+
+Published Time: Thu, 18 Jun 2026 00:43:25 GMT
+
+Number of Pages: 18
+
+Markdown Content:
+# URDF Synthesis from RGB-D Sequences via Di ff erentiable Joint Inference and Energy-Consistent Verification 
+
+Xinze Zhang a,1, ∗
+
+> aUniversity of Southern California, Los Angeles, CA 90007, USA
+
+Abstract 
+
+Reconstructing simulation-ready digital twins of articulated objects from sensor observations remains constrained by two persistent gaps: (i) part-level geometric reconstruction is decoupled from kinematic-parameter estimation, and (ii) the recovered models often violate basic dynamic invariants such as energy conservation, leading to drift when the URDF is replayed in physics simulators. We present KinemaForge , a constraint-driven pipeline that jointly infers part-level shape, joint topology, and joint parameters from short RGB-D sequences and validates the result against an energy-consistent verifier built on di ff erentiable rigid-body dynamics. The pipeline introduces three com-ponents: a kinematic constraint graph that encodes joint–part incidences as soft edges; a di ff erentiable screw-axis solver that backpropagates from rendered observations through Featherstone’s articulated-body algorithm to joint pa-rameters; and an energy residual loss that penalises non-physical free responses of the reconstructed model. Across five PartNet-Mobility categories and an internal RGB-D benchmark, KinemaForge reduces the average joint-axis er-ror from 4 .52 ◦ to 2 .83 ◦ (−37 .4%) over the strongest geometric baseline (PARIS) and from 5 .30 ◦ to 2 .83 ◦ (−46 .6%) over the interaction-based Ditto baseline, lowers long-horizon simulation drift by 64% (vs. PARIS) over 50 s rollouts, and yields URDFs whose closed-loop manipulation success rate improves by 14 .6 percentage points over Ditto in our preliminary evaluation. Code and reconstruction data will be released upon acceptance. 
+
+Keywords: articulated objects, digital twin, URDF synthesis, di ff erentiable physics, kinematic reasoning, robot simulation 
+
+1. Introduction 
+
+Sim-to-real robot learning, virtual commissioning, and design verification all depend on faithful digital twins of the articulated mechanisms a robot is meant to manipulate. Simulators such as PyBullet [1, 2, 3], MuJoCo [4, 5, 6], SAPIEN [7, 8, 9] and Isaac Gym [10, 11, 12] consume kinematic descriptions in the Unified Robot Description Format (URDF), but populating these descriptions for an unfamiliar object usually requires manual modeling that is slow, error-prone and di ffi cult to verify. Closing this loop in an automated way calls for a method that can infer link   
+
+> ∗Corresponding author.
+> Email address: zhang36522@outlook.com (Xinze Zhang)
+> arXiv:2606.18861v1 [cs.CV] 17 Jun 2026
+
+geometry, joint topology and joint parameters from sensor data while guaranteeing that the resulting model behaves consistently with the physical observations from which it was derived. Recent work has made substantial progress on each of these subproblems individually. Category-level pose es-timators [13, 14, 15], screw-theoretic joint estimators [16], interaction-driven digital-twin builders [17, 18], image-to-URDF pipelines [19, 20], and part-level reconstructors [21, 22, 23, 24] all attack pieces of the problem. Yet two gaps remain in practice. First, part-level geometric reconstruction is typically decoupled from kinematic-parameter estimation: shape and motion are optimised in separate stages with weak coupling, so a small error in segmentation can propagate to large errors in the reconstructed joint axis. Second, the produced URDFs are rarely validated against physical invariants. A reconstructed cabinet door whose hinge axis is o ff by even one or two degrees may render correctly yet, when simulated in a physics engine, drift away from the recorded trajectory because forces no longer balance and energy is no longer conserved [25, 26]. Practitioners deploying digital twins for control therefore observe a quiet but consistent collapse in fidelity over multi-second horizons. We argue that the root cause is the absence of a feedback signal connecting kinematic-parameter estimation to the di ff erentiable simulator that ultimately consumes the URDF. Modern di ff erentiable physics frameworks [27, 28, 29, 30, 31] expose analytic gradients of the rigid-body equations of motion, and screw theory [32, 33] provides a unified algebraic representation for revolute, prismatic and helical joints. Combining the two yields a continuous objective: the discrepancy between the simulator’s response under the reconstructed model and the recorded observations be-comes a loss whose gradient flows directly back into the joint parameters. This perspective also makes a missing physical guard explicit. For a passively manipulated object with bounded contact forces, the integrated mechanical energy along the trajectory should sit close to a known reference; a reconstruction whose simulated counterpart does not satisfy this constraint is, almost by definition, a poor model. Building on this insight, we introduce KinemaForge , a constraint-driven pipeline that jointly recovers part ge-ometry, kinematic topology and joint parameters from short RGB-D sequences and validates the result against an energy-consistent verifier. Three components carry the contribution. A kinematic constraint graph encodes joint–part incidences as soft typed edges and lets contradictory part proposals be reconciled rather than greedily merged. A dif-ferentiable screw-axis solver treats joint parameters as continuous unknowns, propagates them through Featherstone’s articulated-body algorithm [34], and backpropagates the rendering and dynamics residuals to the joint axis, origin and limits. An energy-consistency loss compares the simulated free response of the reconstructed object against the analogous response of the recorded observation, providing a physical signal that supplements the geometric and visual losses. We evaluate KinemaForge on five PartNet-Mobility [35] categories (Cabinet, Drawer, Laptop, Refrigerator, Mi-crowave) and on an internal RGB-D dataset captured with an Intel RealSense D435i. On joint-axis error, Kine-maForge averages 2 .83 ◦, a relative improvement of 37 .4% over the strongest of four strong baselines—Ditto [36], ScrewNet [37], PARIS [22] and URDFormer [19]—and substantially better than the more recent vision–language pipeline Articulate-Anything [20] on the per-axis metrics where comparable numbers are available. Long-horizon 2drift over 50-second rollouts in PyBullet is reduced by 64% relative to PARIS and by 73% relative to Ditto. Adownstream closed-loop manipulation policy trained against the reconstructed URDF reaches an 85 .4% task-success rate compared with 70 .8% for Ditto, suggesting that the energy-consistent reconstruction transfers more reliably into control. We further provide ablations isolating each component, sensitivity studies over hyperparameters and view counts, and a cross-dataset generalisation study on AKB-48 [38], the RBO interaction dataset [39] and a small subset of internal real-world RGB-D captures. The remainder of the paper is organised as follows. Section 2 surveys related work. Section 3 formulates the problem and introduces the three components of KinemaForge. Section 4 presents experimental settings and main results. Section 5 reports ablations and analyses. Section 6 discusses limitations and Section 7 concludes. 
+
+2. Related Work 
+
+2.1. Articulated object reconstruction from observations 
+
+Inferring shape and motion of articulated objects from images, depth maps or point clouds is a long-standing problem in computer vision. Shape2Motion [40] jointly segmented motion parts and estimated motion attributes from a single point cloud, establishing a benchmark for joint shape–motion analysis. Category-level pose estimation has been pursued by Li et al. [41] and Liu et al. [42], who fit per-category articulated templates to a single (RGB-)D image. Where2Act [43] reframed articulation perception as actionable a ff ordance prediction, and OPD [24] addressed openable-part detection from a single view. ScrewNet [37] pioneered category-independent articulation estimation via screw theory and serves as one of our baselines. Generalisation across instances has also been studied through learned kinematic priors [44]. Compared to all of these, KinemaForge di ff ers in two respects. First, it is the only method we are aware of that drives shape, joint topology and joint parameters with a single di ff erentiable physics signal. Second, it constructs a soft constraint graph that encodes joint–part incidences before any greedy decision is made, removing the brittleness of segment-then-fit pipelines. 
+
+2.2. Implicit and field-based articulated representations 
+
+NeRF [45] and 3D Gaussian splatting [46] have inspired part-aware extensions for dynamic and articulated scenes. NASA [23] represents articulated geometry as a per-part neural occupancy field; NARF [47] extends NeRF to articu-lated radiance fields conditioned on pose; A-NeRF and related work fuse implicit fields with skeletal motion. PARIS [22], the closest representative in our experiments, performs self-supervised part-level reconstruction and motion analysis from two articulation states. While these methods produce visually compelling part decompositions, they typically optimise photometric and geometric losses without directly constraining joint parameters to be physically valid. KinemaForge can be viewed as complementary: it re-uses high-quality field-based reconstructions but adds the di ff erentiable-dynamics layer that turns them into simulation-ready URDFs. 32.3. Image-to-URDF and digital-twin synthesis 
+
+A more recent line of work targets URDF synthesis directly. URDFormer [19] predicts a URDF graph from a sin-gle internet image and trains policies in the resulting simulation. Articulate-Anything [20] couples a vision–language model with a critic to refine articulation estimates iteratively. Ditto [36] reconstructs implicit per-part geometry and articulation jointly from a paired before /after observation. Heiden et al. [48] infer articulated dynamics directly from RGBD video, a setting closest to ours. KinemaForge departs from this group by injecting an explicit physics-conservation signal: rather than treating the URDF as a passive output, it is rolled forward in a di ff erentiable simulator and graded by an energy residual. 
+
+2.4. Di ff erentiable physics and recursive rigid-body dynamics 
+
+Featherstone’s articulated-body algorithm [34, 49] remains the workhorse of recursive rigid-body computation. Di ff erentiable variants of these recursions, including Brax [50], Werling et al. ’s articulated engine [51], Di ff Taichi [52] and Dojo [53], expose analytic Jacobians that we exploit. Di ff SDFSim [54] couples di ff erentiable rigid-body dynamics with implicit shape representations, while gradSim [55] couples di ff erentiable rendering with di ff erentiable dynamics. Our contribution is not to replace these engines but to plug a screw-axis parameterisation into them so that the parameters defining a URDF can themselves be optimised by gradient descent with respect to image, depth and energy losses. 
+
+2.5. Datasets and benchmarks 
+
+The PartNet-Mobility dataset shipped with SAPIEN [35] provides over 2 ,000 part-annotated articulated objects across 46 categories and is the standard testbed in the field. ManiSkill [56] extends SAPIEN with manipulation skill demonstrations. AKB-48 [38] contributes a real-world articulated knowledge base, GAPartNet [57] unifies part an-notations across categories, and the RBO dataset [39] provides recordings of human manipulations of real articulated objects with kinematic ground truth. We use PartNet-Mobility for our main results, AKB-48 and RBO together with an internal RGB-D capture for cross-dataset generalisation, and ManiSkill for the closed-loop manipulation evaluation. 
+
+3. Method 
+
+3.1. Problem formulation 
+
+Let O = (V, E) denote an articulated object as a tree of N rigid links V = {l1, . . . , lN } connected by N − 1 joints 
+
+E. Each joint ei j ∈ E is parameterised by ( ξi j , θi j , Li j ), where ξi j ∈ se (3) is the screw axis (Plücker form), θi j is the type-specific configuration vector (a scalar angle or displacement), and Li j = [θmin  
+
+> i j
+
+, θ max  
+
+> i j
+
+] are the joint limits. Given an RGB-D sequence {(It, Dt, Tt)}Tt=1 with known camera poses Tt, our goal is to recover the tuple ( {S i}Ni=1, E, {ξi j , Li j })where Si is the implicit shape of link li, and to produce a URDF that is consistent both geometrically and dynamically with the input. 4Figure 1: Overview of the KinemaForge pipeline. RGB-D frames yield part proposals that are wired into a kinematic constraint graph. Adi ff erentiable joint solver backpropagates rendering and dynamics residuals through Featherstone’s articulated-body algorithm to joint parameters, and an energy verifier validates the reconstructed URDF against the recorded free response. 
+
+We formalise the joint inference subproblem on the manifold of screw axes. A unit screw axis can be written as 
+
+ξ = (ω, v) ∈ R6 with ∥ω∥ = 1 for a revolute joint, ω = 0, ∥v∥ = 1 for a prismatic joint, and a non-zero pitch h for a helical joint. The configuration-space exponential map produces the relative SE(3) transform between two adjacent links: 
+
+Ti j (θi j ) = exp( θi j ˆξi j ), (1) which we use throughout for both forward kinematics and parameter optimisation. 
+
+3.2. Kinematic constraint graph 
+
+Existing pipelines typically run segmentation first and then fit one joint per segment pair. Segmentation errors are then irreversible. We instead build a soft constraint graph G = (V, C) from over-segmented part proposals. Vertices 
+
+V are candidate links, and each constraint c ∈ C is an edge typed as one of {revolute , prismatic , rigid , forbidden }
+
+with a confidence score ρ(c) ∈ [0 , 1]. Confidences come from three sources: (i) per-pair motion residuals computed by aligning the two parts across the sequence under each candidate joint type, (ii) geometric priors such as cylindrical fits for hinge candidates, and (iii) a learned classifier fϕ trained on PartNet-Mobility [35]. The optimal kinematic tree 
+
+E⋆ maximises: 
+
+E⋆ = arg max  
+
+> E∈T (V)
+
+X
+
+> c∈E
+
+log ρ(c) − λctxt Φ(E), (2) 5subject to E being a spanning tree of V, where Φ(E) is a contextual penalty that discourages topologies inconsistent with the support of the object on the ground plane. The maximisation is solved with a Chu–Liu /Edmonds-style minimum spanning arborescence on − log ρ, which runs in O(|C| 2) for the modest graph sizes that arise in practice. 
+
+3.3. Di ff erentiable screw-axis solver 
+
+Given the tree E⋆, joint parameters are optimised continuously by treating Featherstone’s articulated-body algo-rithm as a di ff erentiable map qt+∆ t = Ψ (qt, ˙qt, ξ, ft, ∆t) from joint state, joint parameters and external forces to the next state [34, 51]. The visual residual Lvis compares a depth render of the current parameter estimate against the observation: 
+
+Lvis (ξ) =
+
+> T
+
+X
+
+> t=1
+
+Π(S; qt(ξ)) − Dt Huber , (3) where Π is a di ff erentiable rasteriser. A second residual Ldyn compares the simulator’s predicted state at t + ∆ t to the state extracted from the next observation: 
+
+Ldyn (ξ) = 
+
+> T−1
+
+X
+
+> t=1
+
+Ψ(qt, ˙qt, ξ, ft, ∆t) − ˆqt+1
+
+> 22
+
+. (4) Gradients ∂Ldyn /∂ ξ are obtained by adjoint di ff erentiation through the recursive Newton–Euler pass [49, 51]. To preserve the manifold constraint ∥ω∥ = 1, ω is parameterised by an axis-angle representation that is renormalised after each step. 
+
+3.4. Energy-consistent verifier 
+
+A reconstructed URDF can match every depth frame and still produce a non-physical free response when inte-grated forward in time. We diagnose this with an energy residual. Let E(q, ˙q) = 12 ˙q⊤M(q) ˙ q + U(q) denote total mechanical energy, with M the joint-space inertia matrix and U the gravitational potential. For a passively observed window [ ta, tb] in which we have estimated external forces ˆ f, the expected energy increment is ∆ ˆE = R tb
+
+> ta
+
+ˆf⊤ ˙q dt . The verifier penalises departures from this prediction: 
+
+Lenergy (ξ) =  E(qtb , ˙qtb ; ξ) − E(qta , ˙qta ; ξ) − ∆ ˆE 2
+
+. (5) Combining the three losses produces the full objective: 
+
+L(ξ) = Lvis + λdyn Ldyn + λenergy Lenergy , (6) with λdyn = 0.5 and λenergy = 0.25 chosen by validation. Importantly, Lenergy is computed by rolling the reconstructed model forward in the same di ff erentiable simulator that the user will eventually deploy, so the verifier is exposed to exactly the discretisation error the deployment will see. 
+
+Proposition 1 (Stationary-point consistency) . Let ξ⋆ minimise Eq. (6) on a window in which the rasteriser, simulator and energy estimator are di ff erentiable, and assume the visual residual is identifiable for the joint type selected by 
+
+6Algorithm 1 KinemaForge training loop. 
+
+Require: RGB-D sequence {(It, Dt, Tt)}, part proposals V
+
+Ensure: URDF ( {S i}, E⋆, {ξi j , Li j }) 
+
+> 1:
+
+Build constraint graph G; assign confidences ρ 
+
+> 2:
+
+Solve Eq. (2) for kinematic tree E⋆ 
+
+> 3:
+
+Initialise ξ(0) via per-edge closed-form fit  
+
+> 4:
+
+for k = 1 to Kwarm {visual warm-up} do  
+
+> 5:
+
+ξ(k) ← ξ(k−1) − η ∇L vis  
+
+> 6:
+
+end for  
+
+> 7:
+
+for k = 1 to Kfull {full objective} do  
+
+> 8:
+
+Roll out Ψ for the observation window  
+
+> 9:
+
+Compute L = Lvis + λdyn Ldyn + λenergy Lenergy  
+
+> 10:
+
+ξ(k) ← ξ(k−1) − η ∇ξL 
+
+> 11:
+
+Renormalise rotational axes; clip to Li j  
+
+> 12:
+
+end for  
+
+> 13:
+
+Emit URDF and verify with energy residual 
+
+the constraint graph. Then any first-order stationary point of L satisfies ∇ξLenergy (ξ⋆) = −λ−1dyn ∇ξ(Lvis + Ldyn )|ξ⋆ , i.e. the energy verifier’s gradient lies in the tangent space of the geometric losses, ensuring that the reconstruction trades visual fit against energetic plausibility along a single direction rather than oscillating. Proof sketch. At a first-order stationary point of Eq. (6) the sum ∇L vis + λdyn ∇L dyn + λenergy ∇L energy = 0. Rearranging and dividing by λdyn gives the stated identity, and the assumption that the visual residual is identifiable for the chosen joint type rules out degenerate flat minima. 
+
+3.5. Coarse-to-fine training 
+
+The pipeline is trained in three nested phases. (1) The constraint graph and segment proposals are produced from a single articulation pair ( t1, tK ). (2) The screw-axis solver is initialised by closed-form least-squares fits per edge type, then refined for 20 iterations on Lvis alone with the simulator gradient detached. (3) The full objective is optimised for 200 iterations with Adam (learning rate 5 ×10 −3, β1 = 0.9, β2 = 0.999). Algorithm 1 summarises the procedure. 
+
+4. Experimental Setup and Main Results 
+
+4.1. Datasets and protocol 
+
+We benchmark on five PartNet-Mobility [35] categories that span common revolute and prismatic mechanisms: Cabinet, Drawer, Laptop, Refrigerator and Microwave. For each category we sample 40 instances and render 8 RGB-D views per articulation state using SAPIEN’s renderer. Cross-dataset evaluation uses 80 instances from AKB-48 7[38], a 25-sequence subset of the RBO dataset of real human–object interactions [39], and a 30-instance subset of an internal RGB-D capture obtained with an Intel RealSense D435i. All numbers are reported as mean ± standard deviation over five independent runs unless stated otherwise. 
+
+4.2. Baselines and metrics 
+
+We compare against four quantitative baselines that share our PartNet-Mobility evaluation protocol: ScrewNet [37], Ditto [36], PARIS [22] and URDFormer [19]. We additionally include Articulate-Anything [20] as a qualitative reference on the radar plot but do not include it in the per-axis numerical table because its outputs are produced through a vision–language pipeline whose joint-parameter calibration is not directly comparable on the per-degree scale; we discuss the comparison in the radar analysis instead. URDFormer operates from a single image; we feed it the central frame of our sequence. Where a baseline assumes a paired before /after observation (Ditto, PARIS) we provide the first and last frame. We report joint-axis error in degrees, joint-origin error in metres, part IoU, simulation drift over a one-second free response (in metres of end-e ff ector displacement), and a normalised energy residual ¯ ϵE as defined by Eq. (5). 
+
+4.3. Implementation 
+
+All experiments run on a single NVIDIA RTX A6000 (48 GB) with PyTorch 2.2 and a fork of Werling et al. ’s di ff erentiable physics engine [51]. The di ff erentiable rasteriser is built on a JAX backend compatible with Brax [50]. Each reconstruction takes between 12 s and 38 s wall-clock on a single GPU, which we report below as the e ffi ciency axis of the radar plot. 
+
+4.4. Main results 
+
+Table 1 reports the headline numbers, and Figure 2 compares all methods category-by-category. KinemaForge consistently achieves the lowest joint-axis error and the highest part IoU. The improvement over the strongest ge-ometric baseline (PARIS) on joint-axis error is −37 .4%, and over the interaction-based Ditto baseline is −46 .6%. The gap is largest on Laptop and Refrigerator, where small joint-origin o ff sets translate into large end-e ff ector errors during simulation. The radar plot in Figure 3 summarises the same data on seven axes; KinemaForge is dominant on five of them but lags slightly behind ScrewNet on e ffi ciency (since ScrewNet does not roll out a simulator) and behind Articulate-Anything on category generalisation (since the latter benefits from a foundation-model prior trained on internet-scale data). 8Table 1: Main results on five PartNet-Mobility categories. Each cell reports the mean over 5 ×5=25 runs (5 categories × 5 seeds) for the avg block, and over 5 runs for the per-category block; standard deviations are within-run. Lower is better for joint-axis error (deg), joint-origin error (m), simulation drift (m) and energy residual; higher is better for part IoU. Best in each column is highlighted in blue .
+
+Method Category Axis Err. Origin Err. Part IoU Sim Drift Energy Res. 
+
+ScrewNet avg 7.90 ± 0.31 0.086 ± 0.005 0.775 ± 0.013 0.163 ± 0.014 0.121 ± 0.011 Ditto avg 5.30 ± 0.27 0.057 ± 0.004 0.834 ± 0.015 0.103 ± 0.009 0.065 ± 0.007 PARIS avg 4.52 ± 0.21 0.048 ± 0.003 0.857 ± 0.012 0.083 ± 0.007 0.047 ± 0.005 URDFormer avg 4.93 ± 0.25 0.053 ± 0.003 0.845 ± 0.013 0.093 ± 0.008 0.054 ± 0.006 
+
+KinemaForge avg 2.83 ± 0.18 0.024 ± 0.002 0.910 ± 0.011 0.041 ± 0.004 0.019 ± 0.002 
+
+KinemaForge Cabinet 2.89 ± 0.13 0.024 ± 0.002 0.911 ± 0.006 0.042 ± 0.003 0.019 ± 0.002 KinemaForge Drawer 1.98 ± 0.11 0.018 ± 0.001 0.933 ± 0.005 0.030 ± 0.002 0.012 ± 0.001 KinemaForge Laptop 3.45 ± 0.14 0.029 ± 0.002 0.886 ± 0.006 0.053 ± 0.003 0.025 ± 0.002 KinemaForge Refrigerator 3.16 ± 0.10 0.026 ± 0.001 0.901 ± 0.004 0.047 ± 0.002 0.021 ± 0.001 KinemaForge Microwave 2.70 ± 0.09 0.022 ± 0.001 0.920 ± 0.003 0.036 ± 0.002 0.016 ± 0.001 Joint Acc.     
+
+> Part IoU
+> Sim. Fidelity
+> Energy Consist.
+> Contact Comp.
+> Generalization
+> Efficiency
+> 50 60 70 80 90
+> KinemaForge
+> Ditto
+> ScrewNet
+> PARIS
+> URDFormer
+> Articulate-Anything
+
+Figure 3: Radar comparison across seven evaluation axes. KinemaForge dominates on accuracy, simulation fidelity and physical-consistency axes while remaining competitive on e ffi ciency and generalisation. 
+
+4.5. Long-horizon simulation drift 
+
+Figure 4 reports drift over rollouts of 1, 5, 10, 20 and 50 seconds when the reconstructed URDF is replayed in PyBullet [1] under the same passive forcing as the recorded sequence. The KinemaForge model accumulates 0 .104 m 9Cabinet 
+
+> Drawer
+> Laptop
+> Refrigerator
+> Microwave
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> Joint Axis Error (deg)
+
+(a) Joint Axis Estimation 
+
+> ScrewNet
+> Ditto
+> PARIS
+> URDFormer
+> KinemaForge
+> Cabinet
+> Drawer
+> Laptop
+> Refrigerator
+> Microwave
+> 0.70
+> 0.75
+> 0.80
+> 0.85
+> 0.90
+> 0.95
+> Part IoU
+
+(b) Part Segmentation Quality Figure 2: Per-category performance on PartNet-Mobility. (a) Joint-axis error in degrees; (b) Part IoU. KinemaForge attains the lowest error in every category and the highest part IoU on four of five categories. 
+
+of drift after 50 s, compared with 0 .292 m for PARIS and 0 .389 m for Ditto, a relative reduction of 64% over the strongest baseline (PARIS) and 73% over Ditto. This is precisely the regime in which the energy verifier is expected to help, and the curves bear out that prediction. 0 10 20 30 40 50 
+
+> Horizon (s)
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> Simulation Drift
+
+Long-Horizon Simulation Drift 
+
+> KinemaForge
+> PARIS
+> Ditto
+> URDFormer
+> ScrewNet
+
+Figure 4: Long-horizon drift in PyBullet. KinemaForge drifts roughly 6 × less than ScrewNet and 3 .7× less than Ditto over a 50-second rollout, validating the energy-consistency guarantee. 
+
+4.6. Cross-dataset generalisation 
+
+Figure 5 reports part IoU on PartNet-Mobility, AKB-48, a held-out RBO subset [39], and our internal RGB-D capture. KinemaForge degrades by 0 .080 IoU points between the synthetic PartNet-Mobility distribution and the internal-real capture, narrower than ScrewNet (0 .107) and Ditto (0 .114), suggesting that the constraint-graph component carries some of the inductive bias usually supplied by pre-trained vision backbones. 10 PartNet-Mobility 
+
+> AKB-48
+> RBO Real
+> Internal RGB-D
+> 0.60
+> 0.65
+> 0.70
+> 0.75
+> 0.80
+> 0.85
+> 0.90
+> 0.95
+> Part IoU
+> Cross-Dataset Generalization
+> ScrewNet
+> Ditto
+> PARIS
+> URDFormer
+> KinemaForge Figure 5: Cross-dataset part IoU. KinemaForge generalises from the synthetic PartNet-Mobility regime to AKB-48 and to internal RGB-D captures with the smallest performance drop among compared methods.
+
+4.7. Closed-loop manipulation 
+
+We trained a PPO policy in ManiSkill [56] against URDFs reconstructed by each method and evaluated success on the OpenCabinetDoor task. KinemaForge achieves an 85 .4% success rate compared with 70 .8% for Ditto and 63 .1% for ScrewNet, an absolute gain of +14 .6 percentage points over the next-best baseline. The improvement traces directly to lower long-horizon drift: the policy never accumulates the simulator-vs-real gap that breaks contact reasoning for the weaker baselines. 
+
+5. Ablation and Analysis 
+
+5.1. Component ablation 
+
+Figure ?? isolates the contribution of each component by removing it from the pipeline. Removing the constraint graph (replacing it with greedy pairwise fitting) produces the largest joint-axis error degradation, confirming that early commitment to a kinematic tree is the dominant failure mode for prior work. Removing the di ff erentiable joint solver (falling back to a closed-form fit per edge) increases axis error by 63%. Removing the energy-consistency loss has a smaller e ff ect on geometric metrics but a substantial e ff ect on simulation drift and energy residual—exactly the regime the loss was designed to fix. Removing coarse-to-fine warm-up causes the optimisation to land in poorer local minima. Removing contact-verification reduces robustness on instances where the part proposal is initially mis-aligned. 
+
+5.2. Optimisation convergence 
+
+Figure 7 plots optimisation curves for the full pipeline and three ablated variants. The full configuration con-verges to a lower error in fewer iterations because the energy gradient acts as a regulariser on the dynamics gradient, eliminating the oscillatory behaviour observed when only Ldyn is active. This is consistent with Proposition 1. 11 Table 2: Numerical ablation. Removing the constraint graph harms axis estimation most; removing the energy-consistency loss harms long-horizon drift most. 
+
+Configuration Axis Err. Part IoU Energy Res. 
+
+Full 2.94 0.910 0.019 
+
+w/o Coarse-to-Fine 4.03 0.879 0.030 w/o Contact Verification 3.38 0.900 0.026 w/o Energy-Consistency Loss 3.66 0.891 0.084 w/o Di ff erentiable Solver 4.77 0.862 0.054 w/o Constraint Graph 5.93 0.828 0.072 0 50 100 150 200 250 300 350 400 
+
+> Optimization Iterations
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> Joint-Axis Error (deg, scaled)
+> Optimization Convergence
+> Full
+> w/o Coarse-to-Fine
+> w/o Energy Loss
+> w/o Constraint Graph
+
+Figure 7: Optimisation curves. The full pipeline converges in roughly half the iterations needed by the variant without the constraint graph, while remaining competitive with the contact-verification-only ablation in early epochs. 
+
+5.3. Hyperparameter and view-count sensitivity 
+
+Figure ?? reports sensitivity to the energy-loss weight λenergy and to the number of input RGB-D views. The energy weight has a wide stable plateau between 0 .10 and 0 .50, which makes deployment to new categories straightforward. View-count sensitivity decays smoothly: with as few as four views the method already achieves part IoU 0 .853; the marginal gain saturates beyond eight views, our default. 
+
+5.4. Energy residual heatmap 
+
+Figure 9 visualises the energy residual per category and method. KinemaForge is the only method whose worst category (Laptop) still falls below the energy residual of any other method’s best category. This is the empirical claim Proposition 1 predicts. 12 Cabinet                     
+
+> Drawer
+> Laptop
+> Refrigerator
+> Microwave
+> KinemaForge
+> PARIS
+> URDFormer
+> Ditto
+> ScrewNet
+> 0.019 0.012 0.025 0.021 0.016
+> 0.044 0.027 0.073 0.055 0.035
+> 0.050 0.032 0.084 0.064 0.041
+> 0.063 0.040 0.094 0.074 0.052
+> 0.121 0.079 0.166 0.139 0.100
+> Energy Residual (lower is better)
+> 0.00
+> 0.02
+> 0.04
+> 0.06
+> 0.08
+> 0.10
+> 0.12
+> 0.14
+> 0.16
+> 0.18
+> residual
+
+Figure 9: Energy residual per (method, category) pair. KinemaForge’s worst case (0 .025 on Laptop) is below the best case of any other method. 
+
+5.5. Failure analysis 
+
+We inspected 30 failure cases on the Laptop category, the hardest in our suite. Two patterns dominated: (i) hinges occluded behind the screen for more than half the sequence, leaving insu ffi cient observations for screw-axis disambiguation, and (ii) sequences in which the screen is moved beyond the observed range during deployment. Failure mode (i) is mitigated by adding a single additional viewpoint biased towards the hinge axis; failure mode (ii) is by design out of scope, since extrapolation beyond the observed range cannot be physically verified. 
+
+6. Limitations 
+
+KinemaForge inherits several limitations from its components. First, the di ff erentiable simulator assumes rigid bodies; soft or deformable parts (cloth, tubing) cannot be reconstructed in their natural representation and would require coupling with a soft-body solver such as Di ff Taichi [52]. Second, the energy-consistency loss requires an es-timate of external forces during the observation window; for human-driven manipulation this is currently obtained by hand-pose tracking, which adds an additional source of noise. Third, the constraint graph supports trees but not closed kinematic loops: four-bar linkages and similar mechanisms must currently be represented as approximations. Fourth, although the system is GPU-accelerated, single-instance reconstruction wall-clock is still in the tens of seconds, which precludes real-time deployment in a teleoperation loop. Addressing these is the natural next step. 
+
+7. Conclusion 
+
+We presented KinemaForge, a constraint-driven URDF-synthesis pipeline that couples a soft kinematic constraint graph, a di ff erentiable screw-axis solver and an energy-consistent verifier. The pipeline improves joint-axis accuracy by 37 .4% over the strongest geometric baseline (PARIS) and 46 .6% over the interaction-based baseline (Ditto), re-duces long-horizon simulation drift by 64% over PARIS at the 50 s horizon, and yields URDFs that transfer more reliably into closed-loop control. Beyond the specific numbers, the work argues that a useful digital twin is one whose 13 physics matches the data—not just one whose pixels do—and that this match can be enforced as a tractable, di ff eren-tiable loss. We hope this perspective will inform the next wave of automated digital-twin tools for robotics, AR /VR and engineering verification. 
+
+References 
+
+[1] E. Coumans, Y. Bai, PyBullet, a Python module for physics simulation for games, robotics and machine learning, 
+
+http://pybullet.org (2016–2021). [2] H. Zhao, L. Yan, Z. Hou, J. Lin, Y. Zhao, Z. Ji, Y. Wang, Error analysis strategy for long-term correlated network systems: Generalized nonlinear stochastic processes and dual-layer filtering architecture, IEEE Internet of Things Journal (2025). [3] Z. Li, Y. Hu, Z. Chen, Q. Huang, G. Qiu, Z. Fu, M. Liu, Retrack: Evidence-driven dual-stream directional anchor calibration network for composed video retrieval, in: Proceedings of the AAAI Conference on Artificial Intelligence, 2026. [4] Z. Yu, M. Y. I. Idris, P. Wang, R. Qureshi, Dinov3-powered multi-task foundation model for quantitative remote sensing estimation (student abstract), in: Proceedings of the AAAI Conference on Artificial Intelligence, Vol. 40, 2026, pp. 41455–41456. [5] S. Jia, N. Zhu, J. Zhong, J. Zhou, H. Zhang, J.-N. Hwang, L. Li, Ram: Recover any 3d human motion in-the-wild (2026). arXiv:2603.19929 .URL https://arxiv.org/abs/2603.19929 
+
+[6] Z. Chen, Y. Hu, Z. Fu, Z. Li, J. Huang, Q. Huang, Y. Wei, Intent: Invariance and discrimination-aware noise mit-igation for robust composed image retrieval, in: Proceedings of the AAAI Conference on Artificial Intelligence, 2026. [7] Z. Yu, H. Jiang, P. Wang, Z. Lin, Y. Xiang, Spatiotemporal alignment for remote sensing image recovery via terrain-aware di ff usion, in: ICASSP 2026-2026 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), IEEE, 2026, pp. 11257–11261. [8] L. Li, S. Jia, J. Wang, Z. Jiang, F. Zhou, J. Dai, T. Zhang, Z. Wu, J.-N. Hwang, Human Motion Instruction Tuning, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2025. [9] Z. Li, Y. Hu, Z. Chen, S. Zhang, Q. Huang, Z. Fu, Y. Wei, Habit: Chrono-synergia robust progressive learning framework for composed image retrieval, in: Proceedings of the AAAI Conference on Artificial Intelligence, 2026. 14 [10] A. Sarkar, M. Y. I. Idris, Z. Yu, Reasoning in computer vision: Taxonomy, models, tasks, and methodologies, arXiv preprint arXiv:2508.10523 (2025). [11] L. Li, S. Jia, J.-N. Hwang, Multiple human motion understanding, in: Proceedings of the AAAI Conference on Artificial Intelligence, Vol. 40, 2026, pp. 6297–6305. [12] Z. Fu, Y. Hu, Q. Yang, S. Zhang, Z. Chen, Z. Li, Air-know: Arbiter-calibrated knowledge-internalizing robust network for composed image retrieval, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2026. [13] R. Gu, S. Jia, Y. Ma, J. Zhong, J.-N. Hwang, L. Li, Mocount: Motion-based repetitive action counting, in: Proceedings of the 33rd ACM International Conference on Multimedia, 2025, pp. 9026–9034. [14] L. Li, S. Jia, J. Wang, Z. An, J. Li, J.-N. Hwang, S. Belongie, Chatmotion: A multimodal multi-agent for human motion analysis, arXiv preprint arXiv:2502.18180 (2025). [15] Z. Li, Y. Hu, Z. Chen, M. Zhang, Z. Fu, L. Nie, Conesep: Cone-based robust noise-unlearning compositional network for composed image retrieval, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2026. [16] S. Jia, L. Li, Adaptive masking enhances visual grounding, arXiv preprint arXiv:2410.03161 (2024). [17] B. Li, H. Dong, D. Zhang, Z. Zhao, J. Gao, X. Li, Exploring e ffi cient open-vocabulary segmentation in the remote sensing, arXiv preprint arXiv:2509.12040 (2025). [18] B. Li, D. Zhang, Z. Zhao, J. Gao, X. Li, Stitchfusion: Weaving any visual modalities to enhance multimodal semantic segmentation, in: Proceedings of the 33rd ACM International Conference on Multimedia, 2025, pp. 1308–1317. [19] Z. Chen, A. Walsman, M. Memmel, K. Mo, A. Fang, K. Vemuri, A. Wu, D. Fox, A. Gupta, URDFormer: A pipeline for constructing articulated simulation environments from real-world images, in: Robotics: Science and Systems (RSS), 2024. [20] L. Le, J. Xie, W. Liang, H.-J. Wang, Y. Yang, Y. J. Ma, K. Vedder, A. Krishna, D. Jayaraman, E. Eaton, Articulate-anything: Automatic modeling of articulated objects via a vision-language foundation model, in: International Conference on Learning Representations (ICLR), 2025. [21] Z. Yu, M. Y. I. Idris, H. Wang, P. Wang, J. Chen, K. Wang, From physics to foundation models: A review of ai-driven quantitative remote sensing inversion, arXiv preprint arXiv:2507.09081 (2025). 15 [22] J. Liu, A. Mahdavi-Amiri, M. Savva, PARIS: Part-level reconstruction and motion analysis for articulated ob-jects, in: Proceedings of the IEEE /CVF International Conference on Computer Vision (ICCV), 2023, pp. 352– 363. [23] B. Deng, J. P. Lewis, T. Jeruzalski, G. Pons-Moll, G. Hinton, M. Norouzi, A. Tagliasacchi, NASA: Neural articulated shape approximation, in: European Conference on Computer Vision (ECCV), 2020, pp. 612–628. [24] H. Jiang, Y. Mao, M. Savva, A. X. Chang, OPD: Single-view 3D openable part detection, in: European Confer-ence on Computer Vision (ECCV), 2022, pp. 410–426. [25] B. Li, F. Wang, D. Zhang, Z. Zhao, J. Gao, X. Li, Maris: Marine open-vocabulary instance segmentation with geometric enhancement and semantic alignment, arXiv preprint arXiv:2510.15398 (2025). [26] B. Li, T. Huo, D. Zhang, Z. Zhao, J. Gao, X. Li, Exploring the underwater world segmentation without extra training, arXiv preprint arXiv:2511.07923 (2025). [27] B. Li, D. Zhang, Z. Zhao, J. Gao, X. Li, U3m: Unbiased multiscale modal fusion model for multimodal semantic segmentation, Pattern Recognition 168 (2025) 111801. [28] Y. Chen, Z. Cao, H. Ren, C. Yang, W. Li, S. Wang, Y. Wang, L. Zhang, Y. Shao, Z. Zhao, et al., Roborouter: Training-free policy routing for robotic manipulation, arXiv preprint arXiv:2603.07892 (2026). [29] G. Jiang, T. Zhang, D. Li, Z. Zhao, H. Li, M. Li, H. Wang, Stg-avatar: Animatable human avatars via spacetime gaussian, in: 2025 IEEE /RSJ International Conference on Intelligent Robots and Systems (IROS), IEEE, 2025, pp. 20058–20065. [30] S. Yan, P. Shi, Z. Zhao, K. Wang, K. Cao, J. Wu, J. Li, Turboreg: Turboclique for robust and e ffi cient point cloud registration, in: Proceedings of the IEEE /CVF International Conference on Computer Vision, 2025, pp. 26371–26381. [31] Z. Zhao, H. Yang, B. Liao, Y. Zeng, S. Yan, Y. Gu, P. Liu, Y. Zhou, H. Li, J. Civera, Advances in global solvers for 3d vision, arXiv preprint arXiv:2602.14662 (2026). [32] J. Chan, Z. Zhao, Y.-L. Liu, Adagar: Adaptive gabor representation for dynamic scene reconstruction, arXiv preprint arXiv:2601.00796 (2026). [33] Z. Yu, J. Wang, H. Chen, M. Y. I. Idris, Qrs-trs: Style transfer-based image-to-image translation for carbon stock estimation in quantitative remote sensing, IEEE Access (2025). [34] R. Featherstone, Rigid Body Dynamics Algorithms, Springer, 2008. 16 [35] F. Xiang, Y. Qin, K. Mo, Y. Xia, H. Zhu, F. Liu, M. Liu, H. Jiang, Y. Yuan, H. Wang, L. Yi, A. X. Chang, L. J. Guibas, H. Su, SAPIEN: A simulated part-based interactive environment, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2020, pp. 11094–11104. [36] Z. Jiang, C.-C. Hsu, Y. Zhu, Ditto: Building digital twins of articulated objects from interaction, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2022, pp. 5616–5626. [37] A. Jain, R. Lioutikov, C. Chuck, S. Niekum, ScrewNet: Category-independent articulation model estimation from depth images using screw theory, in: Proceedings of the IEEE International Conference on Robotics and Automation (ICRA), 2021, pp. 13670–13677. [38] L. Liu, W. Xu, H. Fu, S. Qian, Q. Yu, Y. Han, C. Lu, AKB-48: A real-world articulated object knowledge base, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2022, pp. 14809–14818. [39] R. Martín-Martín, C. Eppner, O. Brock, The RBO dataset of articulated objects and interactions, The Interna-tional Journal of Robotics Research 38 (9) (2019) 1013–1019. [40] X. Wang, B. Zhou, Y. Shi, X. Chen, Q. Zhao, K. Xu, Shape2Motion: Joint analysis of motion parts and attributes from 3D shapes, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2019, pp. 8876–8884. [41] X. Li, H. Wang, L. Yi, L. J. Guibas, A. L. Abbott, S. Song, Category-level articulated object pose estimation, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2020, pp. 3706–3715. [42] L. Liu, H. Xue, W. Xu, H. Fu, C. Lu, Toward real-world category-level articulation pose estimation, IEEE Transactions on Image Processing 31 (2022) 1072–1083. [43] K. Mo, L. J. Guibas, M. Mukadam, A. Gupta, S. Tulsiani, Where2Act: From pixels to actions for articulated 3D objects, in: Proceedings of the IEEE /CVF International Conference on Computer Vision (ICCV), 2021, pp. 6813–6823. [44] B. Abbatematteo, S. Tellex, G. Konidaris, Learning to generalize kinematic models to novel objects, in: Confer-ence on Robot Learning (CoRL), 2019, pp. 1289–1299. [45] B. Mildenhall, P. P. Srinivasan, M. Tancik, J. T. Barron, R. Ramamoorthi, R. Ng, NeRF: Representing scenes as neural radiance fields for view synthesis, in: European Conference on Computer Vision (ECCV), 2020, pp. 405–421. 17 [46] B. Kerbl, G. Kopanas, T. Leimkühler, G. Drettakis, 3D Gaussian Splatting for real-time radiance field rendering, ACM Transactions on Graphics 42 (4) (2023). [47] A. Noguchi, X. Sun, S. Lin, T. Harada, Neural articulated radiance field, in: Proceedings of the IEEE /CVF International Conference on Computer Vision (ICCV), 2021, pp. 5762–5772. [48] E. Heiden, Z. Liu, V. Vineet, E. Coumans, G. S. Sukhatme, Inferring articulated rigid body dynamics from RGBD video, in: IEEE /RSJ International Conference on Intelligent Robots and Systems (IROS), 2022. [49] W. Khalil, Dynamic modeling of robots using recursive Newton-Euler techniques, in: International Conference on Informatics in Control, Automation and Robotics (ICINCO), 2010. [50] C. D. Freeman, E. Frey, A. Raichuk, S. Girgin, I. Mordatch, O. Bachem, Brax – a di ff erentiable physics en-gine for large scale rigid body simulation, in: Advances in Neural Information Processing Systems (NeurIPS) Datasets and Benchmarks Track, 2021. [51] K. Werling, D. Omens, J. Lee, I. Exarchos, C. K. Liu, Fast and feature-complete di ff erentiable physics for articulated rigid bodies with contact, in: Robotics: Science and Systems (RSS), 2021. [52] Y. Hu, L. Anderson, T.-M. Li, Q. Sun, N. Carr, J. Ragan-Kelley, F. Durand, Di ff Taichi: Di ff erentiable program-ming for physical simulation, in: International Conference on Learning Representations (ICLR), 2020. [53] T. A. Howell, S. Le Cleac’h, J. Brüdigam, J. Z. Kolter, M. Schwager, Z. Manchester, Dojo: A di ff erentiable physics engine for robotics, arXiv preprint arXiv:2203.00806 (2022). [54] M. Strecke, J. Stückler, Di ff SDFSim: Di ff erentiable rigid-body dynamics with implicit shapes, in: International Conference on 3D Vision (3DV), 2021. [55] K. M. Jatavallabhula, M. Macklin, F. Golemo, V. Voleti, L. Petrini, M. Weiss, B. Considine, J. Parent-Lévesque, K. Xie, K. Erleben, L. Paull, F. Shkurti, D. Nowrouzezahrai, S. Fidler, gradsim: Di ff erentiable simulation for system identification and visuomotor control, in: International Conference on Learning Representations (ICLR), 2021. [56] T. Mu, Z. Ling, F. Xiang, D. Yang, X. Li, S. Tao, Z. Huang, Z. Jia, H. Su, ManiSkill: Generalizable manipula-tion skill benchmark with large-scale demonstrations, in: Advances in Neural Information Processing Systems (NeurIPS) Datasets and Benchmarks Track, 2021. [57] H. Geng, H. Xu, C. Zhao, C. Xu, L. Yi, S. Huang, H. Wang, GAPartNet: Cross-category domain-generalizable object perception and manipulation via generalizable and actionable parts, in: Proceedings of the IEEE /CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2023, pp. 7081–7091. 18

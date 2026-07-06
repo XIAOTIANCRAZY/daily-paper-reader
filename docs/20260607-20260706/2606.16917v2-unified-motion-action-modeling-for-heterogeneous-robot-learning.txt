@@ -1,0 +1,555 @@
+Title: Unified Motion-Action Modeling for Heterogeneous Robot Learning
+
+URL Source: https://arxiv.org/pdf/2606.16917v2
+
+Published Time: Wed, 17 Jun 2026 01:09:23 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+# Unified Motion-Action Modeling for Heterogeneous Robot Learning 
+
+Yunhao Cao ∗ Shitong Liu ∗ Chao Feng ∗ Meryl Zhang Xuanchen Lu Andrew Owens Kuan Fang 
+
+Cornell University 
+
+https://uma-manipulation.github.io Action-free Video 
+
+> Real Robot Data
+> Simulated Robot Data
+
+UMA 
+
+> Visuomotor Control
+> Cross-domain Training
+> Evaluation
+> Versatile Inference
+> Dynamics Modeling
+> Task Inference
+> Robot Action Object Motion Observation Task
+> Supervision
+
+Figure 1: Unified Motion-Action (UMA) Model. UMA uses object motion as a shared interface for heterogeneous robot learning. Pretraining effectively combines action-free videos, real robot data, and simulated robot data by representing task intent, observations, object motion, and robot actions as tokens under a masked generative objective. The same pretrained parameters then flexibly support visuomotor control, dynamics modeling, and task inference at deployment. 
+
+Abstract: We present Unified Motion-Action (UMA) Model, an approach that uses 3D object motion trajectories as a shared interface to bridge visuomotor control and dynamics modeling. UMA treats object motion and robot actions as co-evolving variables under a masked generative objective, in which the mask pattern determines both the supervision regime during pretraining and the inference mode at deployment. Using hindsight-relabeled motion contexts and a contrastive objective that disentangles task intent from scene geometry, UMA enables multi-task pretraining across heterogeneous data sources without requiring manually annotated task instructions. At deployment, the same pretrained parameters support motion-conditioned visuomotor control, motion-based dynamics modeling, and task adaptation from few-shot demonstrations. Pretrained on a mixture of robot demonstrations, human videos, and simulated data, UMA consistently outperforms state-of-the-art baselines specialized for each inference mode. 
+
+Keywords: Manipulation, Imitation Learning, Robotic Foundation Models 
+
+> *
+
+Equal contribution, correspondence to yunhao@cs.cornell.edu 
+
+> arXiv:2606.16917v2 [cs.RO] 16 Jun 2026
+
+## 1 Introduction 
+
+Learning from broad data and operating across diverse use cases is the defining promise of robotic foundation models. Despite rapid progress in end-to-end and black-box approaches, including vision– language–action models [ 1 , 2, 3 ] and world models [ 4 , 5, 6 ], they often fall short on transferring knowledge across domains and remain brittle outside the training distribution. Effective scaling must therefore address not only the limits of robot data but also the absence of representations of physical interaction in which learning can be grounded. Such representations should be structured enough to support sample-efficient learning, yet generic enough to support various settings. Recently, object motion has emerged as a promising representation to ground visuomotor learning in physical interactions. When represented as 3D point trajectories on object surfaces tracked across time, object motion can be extracted from video without action labels, lives in the same spatial coordinate system as robot controls, and remains largely comparable across embodiments and camera views. Yet few existing methods exploit the full set of properties this representation affords. Motion-conditioned policies [ 7, 8 ] learn to predict robot actions from a given target motion but require paired motion-action labels, leaving action-free video data unused. Motion-prediction models [ 9, 10 ] forecast motion trajectories from video given language or visual goals but require a separate downstream controller and offer no straightforward way to incorporate action labels when robot data is available. As a result, no single existing method can both learn motion from action-free video and leverage action labels when they are available. In this paper, we present Unified Motion-Action (UMA) Model, an approach that uses object motion as a shared interface to bridge visuomotor control and dynamics modeling. As illustrated in Fig. 1, UMA treats object motion and robot actions as co-evolving variables, jointly predicted by a transformer-based sequence model from the current observation and task specification. Instead of fixing object motion in a single role, UMA allows both variables to serve as conditioning or as target depending on the mask pattern, letting heterogeneous data sources with and without action labels contribute supervision through one shared objective. We further extend hindsight experience replay [ 11 ] from goal-conditioned to motion-conditioned training, and combine it with a contrastive objective that yields a spatially invariant task representation. The same pretrained parameters then support action generation, dynamics prediction, and fast adaptation through soft prompt tuning at deployment. Unlike motion-conditioned policies from prior work [ 7, 12 ], our task representation is generic enough to perform new tasks even without manually specified reference motion. We evaluate UMA on real-world tabletop manipulation spanning rigid objects, tool use, and deformable materials, pretraining on publicly available data with no overlap with the test environments. UMA consistently outperforms the strongest specialized baseline in zero-shot and few-shot visuomotor control. 
+
+## 2 Related Work 
+
+Object motion, expressed as trajectories of keypoints or flows, has emerged as a structured intermedi-ate representation, yet existing methods commit it to a single role per model. Motion-based methods work in either 2D image coordinates [ 13 , 14 , 15 , 16 , 7 , 17 ], which require the controller to absorb a camera-to-3D mapping, or 3D scene coordinates [ 8 , 18 , 12 , 10 , 19 , 20 ], which share a coordinate frame with robot actions. In parallel, particle- and point-based forward dynamics models predict scene response to candidate actions, from per-instance deformable models [ 21 , 22 ] to large-scale point-flow world models [ 9]. Despite these advances, methods specialize in either action generation, which requires paired motion-action labels and cannot ingest action-free video, or dynamics modeling, which requires a separate controller and lacks a native interface for action labels. Our approach instead jointly models both within a single masked generative policy, supporting motion-conditioned action generation, action-conditioned motion generation, and soft-prompt task adaptation from the same parameters by varying the conditioning mask. Our approach also relates to generalist policies that cast control as sequence modeling and world models that predict environment dynamics. Generalist policies include vision-language-action models [ 1 , 2 , 23 , 3 , 24 , 25 ] and masked joint sequence models that unify dynamics and control [ 26 ,2Masked Diffusion Loss on Trajectories 
+
+Masked Diffus on Trajectories and     
+
+> “Pick up the white mug”
+> UMA Task Encoder
+> Robot Action
+> Task Token
+> Object Motion
+> Observation Token Motion Token
+> P
+> Current Observation
+> Task Encoder
+> Reference Motion
+> Initial Observation
+> Contrastive Loss
+> Prediction Loss
+> Reference Motion
+> Initial Observation
+> (b) Ensuring task-latent consistency (a) Heterogeneous supervision
+> Action Token Reference Motion Token
+> Augmentation
+> Task Augmentation
+> Positive / Negative Example
+> Contrastive Loss
+> Masked Token
+
+Figure 2: Pre-Training of UMA. Left: UMA is trained with a flow matching objective to predict randomly masked object motion and robot actions, conditioned on a task latent and visual observation. Right: We encode the reference motion and initial observation into task tokens, using both flow-matching and contrastive objectives to ensure semantic consistency of the learned task representation. 27 , 28 , 29 , 30 ]. These formulations either tie dynamics to embodiment-specific states [ 27 , 28 ] or model them in raw pixels [ 29 , 30 , 25 , 24 ], leaving them respectively incompatible with cross-domain data or entangled with appearance and viewpoint. World models offer a complementary view, from latent rollouts for planning [ 31 , 32 , 33 , 4] to video generators [ 5, 6, 34 , 35 , 36 , 37 ], predictive video features [ 38 , 39 ], and physics-grounded digital twins [ 40 ], but they operate in pixel or latent visual spaces that are expensive to roll out and provide no structured planning signal. Closer to our setting, concurrent works couple action and video generation within a single model [ 41 , 42 , 43 ], yet still represent dynamics in pixel or token space without an embodiment-agnostic intermediate for action-free human video. Our approach grounds the joint formulation in object-centric 3D motion, yielding rollouts that share a coordinate frame with robot actions and natively absorb action-free human video. We further extend hindsight experience replay [ 11 ] from single-state goals to motion contexts, enabling multi-task pretraining without manual task labels. 
+
+## 3 Unified Motion-Action Model 
+
+We present Unified Motion-Action (UMA) Model, which treats object motion and robot actions as co-evolving variables under a masked generative objective. Object motion serves as a structured yet generic intermediate between dynamics modeling and visuomotor control, enabling joint pretraining across heterogeneous data sources and supporting multiple inference modes. 
+
+3.1 Bridging Control and Dynamics with Object Motion 
+
+We train a single model on heterogeneous data sources including action-free human videos, real-world robot data, and simulated robot data. Following prior work on sequence models for robotic control [ 30 , 26 , 28 ], the model jointly reconstructs object motion and action tokens under a shared masked flow-matching objective. Unlike prior joint-sequence formulations, we represent dynamics using object motion rather than raw observations. Since the motion stream is defined independently of any specific embodiment, data sources without compatible action labels can still provide supervision for dynamics, while datasets with action labels supervise both the dynamics and action streams. Concretely, extending the definitions in prior work [ 7, 10 , 12 ], we represent object motion through 3D points sampled on object surfaces and tracked across time. Each sample is a 3D position xk,t ∈ R3,where k ∈ { 1, . . . , K } indexes keypoints and t ∈ { 0, . . . , T } indexes timesteps, expressed in the camera coordinate frame. These trajectories can be extracted from monocular video via off-the-shelf trackers for training-time supervision, while at deployment UMA generates them implicitly through the same generative process that produces actions. 
+
+Motion-action modeling. Let ot denote the current observation, xt:t+H the object motion sequence, and at:t+H the action sequence over a prediction horizon H. We model the conditional distribution 
+
+pθ
+
+  xPx , a Pa ot, c, x Gx , a Ga
+
+ , (1) 3where Gx, Ga index given conditioning tokens, Px, Pa index predicted tokens, and c is a latent variable we call the task latent , summarizing the abstract intent of the interaction in a form invariant to the specific scene and action space, and agnostic to the modality through which the intent is specified. Different choices of (P, G) instantiate the regimes used throughout the paper. During pretraining (Sec. 3.3), we sample random masks over both motion and action streams. For motion-conditioned action generation, the model conditions on c derived from a reference motion and sets Pa to future actions. For action-conditioned dynamics prediction, used inside model predictive control, the model conditions on candidate future actions in Ga and sets Px to the resulting object-motion rollout. For soft prompt tuning, the task latent c is optimized while model weights remain fixed. 
+
+Task inference from reference motion. A natural way to specify the task at training time is through a partial motion observation drawn from a recorded interaction of the target task. We call such a partial observation a reference motion ,
+
+xc = {˜xk,t : ( k, t ) ∈ G c}, Gc ⊂ { 1, . . . , K } × { 0, . . . , T }, (2) which may contain different keypoints , different numbers of samples , and nonuniform temporal spacing across episodes. A reference motion cannot serve as c directly because how the objects move from a particular initial scene is observation-dependent. Recovering an observation-agnostic c
+
+therefore requires both the reference motion and the initial observation. We introduce a task encoder 
+
+hψ that consumes both and produces a fixed-size summary of task intent, 
+
+c = hψ (o0, x c). (3) By design, hψ must produce a c that is invariant to which keypoints and timesteps the reference motion samples and to the absolute scene configuration. 
+
+3.2 Motion-Action Diffusion Transformer 
+
+The masked joint model imposes three requirements that motivate our architecture. All modalities must share a token space, the encoder must consume sparse irregular reference motions, and attention must respect local object-action coupling within timesteps and coherent evolution across time. UMA addresses these with a tokenization scheme, a task encoder hψ , and a masked diffusion transformer [ 44 , 45 ] with structured spatiotemporal attention [ 12 ] that jointly denoises masked motion and action tokens. 
+
+Tokenization. UMA represents observations, object motion, and robot actions as typed tokens sharing the transformer backbone. Observation tokens summarize the current RGB-D observation 
+
+ot. Each object-motion sample xk,t becomes one token projected through a lightweight MLP with keypoint-identity and time embeddings from its (k, t ) indices. Action tokens encode robot controls at corresponding timesteps via a separate input projection. The task latent c is realized as a small set of task tokens inserted alongside the other modalities. Unlike VLA models [ 2, 3, 24 , 25 ] that tokenize only pixels and actions, this scheme gives object motion, executable control, and task intent a common latent space while preserving modality-specific input geometry. 
+
+Task encoder. The task encoder hψ (o0, x c) produces M task tokens comprising the task latent c
+
+from a sparse reference motion and the initial observation. The initial observation o0 is encoded into geometry-aware point-cloud features via a PointNet++ [ 46 ] backbone consuming 3D positions concatenated with SigLIP 2 [ 47 ] image features. Since the reference motion specifies only waypoint ordering rather than absolute timesteps, each sample xck,t is projected through a lightweight MLP with time indices normalized to [0 , 1] , making hψ invariant to the total number of timesteps and to irregular temporal spacing. These tokens are cross-attended to the point-cloud features to produce c.
+
+Joint denoising with structured attention. Object motion and robot actions are two coupled views of the same physical interaction. Modeling only actions, as in standard diffusion policies [ 48 ], cannot exploit action-free videos, while modeling only motion needs a separate controller to translate predicted dynamics into executable actions. UMA jointly predicts both via a shared denoising backbone trained with flow matching [ 49 ], so action-labeled robot data ties motion to control while action-free video data still supervises the motion stream. The observation, task latent c, and unmasked 4tokens (xGx , a Ga ) remain clean as conditioning, while masked targets are iteratively denoised, with separate final layers preserving the different output geometries of 3D keypoint positions and robot controls. Following COIL [ 12 ], attention is factorized into spatial (within-timestep motion-action coupling), temporal (same-point across timesteps), and context (target tokens to observations) patterns. Unlike COIL, which applies these inside standard transformer layers, UMA implements them within DiT blocks [44, 45] that condition on diffusion time via adaptive layer norm. By assigning separate modulation weights to masked and unmasked tokens, these Masked DiT blocks apply stronger denoising to targets while preserving unmodulated conditioning, without dense global attention. 
+
+3.3 Cross-Domain Training via Masked Autoencoding 
+
+Pretraining instantiates Eq. (1) as masked autoencoding over object-motion and action tokens. For each episode, we sample a reference motion xc, encode it via hψ (o0, x c) into a task latent c, and sample masks (Gx, Ga) across modality, time, and space to determine which tokens are reconstructed. The joint denoiser and task encoder are trained together, with only available target tokens contributing to the loss. This generalizes hindsight goal relabeling, where the hindsight “goal” is a partial spatiotemporal motion specification rather than a single state. 
+
+Heterogeneous supervision. We write the per-modality reconstruction losses as Lx and La, both flow-matching losses [ 49 ] on the noised target tokens (details in Appendix). The mask-based formulation lets each source supervise only the terms for which it has labels. Target-robot demonstrations supervise both Lx and La, while action-free sources such as human videos and cross-embodiment data with incompatible actions supervise only Lx. All sources represent motion, geometry, and actions in the local camera frame of each episode, and predicted actions are transformed to the robot base frame at deployment via calibrated extrinsics. Action-free datasets require no calibration since they supervise only motion tokens. 
+
+Ensuring task latent consistency. For c to support transfer across observations and adaptation to new tasks, it must summarize task intent without carrying spurious details of the specific reference motion or absolute scene placement. We promote this disentanglement with a SimCLR-style contrastive objective Lc [ 50 ] over augmented views of the same (o0, x c) pair. Positive views are produced by keypoint subsampling, timestep subsampling, and random SE(3) transformations applied jointly to 
+
+o0 and xc at the encoder input, while the diffusion transformer tokens remain in the original camera frame. Negative views come from different tasks or different object-motion intents. Because c carries no information about which SE(3) transformation was applied at the encoder, the decoder cannot exploit absolute pose through c and is forced to interpret it as pose-invariant task intent. 
+
+Full pretraining objective. The full pretraining loss combines motion reconstruction, action recon-struction, and task-latent disentanglement, 
+
+L = λx Lx + λa La + λc Lc. (4) The three terms are optimized jointly across the heterogeneous data mixture. The mask-based supervision naturally accommodates missing modalities, while Lc acts on the task encoder regardless of whether the source provides action labels, so action-free data contributes to both Lx and Lc.
+
+3.4 Versatile Inference 
+
+At test time, UMA changes which tokens are given and which are predicted while keeping the model weights fixed, except in soft prompt tuning. This gives three inference modes. 
+
+Motion-conditioned visuomotor control. Given the initial observation o0 of the deployment scene and a target reference motion x⋆, the task encoder produces c = hψ (o0, x ⋆), and UMA predicts future actions from the current observation ot,
+
+ˆat:t+H ∼ pθ
+
+ at:t+H ot, c, x Gx , a Ga
+
+ , (5) where the given motion and action tokens may include recent history. This converts a target object motion into executable robot actions. At each step, the model samples an action chunk, transforms it 5to the robot base frame, executes, and replans from the new observation, letting the policy correct deviations between target and realized object motion in closed loop. Because c captures task intent in a disentangled latent space, pθ can be conditioned on alternative task representations such as language instructions without retraining the policy. See Appendix for details. 
+
+Motion-based dynamics modeling. UMA can also be used in the forward direction as a dynamics model. Given a candidate action sequence a(j) 
+
+> t:t+H
+
+, the model predicts the resulting object motion, 
+
+ˆx(j) 
+
+> t:t+H
+
+∼ pθ
+
+
+
+xt:t+H ot, c, x Gx , a (j)
+
+> t:t+H
+
+
+
+. (6) This supports model predictive control by scoring candidate actions against the target reference motion, and additionally enables diagnostic interpretability by exposing whether predicted dynamics match task intent before any action is executed. 
+
+Task inference via soft prompt tuning. For a new task, UMA can adapt by treating c as a free optimization variable rather than the output of hψ , keeping all other parameters frozen. Given a small demonstration set D, we initialize c at c0 and optimize 
+
+c⋆ = arg min 
+
+> c
+
+X
+
+> ξ∈D
+
+[λ′ 
+
+> x
+
+Lx(ξ; c) + λ′ 
+
+> a
+
+La(ξ; c)] + λ′ 
+
+> c
+
+∥c − c0∥22, (7) with λ′
+
+> x
+
+, λ ′ 
+
+> a
+
+> 0 for action-supervised demonstrations and λ′ 
+
+> a
+
+= 0 for video-only demonstrations, so the latter contribute only motion supervision. This setting is robot-free for the new task, relying on the pretrained model’s executable-action knowledge from prior robot data and on the disentanglement of c established above to transfer the optimized prompt across scenes. 
+
+## 4 Experiments 
+
+Through experiments and analysis, we investigate Q1: whether a single pre-trained UMA Model matches or exceeds state-of-the-art baselines specialized for each use case, Q2: how heterogeneous data sources contribute to performance, and Q3: which design choices in UMA are essential. 
+
+4.1 Experimental Setup 
+
+We evaluate UMA on real-world tabletop manipulation following the DROID setting [ 51 ]. Pre-training uses a mixture of DROID demonstrations, human videos from HOI4D [ 52 ] and Xperience [ 53 ], and simulated robot data with randomized objects and motions, none of which overlaps the real-world test environments. As shown in Fig. 3, the real-world evaluation covers 6-DoF manipulation ( Insertion ), tool use ( Sweeping ), and deformable object manipulation ( Folding ), with three additional simulated tasks used for ablations. Each task is evaluated over 20 trials with randomized scenes and camera configurations. Further details on the tasks and the data pipelines can be found in the Appendix. 
+
+4.2 Zero-Shot Generalization 
+
+To answer Q1 in the zero-shot setting, we test UMA on motion-conditioned visuomotor control and dynamics prediction by changing only which tokens are given and which are predicted in Eq. (1). 
+
+Visuomotor control. For this inference mode (Eq. (5)), we compare against two strong baseline policies, both trained on the same data mixture as UMA. COIL [ 12 ] is a 3D motion-conditioned flow-matching policy that does not model motion as a prediction target. UVA [ 30 ] is a joint video-action masked model on raw pixels. UMA outperforms the strongest baseline by 20 to 25 percentage points on every task (Fig. 3). The improvement over COIL [ 12 ] suggests that action prediction benefits from jointly modeling motion and action as coupled variables, rather than using motion only as a conditioning signal. The gap to UVA [ 30 ] further suggests that joint modeling is more effective when the dynamics are represented as motion rather than raw pixels, reducing appearance variations and aligning more naturally with robot actions. 6Insertion Sweeping Folding Insertion Sweeping Folding     
+
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Success Rate (%)  UVA COIL UMA w/o Sim UMA w/o Human UMA (Ours)
+
+Figure 3: Zero-shot evaluation. Left: real-world evaluation tasks used throughout our experiments. Right: success rates for motion-conditioned visuomotor control without task-specific finetuning.       
+
+> Method MSE ↓
+> PointWorld [9] 0.054 UMA w/o Sim 0.208 UMA w/o Human 0.044
+> UMA (Ours) 0.042
+
+Table 1: Dynamics prediction. 
+
+Mean squared error (MSE) eval-uated across real-world tasks. 
+
+Dynamics prediction. For dynamics prediction (Eq. (6)), we compare against PointWorld [9 ], a state-of-the-art action-conditioned keypoint dynamics model. UMA reduces motion-prediction MSE (in squared meters) from 0.054 to 0.042 (Tab. 1), showing that joint motion-action training produces sharper dynam-ics than a dedicated dynamics model even when only motion is queried at test time. Notably, removing simulated data causes a 5x increase in MSE, indicating that randomized actions and states in simulation regularize the model against out-of-distribution config-urations encountered in the real world. 
+
+4.3 Few-Shot Adaptation 
+
+For Q1 in the few-shot setting, UMA adapts to a new task by optimizing only the task latent c on 25 demonstrations while keeping all other parameters frozen (Eq. (7)). We consider two supervision regimes, robot demonstrations with action labels and human videos with motion-only supervision. 
+
+Action supervision. Both the motion- and action-reconstruction terms in Eq. (7) are active (λ′
+
+> x
+
+, λ ′ 
+
+> a
+
+> 0). We compare against two baselines that update model weights rather than a task latent: π0.5 finetuned with LoRA [ 24 , 54 ], and UVA [ 30 ] finetuned with action supervision. Despite updating only a low-dimensional task latent rather than millions of parameters, UMA matches the strongest baseline on Insertion and outperforms it by 10-25% on Sweeping and Folding (Fig. 4). 
+
+Motion supervision. Only the motion-reconstruction term is active ( λ′ 
+
+> a
+
+= 0 ). In this setting, we record human videos performing the same task in the evaluation scene and extract the reference motion as well as motion tokens to provide supervision for adaptation. This rules out π0.5, whose adaptation requires action labels. We instead finetune UVA [30 ] with a pixel-reconstruction loss as the baseline. UMA outperforms UVA by approximately 25 percentage points on every task, showing that joint motion-action pretraining provides a more effective bridge from action-free human videos to robot control than pixel-action joint pretraining. 
+
+4.4 Cross-Domain Training Analysis 
+
+To address Q2 , we compare two data-ablated variants against the full model, as shown in Fig. 3 and Tab. 1. Removing simulation ( w/o Sim ) increases motion-prediction error by nearly 5 × (MSE 0.042 to 0.208) and reduces zero-shot action success by up to 30 percentage points, confirming that dense simulated action-motion pairs are the primary source of motion-action coupling. Removing human videos ( w/o Human ) leaves motion prediction nearly unchanged (0.042 to 0.044) but reduces action success especially on Folding (75% to 65%), suggesting that action-free human videos contribute task-level diversity that aids real-world transfer rather than dynamics accuracy. The two sources thus play complementary roles, with simulation strengthening motion-action coupling and human videos broadening task coverage. 
+
+4.5 Ablation and Failure Analysis Effects of contrastive learning. The contrastive objective Lc trains the task latent c to capture only the abstract intent of the task, remaining invariant to randomization of the initial scene. Removing 7Insertion Sweeping Folding        
+
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Success Rate (%)  Action Supervision
+> Insertion Sweeping Folding
+> N/A N/A N/A
+> Motion Supervision
+> π0.5 UVA UMA w/o CL UMA (Ours)
+
+Figure 4: Few-shot adaptation. Success rates for adapting to new tasks from 25 target demonstrations under action supervision and motion supervision. Grasping Failures Execution Failures 
+
+> 81.67% 18.33%
+
+Figure 5: Failure analysis. Break-down of failure cases by error type. the contrastive objective ( w/o CL ) reduces few-shot success rates by 30 to 60 percentage points across both supervision regimes (Fig. 4), confirming that the contrastive grouping is what produces a transferable task latent. Without it, c captures scene-specific trajectory details rather than transferable task intent, and few-shot adaptation reduces to overfitting on the specific reference motions. 0
+
+> 20
+> 40
+> 60
+> 80
+> 100
+> Success Rate (%)
+> Dense Attention
+> Separate Heads
+> Action-only
+> UMA (Ours)
+
+Figure 6: Ablation study. 
+
+We evaluate the average suc-cess rates over simulation. 
+
+Model design ablation. To address Q3 , we evaluate three architec-ture variants trained on simulated robot data across three simulated tasks of 100 episodes each (Fig. 6): Action-only Supervision (no mo-tion prediction), Separate Heads (independent decoder heads), and 
+
+Dense Attention (full dense attention at matched parameter count and training budget). Jointly predicting motion alongside actions is essen-tial, with Action-only trailing UMA by a wide margin especially on tool use, where coupled object-action dynamics dominate. Separate heads improves over action-only but remains slightly worse on average, indicating that a shared head better captures motion-action coupling. Dense attention underperforms at matched budget, showing that the structured attention facilitates information fusion. 
+
+Failure analysis. Execution failures dominate at 82% of total errors, with grasping accounting for the remaining 18% (Fig. 5). UMA thus reliably identifies the correct task intent and grasp configuration, but loses precision during the action rollout. This aligns with our finding in Sec. 4.4 that simulation drives motion-action coupling, pointing toward further scaling of motion-action paired data, rather than richer task specification, as the most direct path to closing the remaining gap. 
+
+## 5 Limitations 
+
+The current instantiation of UMA faces several limitations that suggest directions for future work. First, although UMA ingests heterogeneous data through the shared object-motion representation, deploying actions on a new embodiment still requires supervising an embodiment-specific action head from compatible robot data. Second, all representations live in a per-episode camera frame, so deploying robot actions requires calibrated camera-to-base extrinsics. Third, the current design conditions on a single visual observation per prediction step, leaving multi-step observation history and dense cross-frame point correspondences unexploited as supervision signals that fit naturally into the masked joint formulation. 
+
+## 6 Conclusion 
+
+We presented Unified Motion-Action, a robot foundation model that jointly models 3D object motion and robot actions through a masked diffusion transformer, enabling heterogeneous pretraining from action-free human videos, simulated data, and real robot demonstrations. A single pretrained checkpoint supports zero-shot motion-conditioned control, action-conditioned dynamics prediction, and few-shot adaptation to new tasks via soft prompt tuning from either robot demonstrations or human videos. Our results suggest that object motion provides an effective shared representation for bridging dynamics modeling and visuomotor control, and that scaling motion pretraining is a promising path toward more generalizable manipulation. 8Acknowledgments 
+
+We gratefully acknowledge use of the research computing resources of the Empire AI Consortium, Inc [ 55 ], with support from Empire State Development of the State of New York, the Simons Foundation, and the Secunda Family Foundation. This work was supported in part by the Amazon Research Awards and an NVIDIA Academic Grant. We thank Chuanruo Ning, Tianrui Wang, Cory Fan, Xingyi He, Qianxu Wang, Qi Wu, and Pranav Thakkar for their constructive discussions and feedback. 
+
+## References 
+
+[1] A. Brohan, N. Brown, J. Carbajal, Y. Chebotar, X. Chen, K. Choromanski, T. Ding, D. Driess, A. Dubey, C. Finn, P. Florence, C. Fu, M. G. Arenas, K. Gopalakrishnan, K. Han, K. Hausman, A. Herzog, J. Hsu, B. Ichter, A. Irpan, N. Joshi, R. Julian, D. Kalashnikov, Y. Kuang, I. Leal, L. Lee, T.-W. E. Lee, S. Levine, Y. Lu, H. Michalewski, I. Mordatch, K. Pertsch, K. Rao, K. Reymann, M. Ryoo, G. Salazar, P. Sanketi, P. Sermanet, J. Singh, A. Singh, R. Soricut, H. Tran, V. Vanhoucke, Q. Vuong, A. Wahid, S. Welker, P. Wohlhart, J. Wu, F. Xia, T. Xiao, P. Xu, S. Xu, T. Yu, and B. Zitkovich. RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control, July 2023. URL http://arxiv.org/abs/2307.15818 .arXiv:2307.15818 [cs]. [2] M. Kim, K. Pertsch, S. Karamcheti, T. Xiao, A. Balakrishna, S. Nair, R. Rafailov, E. Foster, G. Lam, P. Sanketi, Q. Vuong, T. Kollar, B. Burchfiel, R. Tedrake, D. Sadigh, S. Levine, P. Liang, and C. Finn. Openvla: An open-source vision-language-action model. arXiv preprint arXiv:2406.09246 , 2024. [3] K. Black, N. Brown, D. Driess, A. Esmail, M. Equi, C. Finn, N. Fusai, L. Groom, K. Hausman, B. Ichter, S. Jakubczak, T. Jones, L. Ke, S. Levine, A. Li-Bell, M. Mothukuri, S. Nair, K. Pertsch, L. X. Shi, J. Tanner, Q. Vuong, A. Walling, H. Wang, and U. Zhilinsky. π0: A vision-language-action flow model for general robot control, 2024. URL https://arxiv.org/abs/2410. 24164 .[4] D. Hafner, T. Lillicrap, M. Norouzi, and J. Ba. Mastering atari with discrete world models. 
+
+arXiv preprint arXiv:2010.02193 , 2020. [5] M. Yang, Y. Du, K. Ghasemipour, J. Tompson, D. Schuurmans, and P. Abbeel. Learning interactive real-world simulators. arXiv preprint arXiv:2310.06114 , 2023. [6] N. Agarwal, A. Ali, M. Bala, Y. Balaji, E. Barker, T. Cai, P. Chattopadhyay, Y. Chen, Y. Cui, Y. Ding, et al. Cosmos world foundation model platform for physical ai. arXiv preprint arXiv:2501.03575 , 2025. [7] M. Xu, Z. Xu, Y. Xu, C. Chi, G. Wetzstein, M. Veloso, and S. Song. Flow as the cross-domain manipulation interface. arXiv preprint arXiv:2407.15208 , 2024. [8] H. Zhi, P. Chen, S. Zhou, Y. Dong, Q. Wu, L. Han, and M. Tan. 3DFlowAction: Learning Cross-Embodiment Manipulation from 3D Flow World Model, June 2025. [9] W. Huang, Y.-W. Chao, A. Mousavian, M.-Y. Liu, D. Fox, K. Mo, and L. Fei-Fei. Pointworld: Scaling 3d world models for in-the-wild robotic manipulation, 2026. URL https://arxiv. org/abs/2601.03782 .[10] C. Yuan, C. Wen, T. Zhang, and Y. Gao. General flow as foundation affordance for scalable robot learning. arXiv preprint arXiv:2401.11439 , 2024. [11] M. Andrychowicz, F. Wolski, A. Ray, J. Schneider, R. Fong, P. Welinder, B. McGrew, J. Tobin, O. Pieter Abbeel, and W. Zaremba. Hindsight experience replay. Advances in neural information processing systems , 30, 2017. 9[12] Y. Cao, Z. Bhaumik, J. Jia, X. He, and K. Fang. Correspondence-oriented imitation learning: Flexible visuomotor control with 3d conditioning, 2025. URL https://arxiv.org/abs/ 2512.05953 .[13] C. Wen, X. Lin, J. So, K. Chen, Q. Dou, Y. Gao, and P. Abbeel. Any-point trajectory modeling for policy learning. arXiv preprint arXiv:2401.00025 , 2023. [14] M. Vecerik, C. Doersch, Y. Yang, T. Davchev, Y. Aytar, G. Zhou, R. Hadsell, L. Agapito, and J. Scholz. RoboTAP: Tracking Arbitrary Points for Few-Shot Visual Imitation, Aug. 2023. [15] J. Gu, S. Kirmani, P. Wohlhart, Y. Lu, M. G. Arenas, K. Rao, W. Yu, C. Fu, K. Gopalakrishnan, Z. Xu, P. Sundaresan, P. Xu, H. Su, K. Hausman, C. Finn, Q. H. Vuong, and T. Xiao. Rt-trajectory: Robotic task generalization via hindsight trajectory sketches. ArXiv , 2023. [16] C. Gao, H. Zhang, Z. Xu, Z. Cai, and L. Shao. Flip: Flow-centric generative planning for general-purpose manipulation tasks. arXiv , 2024. [17] J. Ren, P. Sundaresan, D. Sadigh, S. Choudhury, and J. Bohg. Motion tracks: A unified representation for human-robot transfer in few-shot imitation learning, 2025. [18] S. Haldar and L. Pinto. Point Policy: Unifying Observations and Actions with Key Points for Robot Manipulation, Feb. 2025. [19] K. Dharmarajan, W. Huang, J. Wu, L. Fei-Fei, and R. Zhang. Dream2flow: Bridging video generation and open-world manipulation with 3d object flow, 2025. URL https://arxiv. org/abs/2512.24766 .[20] C.-C. Hsu, B. Wen, J. Xu, Y. Narang, X. Wang, Y. Zhu, J. Biswas, and S. Birchfield. SPOT: SE(3) Pose Trajectory Diffusion for Object-Centric Manipulation, Nov. 2024. URL http: //arxiv.org/abs/2411.00965 . arXiv:2411.00965 [cs]. [21] Y. Li, J. Wu, R. Tedrake, J. B. Tenenbaum, and A. Torralba. Learning particle dynamics for manipulating rigid bodies, deformable objects, and fluids. arXiv preprint arXiv:1810.01566 ,2018. [22] K. Zhang, B. Li, K. Hauser, and Y. Li. Particle-grid neural dynamics for learning deformable object models from rgb-d videos. In Proceedings of Robotics: Science and Systems (RSS) , 2025. [23] Octo Model Team, D. Ghosh, H. Walke, K. Pertsch, K. Black, O. Mees, S. Dasari, J. Hejna, C. Xu, J. Luo, T. Kreiman, Y. Tan, L. Y. Chen, P. Sanketi, Q. Vuong, T. Xiao, D. Sadigh, C. Finn, and S. Levine. Octo: An open-source generalist robot policy. In Proceedings of Robotics: Science and Systems , Delft, Netherlands, 2024. [24] P. Intelligence, K. Black, N. Brown, J. Darpinian, K. Dhabalia, D. Driess, A. Esmail, M. Equi, C. Finn, N. Fusai, M. Y. Galliker, D. Ghosh, L. Groom, K. Hausman, B. Ichter, S. Jakubczak, T. Jones, L. Ke, D. LeBlanc, S. Levine, A. Li-Bell, M. Mothukuri, S. Nair, K. Pertsch, A. Z. Ren, L. X. Shi, L. Smith, J. T. Springenberg, K. Stachowicz, J. Tanner, Q. Vuong, H. Walke, A. Walling, H. Wang, L. Yu, and U. Zhilinsky. π0.5: a vision-language-action model with open-world generalization, 2025. URL https://arxiv.org/abs/2504.16054 .[25] S. Liu, L. Wu, B. Li, H. Tan, H. Chen, Z. Wang, K. Xu, H. Su, and J. Zhu. Rdt-1b: a diffusion foundation model for bimanual manipulation. arXiv preprint arXiv:2410.07864 , 2024. [26] L. Chen, K. Lu, A. Rajeswaran, K. Lee, A. Grover, M. Laskin, P. Abbeel, A. Srinivas, and I. Mordatch. Decision transformer: Reinforcement learning via sequence modeling. arXiv preprint arXiv:2106.01345 , 2021. [27] P. Wu, A. Majumdar, K. Stone, Y. Lin, I. Mordatch, P. Abbeel, and A. Rajeswaran. Masked trajectory models for prediction, representation, and control. In International Conference on Machine Learning , pages 37607–37623. PMLR, 2023. 10 [28] F. Liu, H. Liu, A. Grover, and P. Abbeel. Masked autoencoding for scalable and generalizable decision making. Advances in Neural Information Processing Systems , 35:12608–12618, 2022. [29] I. Radosavovic, B. Shi, L. Fu, K. Goldberg, T. Darrell, and J. Malik. Robot learning with sensorimotor pre-training. In Conference on Robot Learning , pages 683–693. PMLR, 2023. [30] S. Li, Y. Gao, D. Sadigh, and S. Song. Unified video action model. arXiv preprint arXiv:2503.00200 , 2025. [31] F. Ebert, C. Finn, S. Dasari, A. Xie, A. Lee, and S. Levine. Visual foresight: Model-based deep reinforcement learning for vision-based robotic control. arXiv preprint arXiv:1812.00568 ,2018. [32] D. Hafner, T. Lillicrap, I. Fischer, R. Villegas, D. Ha, H. Lee, and J. Davidson. Learning latent dynamics for planning from pixels. In International conference on machine learning , pages 2555–2565. PMLR, 2019. [33] D. Hafner, T. Lillicrap, J. Ba, and M. Norouzi. Dream to control: Learning behaviors by latent imagination. arXiv preprint arXiv:1912.01603 , 2019. [34] Y. Liao, P. Zhou, S. Huang, D. Yang, S. Chen, Y. Jiang, Y. Hu, J. Cai, S. Liu, J. Luo, L. Chen, S. Yan, M. Yao, and G. Ren. Genie envisioner: A unified world foundation platform for robotic manipulation, 2025. URL https://arxiv.org/abs/2508.05635 .[35] J. Jang, S. Ye, Z. Lin, J. Xiang, J. Bjorck, Y. Fang, F. Hu, S. Huang, K. Kundalia, Y.-C. Lin, L. Magne, A. Mandlekar, A. Narayan, Y. L. Tan, G. Wang, J. Wang, Q. Wang, Y. Xu, X. Zeng, K. Zheng, R. Zheng, M.-Y. Liu, L. Zettlemoyer, D. Fox, J. Kautz, S. Reed, Y. Zhu, and L. Fan. Dreamgen: Unlocking generalization in robot learning through video world models, 2025. URL 
+
+https://arxiv.org/abs/2505.12705 .[36] A. Ali, J. Bai, M. Bala, Y. Balaji, A. Blakeman, T. Cai, J. Cao, T. Cao, E. Cha, Y.-W. Chao, et al. World simulation with video foundation models for physical ai. arXiv preprint arXiv:2511.00062 , 2025. [37] K. Black, M. Nakamoto, P. Atreya, H. Walke, C. Finn, A. Kumar, and S. Levine. Zero-shot robotic manipulation with pretrained image-editing diffusion models. arXiv preprint arXiv:2310.10639 , 2023. [38] A. Bardes, Q. Garrido, J. Ponce, X. Chen, M. Rabbat, Y. LeCun, M. Assran, and N. Ballas. Revisiting feature prediction for learning visual representations from video. arXiv preprint arXiv:2404.08471 , 2024. [39] M. Assran, A. Bardes, D. Fan, Q. Garrido, R. Howes, M. Muckley, A. Rizvi, C. Roberts, K. Sinha, A. Zholus, et al. V-jepa 2: Self-supervised video models enable understanding, prediction and planning. arXiv preprint arXiv:2506.09985 , 2025. [40] H. Jiang, H.-Y. Hsu, K. Zhang, H.-N. Yu, S. Wang, and Y. Li. Phystwin: Physics-informed reconstruction and simulation of deformable objects from videos, 2025. URL https://arxiv. org/abs/2503.17973 .[41] C. Zhu, R. Yu, S. Feng, B. Burchfiel, P. Shah, and A. Gupta. Unified world models: Cou-pling video and action diffusion for pretraining on large robotic datasets. arXiv preprint arXiv:2504.02792 , 2025. [42] J. Cen, C. Yu, H. Yuan, Y. Jiang, S. Huang, J. Guo, X. Li, Y. Song, H. Luo, F. Wang, et al. Worldvla: Towards autoregressive action world model. arXiv preprint arXiv:2506.21539 , 2025. [43] W. Zhang, H. Liu, Z. Qi, Y. Wang, X. Yu, J. Zhang, R. Dong, J. He, F. Lu, H. Wang, et al. Dreamvla: a vision-language-action model dreamed with comprehensive world knowledge. 
+
+arXiv preprint arXiv:2507.04447 , 2025. 11 [44] W. Peebles and S. Xie. Scalable diffusion models with transformers. arXiv preprint arXiv:2212.09748 , 2022. [45] S. Dasari, O. Mees, S. Zhao, M. K. Srirama, and S. Levine. The ingredients for robotic diffusion transformers. arXiv preprint arXiv:2410.10088 , 2024. [46] C. R. Qi, L. Yi, H. Su, and L. J. Guibas. Pointnet++: Deep hierarchical feature learning on point sets in a metric space. Advances in neural information processing systems , 30, 2017. [47] M. Tschannen, A. Gritsenko, X. Wang, M. F. Naeem, I. Alabdulmohsin, N. Parthasarathy, T. Evans, L. Beyer, Y. Xia, B. Mustafa, O. Hénaff, J. Harmsen, A. Steiner, and X. Zhai. Siglip 2: Multilingual vision-language encoders with improved semantic understanding, localization, and dense features. arXiv preprint arXiv:2502.14786 , 2025. [48] C. Chi, Z. Xu, S. Feng, E. Cousineau, Y. Du, B. Burchfiel, R. Tedrake, and S. Song. Diffusion policy: Visuomotor policy learning via action diffusion. The International Journal of Robotics Research , 44(10-11):1684–1704, 2025. [49] Y. Lipman, R. T. Q. Chen, H. Ben-Hamu, M. Nickel, and M. Le. Flow Matching for Generative Modeling, Feb. 2023. [50] T. Chen, S. Kornblith, M. Norouzi, and G. Hinton. A simple framework for contrastive learning of visual representations. In International conference on machine learning , pages 1597–1607. PmLR, 2020. [51] A. Khazatsky, K. Pertsch, S. Nair, A. Balakrishna, S. Dasari, S. Karamcheti, S. Nasiriany, M. K. Srirama, L. Y. Chen, K. Ellis, P. D. Fagan, J. Hejna, M. Itkina, M. Lepert, Y. J. Ma, P. T. Miller, J. Wu, S. Belkhale, S. Dass, H. Ha, A. Jain, A. Lee, Y. Lee, M. Memmel, S. Park, I. Radosavovic, K. Wang, A. Zhan, K. Black, C. Chi, K. B. Hatch, S. Lin, J. Lu, J. Mercat, A. Rehman, P. R. Sanketi, A. Sharma, C. Simpson, Q. Vuong, H. R. Walke, B. Wulfe, T. Xiao, J. H. Yang, A. Yavary, T. Z. Zhao, C. Agia, R. Baijal, M. G. Castro, D. Chen, Q. Chen, T. Chung, J. Drake, E. P. Foster, J. Gao, V. Guizilini, D. A. Herrera, M. Heo, K. Hsu, J. Hu, M. Z. Irshad, D. Jackson, C. Le, Y. Li, K. Lin, R. Lin, Z. Ma, A. Maddukuri, S. Mirchandani, D. Morton, T. Nguyen, A. O’Neill, R. Scalise, D. Seale, V. Son, S. Tian, E. Tran, A. E. Wang, Y. Wu, A. Xie, J. Yang, P. Yin, Y. Zhang, O. Bastani, G. Berseth, J. Bohg, K. Goldberg, A. Gupta, A. Gupta, D. Jayaraman, J. J. Lim, J. Malik, R. Martín-Martín, S. Ramamoorthy, D. Sadigh, S. Song, J. Wu, M. C. Yip, Y. Zhu, T. Kollar, S. Levine, and C. Finn. Droid: A large-scale in-the-wild robot manipulation dataset. arXiv preprint arXiv:2403.12945 , 2024. [52] Y. Liu, Y. Liu, C. Jiang, K. Lyu, W. Wan, H. Shen, B. Liang, Z. Fu, H. Wang, and L. Yi. Hoi4d: A 4d egocentric dataset for category-level human-object interaction. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 21013–21022, June 2022. [53] Ropedia. Xperience-10m: A large-scale egocentric multimodal dataset with structured 3d/4d annotations, 2026. Dataset. [54] E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang, W. Chen, et al. Lora: Low-rank adaptation of large language models. ICLR , 1(2):3, 2022. [55] S. Bloom, J. C. Brumberg, I. Fisk, R. J. Harrison, R. Hull, M. Ramasubramanian, K. V. Vliet, and J. Wing. Empire AI: A new model for provisioning AI and HPC for academic research in the public good. In Practice and Experience in Advanced Research Computing (PEARC ’25) , page 4, Columbus, OH, USA, July 2025. ACM. doi:10.1145/3708035.3736070. URL 
+
+https://doi.org/10.1145/3708035.3736070 .[56] Z. Li, R. Tucker, F. Cole, Q. Wang, L. Jin, V. Ye, A. Kanazawa, A. Holynski, and N. Snavely. Megasam: Accurate, fast and robust structure and motion from casual dynamic videos. In 12 Proceedings of the Computer Vision and Pattern Recognition Conference , pages 10486–10496, 2025. [57] L. Piccinelli, Y.-H. Yang, C. Sakaridis, M. Segu, S. Li, L. Van Gool, and F. Yu. Unidepth: Universal monocular metric depth estimation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 10106–10116, 2024. [58] N. Carion, L. Gustafson, Y.-T. Hu, S. Debnath, R. Hu, D. Suris, C. Ryali, K. V. Alwala, H. Khedr, A. Huang, et al. Sam 3: Segment anything with concepts. arXiv preprint arXiv:2511.16719 ,2025. [59] B. Zhang, L. Ke, A. W. Harley, and K. Fragkiadaki. Tapip3d: Tracking any point in persistent 3d geometry. arXiv preprint arXiv:2504.14717 , 2025. [60] B. Calli, A. Walsman, A. Singh, S. Srinivasa, P. Abbeel, and A. M. Dollar. Benchmarking in manipulation research: The ycb object and model set and benchmarking protocols. arXiv preprint arXiv:1502.03143 , 2015. [61] F. Xiang, Y. Qin, K. Mo, Y. Xia, H. Zhu, F. Liu, M. Liu, H. Jiang, Y. Yuan, H. Wang, L. Yi, A. X. Chang, L. J. Guibas, and H. Su. SAPIEN: A simulated part-based interactive environment. In The IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , June 2020. [62] L. Downs, A. Francis, N. Koenig, B. Kinman, R. Hickman, K. Reymann, T. B. McHugh, and V. Vanhoucke. Google scanned objects: A high-quality dataset of 3d scanned household items, 2022. URL https://arxiv.org/abs/2204.11918 .[63] K. Zakka. Scanned Objects MuJoCo Models, 7 2022. URL https://github.com/ kevinzakka/mujoco_scanned_objects .[64] J. Edstedt, D. Nordström, Y. Zhang, G. Bökman, J. Astermark, V. Larsson, A. Heyden, F. Kahl, M. Wadenbäck, and M. Felsberg. RoMa v2: Harder Better Faster Denser Feature Matching. 
+
+arXiv preprint arXiv:2511.15706 , 2025. 13 A Implementation Details 
+
+This section provides implementation details that complement the architectural overview in the main paper. We describe the contrastive learning objective used to train the task encoder, including the augmentation strategy and hard negative construction, followed by a detailed specification of the Masked DiT blocks that enable dual-role token processing within a single transformer pass, and finally the hyperparameters used in training the full UMA model. 
+
+A.1 Contrastive Learning Objective 
+
+The contrastive loss Lc encourages the task encoder hψ to produce task latents that are invariant to input augmentations while remaining discriminative across distinct manipulation intents. For each sample in a minibatch, we construct multiple views of the same task specification (o0, x c) by inde-pendently applying keypoint subsampling, timestep subsampling, and random SE(3) transformations jointly to the initial point cloud o0 and reference motion xc. One view is left unaugmented; its task latent c is used both to condition the flow-matching decoder and to participate in the contrastive loss. The remaining augmented views are used only for contrastive learning and never condition the denoising transformer. Negatives are views from other samples in the minibatch. We also construct hard negatives within the same scene by randomly interpolating SE(3) waypoints from the same starting keypoints but with different motion trajectories, yielding task specifications that share scene geometry but encode different manipulation intents. The same contrastive formulation can incorporate additional task-specification modalities when they are available during pretraining. For example, given a language description ℓ of the same interaction, a language encoder hω (ℓ) produces language task tokens that are inserted into the same contrastive pool as the motion-derived task tokens. Views from different modalities but the same underlying task are treated as positives, while views from different tasks or different motion intents remain negatives. This cross-modal contrastive term provides additional regularizations on the shared task-latent space, but is not required by the motion-action objective and is only used when such auxiliary annotations are available. Let B denote the minibatch size and S denote the number of task-specification views per sample. For sample i ∈ [0 , B ) and view s ∈ [0 , S ), let vi,s = ( o0,i,s , x c,i,s ) denote the corresponding view. Each view is encoded by hψ into M task tokens ci,s = hψ (vi,s ). We flatten these tokens and pass them through a two-layer projection head gϕ, followed by ℓ2 normalization: 
+
+zi,s = gϕ(vec( ci,s )) 
+
+∥gϕ(vec( ci,s )) ∥2
+
+(8) We use a SimCLR-style InfoNCE objective with multiple positives per anchor. For anchor (i, s ), the positive set is Pi,s = {(i, r ) : r̸ = s} and the comparison set is Qi,s = {(j, r ) : ( j, r )̸ = ( i, s )}. The loss is 
+
+Lc = − 1
+
+|A| 
+
+X
+
+> (i,s )∈A
+
+log 
+
+P 
+
+> (i,r )∈P i,s
+
+exp  z⊤
+
+> i,s
+
+zi,r /τ P 
+
+> (j,r )∈Q i,s
+
+exp  z⊤
+
+> i,s
+
+zj,r /τ  , (9) where A is the set of valid anchors with at least one positive view and τ = 0 .07 is the temperature. Gradients from Lc update only the task encoder hψ and projection head gϕ; the denoising transformer is trained only through the flow-matching reconstruction losses. 
+
+A.2 Masked DiT Blocks 
+
+The main paper introduces Masked DiT blocks as the mechanism that reconciles two conflicting requirements within a single transformer pass. Target tokens, which correspond to masked motion or action variables, must be iteratively denoised from a noisy state toward the data manifold. Given tokens, which correspond to unmasked motion or action variables provided as conditioning, are already clean and should pass through the network with minimal corruption so that they serve as reliable context for the denoising process. A standard DiT block [ 44 ] applies a single set of adaptive 14 Masked DiT Block 
+
+Tokens Mask Conditioning 
+
+## N
+
+Layer Norm 
+
+Linear and Reshape 
+
+Velocity Field / Noise  
+
+> Additional Outputs
+> Masked Diffusion Transformer
+> Tokens Conditioning
+> Layer Norm
+> Scale, Shift
+> Multi-Head Self-Attention
+> Scale
+
++
+
+> Layer Norm
+> Scale, Shift
+> Pointwise Feedforward
+> Scale
+
++
+
+> Mask
+> Mask
+> Mask
+> Mask
+> MLP
+
+Figure 7: Masked DiT block. Each block applies adaptive layer normalization (adaLN) with two independent sets of modulation parameters, one for target (masked) tokens and one for given (unmasked) tokens, both conditioned on the diffusion timestep embedding t. The target branch learns denoising-appropriate scale and shift, while the given branch preserves clean conditioning signals with minimal distortion. layer norm (adaLN) modulation weights, conditioned on the diffusion timestep t, uniformly to all tokens. This creates a tension: modulation tuned for denoising (large scale shifts that depend on noise level) is inappropriate for clean tokens, and vice versa. Masked DiT blocks resolve this by maintaining two independent adaLN parameter sets within each block. Let (γtgt , β tgt ) and (γgvn , β gvn ) denote the scale and shift vectors produced by two separate MLPs that both take the diffusion timestep embedding as input. For a token zi entering a layer norm, the modulated output is 
+
+ˆzi =
+
+(γtgt ⊙ LN( zi) + βtgt , if i ∈ P (target) ,γgvn ⊙ LN( zi) + βgvn , if i ∈ G (given) , (10) where P and G are the sets of target and given token indices respectively, and LN denotes standard layer normalization. Both MLP heads share the same timestep embedding but are otherwise inde-pendent, allowing the network to learn qualitatively different modulation regimes for the two token roles. This dual-modulation design has several consequences. First, the target branch can learn noise-level-dependent scaling that amplifies or suppresses features as appropriate for the current denoising step, analogous to standard DiT behavior. Second, the given branch can learn near-identity modulation (scale close to one, shift close to zero) that preserves the information content of clean conditioning tokens across layers. Third, because the two branches share the same attention computation after modulation, target tokens still attend to given tokens and vice versa, maintaining the information flow needed for conditional generation. The separation occurs only at the normalization and modulation stage, not at the attention or feedforward stages. In practice, we apply this dual modulation at both the pre-attention and pre-feedforward layer norms within each DiT block. The attention itself follows the structured spatiotemporal factorization described in the main text, with spatial attention coupling motion and action tokens within a timestep, 15 Target Object Mask Sampled Keypoints    
+
+> RGB Video RGBD Video
+> VLM
+> Given the task language instruction, extract the target objects from the scene.
+> Instruction: <Open the cupboard then put the cup inside>
+> Language Specification
+> {“objects”: [“teal cup”] }
+> Target Objects
+> Extracted Flow
+> MegaSaM + UniDepth
+> TAPIP3D Keypoint Sampling SAM3
+
+Figure 8: Data pipeline. We extract 3D keypoint trajectory supervision from monocular RGB videos by estimating camera motion and depth, aligning depth to metric scale, segmenting and sampling task-relevant object points, and tracking the resulting 3D keypoints over time. temporal attention linking the same keypoint across timesteps, and context attention connecting all target tokens to observation and task tokens. The mask that determines which tokens are target versus given is fixed for a given training sample and inference call, so the routing in Eq. (10) adds negligible computational overhead beyond the additional MLP parameters for the second modulation head. 
+
+A.3 Training Hyperparameters 
+
+We train UMA with AdamW using a learning rate of 1 × 10 −4, weight decay of 1 × 10 −6, batch size of 16 , and gradient clipping with maximum norm 1. Training runs for 16 epochs on 8 NVIDIA A100 GPUs, with a linear warmup over the first 10000 optimization steps. The pretraining objective uses loss weights λx = 1 , λa = 2 , and λc = 0 .001 for motion reconstruction, action reconstruction, and contrastive task latent learning respectively. The pretraining mixture contains approximately 10M steps of human video data (HOI4D and Xperience), 10M steps of real robot data (DROID), and 10M steps of simulated robot data, sampled with equal probability during training. The transformer backbone uses 6 layers with hidden size 768 and 12 attention heads. Each layer follows the structured attention design described in the main paper, alternating among spatial attention over same timestep motion and action tokens, temporal attention over the same keypoint across timesteps, and context attention from target tokens to observation and task tokens. The prediction horizon is H = 16 , and the action chunk length is set to the same horizon. For each sample, the number of tracked object keypoints satisfies K ∈ [1 , 16] .
+
+## B Data Pipeline 
+
+We detail the data curation pipelines used to construct the pretraining mixture for UMA. The real-world pipeline extracts 3D keypoint trajectory supervision from monocular RGB videos across diverse sources, while the simulated pipeline generates randomized manipulation trajectories with full state access. 
+
+B.1 Real-World Data Pipeline 
+
+To extract 3D keypoint trajectory supervision from monocular RGB videos, whether from real robot demonstrations (DROID [ 51 ]), human videos (HOI4D [ 52 ], Xperience [ 53 ]), or cross-embodiment sources, we apply a four-stage pipeline that requires no ground-truth depth, camera intrinsics, or action labels. 16 Stage 1: Camera and depth estimation. We first run MegaSaM [ 56 ] on each video to jointly estimate per-frame camera poses, camera intrinsics, and normalized (up-to-scale) depth maps. MegaSaM recovers consistent structure and motion from dynamic videos, providing a geometrically coherent reconstruction of the scene across frames. 
+
+Stage 2: Metric depth alignment. The depth maps produced by MegaSaM are scale-ambiguous. To recover metric-scale 3D geometry, we use UniDepth [ 57 ] to predict a metric depth map for a reference frame, then align the MegaSaM depth sequence to this metric scale via a global scale-and-shift fit. This yields per-frame metric depth maps consistent with the estimated camera trajectory. 
+
+Stage 3: Keypoint sampling. To focus tracking on task-relevant regions, we identify the object of interest in each video by prompting a vision-language model (GPT-5-nano) with sub-sampled keyframes from the video. For datasets with language annotations, we prompt the vision-language model with the language instruction and a single frame from the video to identify the target object. The language descriptor of the target object is then passed to SAM 3 [ 58 ] to produce a segmentation mask. We sample keypoints densely on the segmented object surface to ensure fine-grained coverage of the manipulation target. In addition, we randomly sample a smaller set of points elsewhere in the scene to provide background context and allow the model to capture overall scene dynamics. 
+
+Stage 4: 3D point tracking. Given the metric depth maps, camera intrinsics, camera poses, and sampled query points from the previous stages, we apply TAPIP3D [ 59 ] to produce persistent 3D keypoint trajectories {xk,t } that serve as the object-motion supervision signal described in the main paper. For data which includes ground-truth depth and camera parameters, Stages 1 and 2 are bypassed and only Stages 3 and 4 are applied. 
+
+B.2 Simulated Data Pipeline 
+
+We adopt the simulated data generation pipeline from COIL [ 12 ]. The pipeline constructs randomized tabletop manipulation scenes with a Franka Research 3 robot matching our real-world setup. Scenes are populated with diverse assets drawn from the YCB dataset [ 60 ], PartNet-Mobility [ 61 ], Mujoco Scanned Objects [ 62 , 63 ], and publicly available 3D models, spanning manipulable objects, tools with annotated functional regions, and containers. Two heuristic action primitives generate trajectories. The first grasps a random object and moves it along a Bézier curve with randomized 6-DoF waypoints. The second performs tool-use interactions (sweeping, poking, hooking) by grasping a tool at its functional region and translating it toward a target object. Only successful trajectories are retained, and motion labels are assigned in hindsight after the rollout is completed. 
+
+## C Additional Details of Experimental Setup 
+
+We provide a detailed account of the experimental setup used to evaluate UMA on real-world tabletop manipulation tasks. In this section, we describe the environment setup, task design, and evaluation protocol to enable reproducibility. 
+
+C.1 Environment Setup 
+
+We follow the DROID environment setup [ 51 ], which uses a Franka Research FR3 robot arm equipped with a Robotiq 2F-85 parallel-jaw gripper. During action-generation evaluations, the policy sends target end-effector poses and gripper actions at 15Hz. A ZED stereo camera is mounted on each side of the robot to provide visual coverage of the workspace. In our evaluation, only the right camera is used to provide RGBD observations to the policy. 17 C.2 Task Design 
+
+We design the real-world evaluation tasks with out-of-distribution objects to test whether the policy generalizes beyond the objects observed during pretraining. The benchmark contains three tabletop manipulation tasks. 
+
+Insertion requires the robot to pick up a utensil from the table and place it fully into a utensil holder. This task demands precise 6-DoF positioning to align the utensil with a narrow opening, making it sensitive to small orientation errors during both the grasp and the placement phase. 
+
+Sweeping requires the robot to grasp a brush and sweep paper debris into a dustpan. This is a tool-use task in which the robot must coordinate the brush motion relative to both the debris and the dustpan, requiring accurate contact-rich control through an intermediary object rather than direct grasping. 
+
+Folding requires the robot to fold a pair of blue jeans from one side of the table to the other. Manipulating deformable materials is challenging because the object’s shape changes continuously during execution, requiring the policy to reason about non-rigid geometry and produce smooth, extended motions that achieve the target fold. Across trials, we randomize object poses while keeping the task semantics fixed. Each task is evaluated over 20 trials. 
+
+C.3 Evaluation Protocol Success criteria. We use binary success labels for all real-world trials. An Insertion trial is successful if the utensil lies completely inside the utensil holder at the end of the episode. A Sweeping trial is successful if the paper debris is contained inside the dustpan. A Folding trial is successful if the final folding angle of the jeans is less than 10 ◦ from the target fold. 
+
+Reference motion specification. For motion-conditioned evaluation, a human provides a sparse reference motion through an interactive UI. We use one reference motion per trial. The reference keypoints are sampled randomly on the surface of the object of interest, and the human specifies their desired motion to define the task intent for that trial. 
+
+Few-shot adaptation. For few-shot adaptation, demonstrations are collected in the same test environment as evaluation. In the action-supervised setting, the demonstrations are collected through teleoperation and provide paired observation-action supervision. In the motion-supervised setting, the demonstrations are human videos recorded from the same scene and viewpoint, providing object-motion supervision without robot action labels. 
+
+Dynamics prediction evaluation. For dynamics prediction, we evaluate object-motion forecasts over a horizon of 10 future steps using 16 keypoints per scene. Ground-truth 3D keypoint trajectories are obtained with TAPIP3D [ 59 ]. We report mean squared error averaged over 3D keypoint coordinates, keypoints, timesteps, tasks, and episodes. 
+
+## D Multimodal Task Conditioning 
+
+The masked generative formulation of UMA allows the same pretrained model to be conditioned on alternative task specifications beyond reference motion by replacing the task latent c. As shown in Fig. 9, we present two examples of such modes: instruction following, where c is derived from a text instruction, and goal reaching, where c is derived from a goal image. Both require no retraining of the denoising transformer. Fig. 10 provides qualitative rollouts showing that the same pretrained checkpoint produces meaningful manipulation behavior under these alternative conditioning modes. 
+
+D.1 Instruction Following 
+
+The main paper introduces the task encoder hψ (o0, x c), which encodes a reference motion xc together with the initial observation o0 into M task tokens comprising c. Because the contrastive objective 18 <Sweep the paper into the dustpan>  
+
+> SigLip2
+> Transformer
+> CLS Token
+> Task Token
+> “brush”
+> SAM3
+> Object Description
+> Segmentation Masks
+> RoMa V2
+> Initial Image Goal Image
+> Reference Motion
+
+Figure 9: Multimodal task conditioning. Left: instruction following replaces the motion-derived task latent with tokens from a text encoder. Right: goal reaching uses a user-provided object description, SAM 3 segmentation, and RoMaV2-based 2D point matching to convert a goal image into a sparse start-to-end reference motion. Start End 
+
+> Put the cable on the table into the container
+> Goal Image
+> Language Instruction
+> Language Instruction
+> Goal Image
+
+Figure 10: Task execution under alternative inference modes. The same pretrained UMA check-point performs instruction following (top rows) and goal reaching (bottom rows) without retraining. In instruction-following mode, a text instruction replaces the reference motion and the language encoder produces the task latent. In goal-reaching mode, a goal image is converted into a sparse two-timestep reference motion via the keypoint extraction pipeline described in Fig. 9, which then feeds the standard motion-conditioned pathway. Across both modes, the robot produces coordinated manipulation behavior that respects the expressed task intent. 
+
+Lc trains c to capture task intent independently of the specific modality through which the intent is specified, c can also be produced by a separate language encoder that shares the same latent space. Concretely, a language encoder hω processes a text instruction ℓ in two stages. First, a SigLIP 2 [ 47 ] text encoder tokenizes ℓ into a sequence of 768-dimensional embeddings with a maximum length of 64. M learnable classification tokens are prepended to the sequence, and the resulting tokens are passed through Nℓ transformer layers that alternate self-attention among the language tokens with cross-attention from a set of M learnable aggregation queries. The output is M
+
+task tokens that replace c at inference time. This architecture mirrors the aggregation stage of the keypoint specification encoder hψ , ensuring that both pathways produce tokens in the same latent space and enabling the contrastive objective to align them. At inference time, instruction following proceeds exactly like motion-conditioned control, except that 
+
+c = hω (ℓ) replaces c = hψ (o0, x ⋆). The denoising transformer, observation encoder, and all other parameters remain unchanged. 19 25%    
+
+> (150M)
+> 50%
+> (300M)
+> 100%
+> (600M)
+> Parameter Scale
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Success Rate (%)
+> 64.7
+> 76.7 81.0
+> 51.0
+> 63.7 66.3
+> 100% Data 50% Data
+
+Figure 11: Data and model scaling analysis. We report the average success rate across the three simulation tasks for six configurations shown as line charts. Both data scale and model parameter scale contribute to performance, with full model achieving the strongest result. 
+
+D.2 Goal Reaching 
+
+goal reaching specifies the task through a goal image og depicting the desired final configuration of the scene, together with a user-provided object description, rather than through a reference motion or language instruction. Because UMA requires a reference motion as input to hψ , goal reaching converts the goal image into a sparse two-timestep reference motion via an automated keypoint extraction pipeline and then proceeds with standard motion-conditioned inference. Given the initial observation image orgb  
+
+> 0
+
+, the goal image orgb  
+
+> g
+
+, and their corresponding depth maps 
+
+odepth  
+
+> 0
+
+and odepth  
+
+> g
+
+, the pipeline operates in four stages. First, the user provides an object description, and SAM 3 [ 58 ] segments the described object in both images. Second, RoMaV2 [ 64 ] predicts dense 2D point correspondences between the masked regions in the two images. Third, each matched 2D keypoint pair is lifted to 3D camera coordinates using the corresponding depth map and calibrated camera intrinsics via bilinear depth interpolation and inverse projection. Keypoints with invalid or zero depth are marked as invalid. Fourth, the resulting 3D keypoint pairs are assembled into a reference motion xc with T = 2 timesteps and up to K = 16 keypoints, where timestep 0 contains the 3D positions in the initial scene and timestep 1 contains the corresponding 3D positions in the goal scene. This reference motion is encoded through the standard keypoint specification encoder 
+
+hψ (o0, x c) and fed to the denoising transformer exactly as in the motion-conditioned control mode. Because the extracted keypoints provide only start and end positions rather than a dense trajectory, the contrastive training of hψ is essential for making the task latent c invariant to the sparsity and ordering of the reference motion. The same SE(3) augmentation and keypoint subsampling applied during pretraining ensure that hψ generalizes from dense multi-timestep reference motions used during training to the sparse two-timestep references produced by goal images at deployment. No fine-tuning or retraining is needed. 
+
+## E Scalability Analysis 
+
+We evaluate the scalability of UMA by varying both the amount of training data and the model size. Fig. 11 reports the average success rate over the simulated tasks, each evaluated with 100 trials. These results suggest that both data scale and parameter scale contribute to performance, with the full-data 600M-parameter model achieving the strongest result. 
+
+## F Additional Qualitative Results 
+
+We provide additional qualitative results to show how the same pretrained UMA checkpoint executes tasks with different manipulation structure. The examples cover rigid object insertion, tool mediated 20 Start End Figure 12: Task execution. We show representative rollouts of UMA on the three real world evaluation tasks. The same pretrained model executes rigid object insertion, tool use, and deformable folding by conditioning on task motion and replanning from the current observation. sweeping, and deformable folding, matching the real world tasks used in the quantitative evaluation. These rollouts are intended to illustrate the breadth of behaviors induced by the shared motion action interface rather than introduce a separate evaluation protocol. As shown in Fig. 12, during closed loop executions, UMA conditions on the current observation and a task latent derived from reference motion, predicts an action chunk over the same horizon used during training, and replans after executing the chunk. The resulting behavior preserves the task level object motion across diverse interaction modes, while allowing the robot trajectory to adapt to the current object pose and scene geometry. 21
