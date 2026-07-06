@@ -1,0 +1,636 @@
+Title: Articulating then Matching: Zero-Shot Shape Matching for Uncurated Data
+
+URL Source: https://arxiv.org/pdf/2606.29167v1
+
+Published Time: Tue, 30 Jun 2026 01:05:48 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+# Articulating then Matching: Zero-Shot Shape Matching for Uncurated Data 
+
+## Qilong Liu ∗1, Qinfeng Xiao ∗1, Chenyuan Yi 2, Liying Zhang 1, Kit-lun Yick †1,2 
+
+> 1
+
+Hong Kong Polytechnic University, HK SAR 
+
+> 2
+
+Artificial Intelligence in Design, HK SAR 
+
+Abstract 
+
+Finding dense correspondences between 3D shapes is a fun-damental yet unresolved challenge, especially in real-world environments. These environments present severe challenges, including the lack of time and sufficient samples for train-ing, the prevalence of uncurated extreme-high resolution data with topological distortions, and the need to handle diverse 3D representations. In this paper, we present ATM , a zero-shot framework that requires no correspondence-specific train-ing and robustly addresses these issues at once through an 
+
+articulate-then-match paradigm. Rather than relying on in-trinsic geometric properties, we leverage powerful pretrained vision foundation models and parametric shape priors to estimate parametric shape models from multi-view render-ings, and systematically ground these estimations via multi-view geometric consistency. By mapping diverse inputs into a shared canonical parametric space, we inherently estab-lish robust coarse correspondences that bypass topological noise, which are then refined into precise dense mappings via spectral refinement. Operating purely on test-time opti-mized parametric reconstructions, ATM requires no corre-spondence training data, is naturally immune to connectivity artifacts, and seamlessly handles diverse 3D modalities, in-cluding meshes, point clouds, and 3D Gaussians. Extensive experiments demonstrate that our method achieves strong re-sults on non-isometric benchmarks (average geodesic errors of 2.4 -TOPKIDS, 3.8 -SMAL), reducing errors by 73% and 
+
+37% respectively compared to the baseline URSSM. Further-more, it exhibits unprecedented robustness on in-the-wild raw scans of up to 200k vertices per shape while maintaining near-constant computation time and consistent superior accuracy. 
+
+Code — https://github.com/liu-qilong/ATM 
+
+Project — https://liu-qilong.github.io/ATM/ 
+
+## 1 Introduction 
+
+Dense shape correspondence is an essential problem in 3D computer vision, serving as a fundamental prerequisite for transferring information across geometric data. It enables a wide range of downstream applications, including tex-ture transfer (Ezuz and Ben-Chen 2017), shape interpola-tion (Eisenberger et al. 2021; Cao et al. 2024), statistical body modeling (Maheshwari, Narain, and Hebbalaguppe 2023) and robotic manipulation (Zhu et al. 2025). Yet, es-tablishing accurate and robust point-to-point mappings re-
+
+> ∗
+
+These authors contributed equally. 
+
+> †
+
+Corresponding author. 
+
+mains a formidable challenge, particularly for non-rigid ob-jects like the human body. The difficulty stems not only from the high dimensionality of the deformation space, but also from the imperfections inherent to real-world data. In-the-wild acquisitions frequently suffer from topological corrup-tion ( e.g. , self-intersections or “glued” limbs), extreme-high resolutions, and diverse representations ( e.g. , point clouds and triangle meshes). While existing methods excel on cu-rated benchmarks with clean topology and low-resolution, their performance degrades precipitously when facing noisy, uncurated 3D scans, highlighting a critical need for corre-spondence frameworks resilient to geometric and topological degradation. Existing methods face fundamental limitations when ap-plied to diverse and uncurated data. Functional map ap-proaches (Ovsjanikov et al. 2012; Litany et al. 2017; Do-nati, Sharma, and Ovsjanikov 2020) formulate shape match-ing compactly in the spectral domain, but rely heavily on the Laplace-Beltrami Operator (LBO) for their core match-ing signal. This renders them highly sensitive to mesh tri-angulation and topological noise, which severely corrupt the spectral basis. Template-based methods (Groueix et al. 2018; Zheng et al. 2021; Zhang et al. 2023) establish cor-respondences by deforming a shared template, but typically demand extensive training on category-specific shape col-lections, restricting their generalization to novel domains. Recent semantic-based methods aim for broader applicabil-ity but introduce new bottlenecks: ZSC (Abdelreheem et al. 2023) requires per-pair optimization, Diff3F (Dutt, Muralikr-ishnan, and Mitra 2024) relies on computationally heavy se-mantic features and yields suboptimal dense matching, while state-of-the-art DenseMatcher (Zhu et al. 2025) and Uni-Match (Xiao et al. 2026) still necessitate category-specific training sets. To bridge this gap, we introduce ATM , a zero-shot frame-work that fundamentally rethinks shape correspondence through an articulate-then-match paradigm. Rather than re-lying on intrinsic geometry for the core matching signal or re-quiring correspondence-specific training, we systematically extract robust shape articulations from a shared parametric shape space. Specifically, we leverage off-the-shelf vision foundation models to estimate parametric body models from multi-view 2D renderings, and resolve inherent 2D-to-3D ambiguities via test-time optimization that enforces multi-1   
+
+> arXiv:2606.29167v1 [cs.CV] 28 Jun 2026 ATM (Ours) URSSM ZoomOut
+> 5k
+> 20k
+> 40k
+> 160k -200k
+> (Raw Scans)
+> Source
+> OOM
+> OOM
+> OOM
+> Mesh 3DGS Point Cloud
+
+Figure 1: ATM achieves high-quality dense shape matching with three key highlights: (1) Zero-shot with no correspondence-specific training: by grounding 2D Vision Foundation Models (VFMs) via test-time optimization, our method eliminates the need for task-specific correspondence training. (2) Scalability to uncurated raw scans: ATM scales robustly to real-world uncurated scans, successfully handling extremely large vertex numbers where existing methods fail due to out-of-memory (OOM) issues and high errors. (3) Versatile to diverse 3D representations: our novel articulate-then-match strategy makes the method applicable across all rendering-compatible 3D formats, including meshes, point clouds, and 3DGS. view geometric consistency. By mapping diverse inputs into a shared canonical space with consistent vertex ordering, we inherently establish robust coarse correspondences that completely bypass topological noise and explicitly handle varying 3D representations. The dense mapping is then ef-ficiently refined via spectral techniques. Because the core correspondence is established through pretrained parametric priors via 2D-rendered views, ATM becomes intrinsically immune to 3D connectivity corruptions, requires no task-specific correspondence training, and seamlessly supports diverse 3D modalities including meshes, point clouds, and 3D Gaussians (Kerbl et al. 2023). Extensive experiments demonstrate the superiority of ATM across diverse settings. Without correspondence-specific training, our method obtains strong results on chal-lenging non-isometric benchmarks, reducing the average geodesic error by up to 56% over the best prior methods on TOPKIDS, while matching or surpassing fully super-vised approaches on near-isometric datasets. Furthermore, ATM exhibits unprecedented robustness and consistent high accuracy on uncurated, high-resolution raw scans with se-vere topological noise, where traditional intrinsic methods typically fail. In summary, our main contributions are as follows: 1. We propose ATM, a novel zero-shot test-time optimiza-tion framework that completely eliminates the need for correspondence-specific network training and robustly maps shapes via an articulate-then-match paradigm. 2. We achieve state-of-the-art results on non-isometric benchmarks, reducing average geodesic errors by an un-precedented 61% on TOPKIDS (2.4) and 19% on SMAL (3.8) over the best prior methods, while remaining highly competitive on near-isometric benchmarks. 3. We demonstrate that our method exhibits superior ro-bustness on in-the-wild raw scans with severe topologi-cal corruptions, overcoming long-standing limitations of spectral and intrinsic descriptor-based approaches. 4. We show the exceptional versatility of our pipeline by na-tively supporting diverse 3D modalities, gracefully han-dling triangle meshes, point clouds, and 3D Gaussians without any algorithmic modifications. 
+
+## 2 Related Work 
+
+2.1 3D Shape Matching 
+
+Functional map approaches. Functional maps (Ovsjanikov et al. 2012) efficiently formulate matching as linear operators in the spectral domain. This paradigm has been advanced by supervised learning (Litany et al. 2017; Donati, Sharma, and Ovsjanikov 2020), unsupervised optimization (Halimi et al. 2019; Roufosse, Sharma, and Ovsjanikov 2019; Cao, Roet-zer, and Bernard 2023), spectral attention (Li, Donati, and Ovsjanikov 2022), spatial-spectral consistency (Sun et al. 2023), synchronous diffusion (Cao, Laehner, and Bernard 2024), and iterative refinement (Melzi et al. 2019b). How-ever, these methods are sensitive to topological noise, incur high preprocessing costs for LBO eigenfunctions, require ex-tensive training data, and are restricted to explicit meshes. In contrast, ATM operates zero-shot via test-time optimiza-tion. By leveraging extrinsic 2D views rather than intrinsic geometry, it remains immune to topological artifacts and generalizes across diverse 3D representations (meshes, point clouds, and 3D Gaussians). 
+
+Template-based approaches. These methods establish correspondences by deforming a shared template. 3D-CODED (Groueix et al. 2018) pioneered deep implicit cor-respondence extraction, while recent works extend this to implicit fields like DIF (Deng, Yang, and Tong 2021) and 2DIT (Zheng et al. 2021), or self-supervised latent templates via DeformShape (Zhang et al. 2023). Despite impressive re-sults, they require category-specific training collections, rely on specific continuous formats, and struggle with uncurated data featuring severe topological corruptions. Conversely, ATM achieves zero-shot matching without any prior training data. 
+
+2.2 Parametric Shape Models and Reconstruction 
+
+Parametric shape models. Parametric models provide low-dimensional representations of highly articulated objects by factoring variations into shape and pose spaces. For human bodies, SMPL (Loper et al. 2023) and its successors, includ-ing SMPL-X (Pavlakos et al. 2019), STAR (Osman, Bolkart, and Black 2020), and the recent Momentum Human Rig (MHR) (Ferguson et al. 2025), offer increasingly expres-sive canonical spaces. Similarly, SMAL (Zuffi et al. 2017) provides a unified parametric representation for animals. Be-cause all instances generated by a parametric model share the same topology and vertex ordering, establishing correspon-dences across diverse instances is inherently straightforward within the model’s canonical space. However, these models merely define the deformation space and do not inherently provide solutions for matching arbitrary, unstructured 3D observations. 
+
+Model-based reconstruction. To map raw observations into these canonical spaces, extensive efforts have focused on model-based reconstruction. Optimization-based techniques such as SMPLify (Bogo et al. 2016), SMPLify-X (Pavlakos et al. 2019), Multishot (Pavlakos, Malik, and Kanazawa 2022), and SMALR (Zuffi, Kanazawa, and Black 2018) it-eratively fit parametric models to 2D or 3D evidence. More recently, feed-forward regressors leveraging large-scale vi-sion foundation models, including SAM-3D Body (Yang et al. 2025) for humans and 3D-Fauna (Li et al. 2024) and Animer (Lyu et al. 2025) for animals, have achieved impressive single-view reconstructions. Yet, these methods suffer from inherent 2D-to-3D ambiguities and partial ob-servations, leading to inconsistent 3D alignments and hal-lucinated poses in unseen regions. In contrast, ATM adopts these models solely for providing a plausible initialization, systematically resolving reconstruction ambiguities via zero-shot multi-view geometric grounding at test time to extract highly consistent articulations that naturally yield robust cor-respondences. 
+
+## 3 Method 
+
+In this section, we detail our proposed methodology for estab-lishing zero-shot dense correspondences. We first introduce the preliminary concepts of articulated mesh representations and single-view 2D vision foundation models in section 3.1. Next, we present our core multi-view grounded articulation approach in section 3.2, which lifts and refines single-view 2D predictions into consistent 3D articulated shapes through test-time optimization. Finally, we describe how to extract and refine robust dense correspondences from the optimized articulated shapes in section 3.3. 
+
+3.1 Preliminaries 
+
+Articulated mesh representation. We represent 3D human bodies using the Momentum Human Rig (MHR) (Fergu-son et al. 2025) and animal shapes using the SMAL (Zuffi et al. 2017) parametric model. These models are defined by shape parameters Θs, pose parameters Θp, and additional parameters Θa. All instances generated by the model share a canonical template ¯X , which serves as a shared reference topology for establishing correspondence: 
+
+V = MV (Θ s, Θp, Θa), (1) 
+
+K = MK (Θ s, Θp, Θa), (2) where M is the parametric model, while V ∈ RNV ×3 and 
+
+K ∈ RNK ×3 are the vertex coordinates and joint positions, respectively. 
+
+Single-view shape and pose reconstruction. We use pre-trained 2D vision foundation models to initialize the pose, shape, and camera parameters of the input shapes: 
+
+Θ′
+
+> s
+
+, Θ′
+
+> p
+
+, Θ′
+
+> a
+
+, E ′, I ′ = E(Render (X , E, I )) , (3) where E is the foundation model and Render (·) is the pin-hole perspective rendering operator, taking the input shape 
+
+X , camera extrinsics E, and intrinsics I as arguments. The model E jointly predicts the body parameters and the camera parameters ( E′, I ′). Specifically, we use SAM3D Body (Yang et al. 2025) for human shapes and Animer (Lyu et al. 2025) for animal shapes. 
+
+3.2 Multi-view Grounded Articulation 
+
+Although 2D vision foundation models provide plausible initial parameter estimates with accurate 2D alignment, they suffer from two fundamental pitfalls: (i) 2D-to-3D ambi-guity : perfect 2D alignment does not guarantee correct 3D geometry ( fig. 3a); and (ii) partial observation : the pose of the unseen side is entirely hallucinated (fig. 3b), leading to severe multi-view inconsistency. We resolve these limi-tations via a zero-shot test-time optimization approach that grounds the single-view predictions through multi-view ge-ometric consistency. 
+
+Rendering and view-gated prediction. We parameterize camera extrinsics E using azimuth θ, elevation ϕ, and radius 
+
+r, configured to look at the shape center c. Camera intrinsics I
+
+are defined by focal length f , width w, and height h. We uni-formly sample and render a set of views {E(i), I (i)}, which are processed via eq. (3) to predict per-view shape propos-als ( Θ′(i) 
+
+> s
+
+, Θ′(i) 
+
+> p
+
+, Θ′(i) 
+
+> a
+
+) and camera parameters ( E′(i), I ′(i)). Each predicted shape is rendered and overlaid with the orig-inal rendering; we retain only those views with an overlap ratio exceeding τ .
+
+Aligning predictions across views. Since each view’s pre-dicted shape resides in its own local 3D space, we align them into a unified coordinate system. While the predicted mesh is well-aligned with the input in 2D, it exhibits significant 3D scale and translation ambiguity. To address this, for view 
+
+i, we back-project the rendered pixels onto the input shape using E(i) and I(i) to form a point cloud P (i)
+
+> input
+
+. Similarly, we back-project the pixels onto the articulated shape using 32D VFM 
+
+Shape & Pose Proposals 
+
+(Inconsistent) (Sec3.2) 
+
+> Error -gated
+> Triangulation
+
+Multi -view Grounded Keypoints 
+
+(Consistent) (Sec3.2) 
+
+Stage I: Pose 
+
+Alignment 
+
+Stage II: Surface 
+
+Alignment 
+
+Test -time Optimization 
+
+(Sec3.2) 
+
+> Nearest -Search
+> One -to -One
+
+Coarse Map 
+
+Spectral 
+
+ICP 
+
+Coarse -to -Fine Map Extraction 
+
+(Sec3.3) 
+
+Refined Map Figure 2: Overview of ATM. We first leverage 2D Vision Foundation Models (VFMs) to extract initial shape and pose proposals from multi-view renderings of the input shapes. To overcome 2D-to-3D ambiguity and partial observation issues, we apply a multi-view grounded test-time optimization that accurately aligns the predictions into a consistent articulated space (section 3.2). Following our articulate-then-match paradigm, we establish robust coarse correspondences via the shared canonical topology, which are then spectrally refined into precise dense mappings across diverse rendering-compatible 3D representations (section 3.3).  
+
+> (a) (b)
+
+Figure 3: The 2D-to-3D ambiguity and partial observation issues. (a) Although the predicted pose and shape are well-aligned in one view, the underlying 3D shape still consists of significant bias. (b) For the unseen side, the predicted pose is entirely hallucinated, leading to severe multi-view incon-sistency. That said, with proper error-gating, we can leverage the keypoints projected to 2D as cross-view consistent evi-dence to resolve the 3D ambiguity and inconsistency issues. 
+
+E′(i) and I′(i) to obtain P (i)
+
+> articulated
+
+. Points originating from the same pixel form corresponding pairs. We then robustly fit a similarity transform T (i) from the articulated shape to the input shape using the Umeyama algorithm (Umeyama 2002) integrated with RANSAC (Fischler and Bolles 1981) to handle occlusions and spurious matches. 
+
+Resolving depth ambiguity via keypoint triangulation. 
+
+The initial predictions can exhibit significant depth bias along the camera axis and hallucinated poses in unobserved re-gions. We address this by triangulating the well-aligned 2D keypoint predictions to explicitly reconstruct the 3D pose. To mitigate the impact of hallucinated keypoints, we filter out 2D observations exhibiting large reprojection errors and triangulate the remaining reliable keypoints to obtain Ktri .
+
+Pose optimization from triangulated keypoints. We in-dependently minimize the squared L2 distance between the triangulated keypoints and the predicted 3D keypoints for each view. Only the pose parameters Θ′(i) 
+
+> p
+
+are optimized in this stage: 
+
+Lkps = ∥Ktri − T (i)[MK (Θ ′(i) 
+
+> p
+
+, Θ′(i) 
+
+> s
+
+, Θ′(i) 
+
+> a
+
+)] ∥22, (4) where T (i)[·] applies the estimated view-to-universal space transformation. We optimize this objective using Adam (Kingma and Ba 2014), as different pose parame-ters exert highly imbalanced magnitudes of influence on the joint positions. The optimized pose parameters are denoted as Θ′′ (i) 
+
+> p
+
+.
+
+Refining shape through surface alignment. View selection. Following keypoint alignment, we calcu-late the Chamfer distance between the input mesh and each view’s predicted mesh. The top Nselect views with the lowest Chamfer distances are selected for surface refinement. 
+
+Optimization. We jointly optimize the pose ( Θ′′ (i) 
+
+> p
+
+) and shape ( Θ′(i) 
+
+> s
+
+) parameters using Adam (Kingma and Ba 2014), denoting the optimized values as Θ′′′ (i) 
+
+> p
+
+and Θ′′′ (i) 
+
+> s
+
+. The over-all objective combines surface alignment with skeletal and keypoint regularizers: 
+
+L = X
+
+> i∈Nselect
+
+Lsurf + λskel Lskel + λkps Lkps , (5) 4Lsurf = Squared-Chamfer M (T (i)[MV (Θ ′′ (i) 
+
+> p
+
+, Θ′(i) 
+
+> s
+
+, Θ′(i) 
+
+> a
+
+)] , X ),
+
+(6) where Squared-Chamfer M (·, ·) computes the squared Cham-fer distance between M randomly subsampled vertices from both inputs. The input mesh X is sampled uniformly, while the articulated shape MV employs stochastic vertex sam-pling to maintain differentiability. 
+
+Lskel = ∥Lbone (T (i)[MK (Θ ′′ (i) 
+
+> p
+
+, Θ′(i) 
+
+> s
+
+, Θ′(i) 
+
+> a
+
+)]) −Lbone (Ktri )∥22,
+
+(7) To preserve skeletal proportions during surface alignment, we penalize deviations in bone lengths Lbone relative to the triangulated skeleton using a squared L2 loss. 
+
+Lkps = ∥T (i)[MK (Θ ′′ (i) 
+
+> p
+
+, Θ′(i) 
+
+> s
+
+, Θ′(i) 
+
+> a
+
+)] − Ktri ∥22. (8) We reapply the keypoint alignment loss Lkps to prevent large-scale deviations of the previously aligned joints. 
+
+Merging. Finally, we average the optimized surface ver-tices across the selected views to produce the consolidated shape: 
+
+V = 1
+
+Nselect 
+
+X
+
+> i∈Nselect
+
+MV (Θ ′′′ (i) 
+
+> p
+
+, Θ′′′ (i) 
+
+> s
+
+, Θ′(i) 
+
+> a
+
+). (9) 
+
+3.3 From Articulation to Dense Correspondence 
+
+Establishing coarse correspondence via shared topology. 
+
+After the multi-view grounded articulation process, we ob-tain the articulated shapes X ′ and Y′ for input shapes X and 
+
+Y, respectively. Because these articulated shapes share the identical topology and vertex ordering of the template ¯X , we can extract a coarse correspondence from Y to X , as detailed in algorithm 1. 
+
+Algorithm 1 Coarse Correspondence Extraction  
+
+> 1:
+
+Compute the correspondence ΠY′Y from Y to Y′ via nearest-neighbor search, yielding a binary assignment matrix ΠY′Y ∈ R|Y ′|×|Y| . 
+
+> 2:
+
+Because X ′ and Y′ possess corresponding vertex orders, the mapping from Y to X ′ is simply ΠX ′Y = Π Y′Y . 
+
+> 3:
+
+Compute the correspondence ΠX X ′ from X ′ to X via nearest-neighbor search. The final coarse correspon-dence is given by composition: ΠX Y = Π X X ′ ΠX ′Y .
+
+Spectral refinement to dense maps. The coarse correspon-dence is inherently noisy and often contains many-to-one or one-to-many assignments. Following (Ovsjanikov et al. 2012), we employ spectral ICP for refinement, leveraging the orthonormality constraint on the functional map to pro-mote bijective, regular correspondences. The process is de-tailed in algorithm 2. In essence, this process solves for an orthonormal functional map Crefined that best aligns with the coarse correspondence while respecting the intrinsic geo-metric properties of the original shapes (Ovsjanikov et al. 2012). 
+
+Algorithm 2 Functional Map Refinement  
+
+> 1:
+
+Convert the coarse correspondence ΠX Y to a func-tional map (Sun et al. 2023): CYX = Φ†X ΠX Y ΦY ,where ΦX ∈ R|X |× k and ΦY ∈ R|Y|× k are the first 
+
+k Laplacian-Beltrami Operator (LBO) eigenvectors of 
+
+X and Y, respectively.  
+
+> 2:
+
+Set Crefined ← CYX . 
+
+> 3:
+
+for t = 1 , . . . , n iter do  
+
+> 4:
+
+For each row c in Crefined Φ⊤Y , find the closest row ¯c
+
+in Φ⊤X . 
+
+> 5:
+
+Solve for the optimal orthonormal C that minimizes P ∥Cc − ¯c∥. 
+
+> 6:
+
+Set Crefined ← C. 
+
+> 7:
+
+end for  
+
+> 8:
+
+Extract the refined point-to-point correspondence: Set 
+
+Πrefined ∈ R|X |×|Y| as an all-zero matrix. For the i-th row in Crefined Φ⊤Y , find the closest row in Φ⊤X and set 
+
+Πrefined [j, i ] = 1 . 
+
+> 9:
+
+return Πrefined 
+
+## 4 Experiments 
+
+We conduct comprehensive experiments to demonstrate the effectiveness and versatility of our proposed method. First, we evaluate its performance on challenging non-isometric shape matching tasks ( section 4.1) and traditional near-isometric benchmarks ( section 4.2). Next, we validate its scalability to high-resolution, in-the-wild scans ( section 4.3) and its robustness to partial scans ( section 4.4). We then demonstrate its adaptability to diverse 3D representations, including point clouds and 3D Gaussians ( section 4.5). Fi-nally, we present detailed ablation studies to justify our core design choices ( section 4.6). 
+
+4.1 Non-Isometric Shape Matching 
+
+Setup. Non-isometric shape matching poses a severe chal-lenge due to extreme shape and pose variations. We eval-uate on the remeshed SMAL (Zuffi et al. 2017) (animals) and TOPKIDS (Lähner et al. 2016) (humans) datasets using the average geodesic error. We compare ATM against ax-iomatic baselines (ZoomOut (Melzi et al. 2019b), Smooth Shells (Eisenberger, Lahner, and Cremers 2020), and Dis-creteOp (Ren et al. 2021)), functional map baselines (Un-supFMNet (Halimi et al. 2019), SURFMNet (Roufosse, Sharma, and Ovsjanikov 2019), AttentiveFMaps (Li, Do-nati, and Ovsjanikov 2022), URSSM (Cao, Roetzer, and Bernard 2023), and Synchronous Diffusion (Cao, Laehner, and Bernard 2024)), semantic baselines (Diff3F (Dutt, Mu-ralikrishnan, and Mitra 2024) and DenseMatcher (Zhu et al. 2025)), and the template-based 3D-CODED (Groueix et al. 2018). To highlight practical applicability, table 1 also cate-gorizes methods by their training dependencies and zero-shot capabilities. 
+
+Results and analysis. As reported in table 1, ATM achieves strong performance across both benchmarks, yielding aver-age geodesic errors of 3.8 on SMAL and 2.4 on TOPKIDS. It is comparable to Synchronous Diffusion (Cao, Laehner, and 5Bernard 2024) on SMAL and substantially stronger on TOP-KIDS, while requiring no correspondence-specific training. Compared to the supervised DenseMatcher (Zhu et al. 2025), ATM reduces errors by 19% and 61%, respectively. Our su-perior performance stems from the proposed articulate-then-match paradigm: by mapping diverse inputs into a shared parametric space via multi-view geometric grounding, ATM naturally resolves depth ambiguities and robustly handles non-isometric deformations, bypassing the topological sen-sitivities that plague intrinsic spectral methods. Qualitative results in fig. 4 further confirm that ATM consistently pro-duces superior texture transfer results across all datasets. Table 1: Average geodesic errors ×100 (↓) of non-isometric shape matching. The first / second / third best results are highlighted, respectively.                                                         
+
+> Method Unsup. No Corr. Tr. Zero-Shot SMAL TOPKIDS
+> Axiomatic Methods
+> ZoomOut ✓✓✓38.4 33.7 Smooth Shells ✓✓✓36.1 11.8 DiscreteOp ✓✓✓38.1 35.5
+> Functional Map Methods
+> UnsupFMNet ✓✗✗-38.5 SURFMNet ✓✗✗-48.6 AttentiveFMaps ✗✗✗5.4 23.4 URSSM ✓✗✗6.0 8.9 Synchronous Diff. ✓✗✗3.6 5.4
+> Semantic Methods
+> Diff3F ✓✓✓28.4 31.0 DenseMatcher ✗✗✗4.7 6.2
+> Template-based Methods
+> ATM (ours) ✓✓✓3.8 2.4
+
+4.2 Near-Isometric Shape Matching 
+
+Setup. Near-isometric shape matching is the traditional stronghold of intrinsic spectral methods, as near-isometric deformations preserve the LBO eigenfunctions. This makes it a critical benchmark to verify whether our extrinsic 
+
+articulate-then-match paradigm remains competitive. Fol-lowing previous work (Cao, Roetzer, and Bernard 2023), we evaluate on three remeshed benchmarks containing near-isometric human poses: FAUST (Bogo et al. 2014), SCAPE (Anguelov et al. 2005), and SHREC19 (Melzi et al. 2019a). We compare with BCICP (Ren et al. 2018), ZoomOut (Melzi et al. 2019b), Smooth Shells (Eisen-berger, Lahner, and Cremers 2020), UnsupFMNet (Hal-imi et al. 2019), SURFMNet (Roufosse, Sharma, and Ovs-janikov 2019), URSSM (Cao, Roetzer, and Bernard 2023), Diff3F (Dutt, Muralikrishnan, and Mitra 2024), Dense-Matcher (Zhu et al. 2025), and 3D-CODED (Groueix et al. 2018), using the same baseline categories as in section 4.1. 
+
+Results and analysis. As shown in table 2, ATM achieves the best or tied-best results across all three near-isometric bench-marks, yielding average geodesic errors of 1.3 on FAUST, 1.7 on SCAPE, and 3.1 on SHREC19. Notably, our zero-shot method surpasses heavily optimized functional map base-lines ( e.g. , URSSM (Cao, Roetzer, and Bernard 2023)) on Source Ours URSSM ZoomOut                    
+
+> ✅Correct ❌Messy ❌Messy
+> ❌Wrong ❌Wrong ✅Correct
+> ✅Correct ❌Wrong
+> Messy ❌
+> ❌
+> Wrong
+> ❌Wrong ✅Correct
+> Messy ❌
+> Messy ❌
+> ✅Correct ❌Wrong ❌Wrong
+> ❌Wrong
+> Messy ❌
+
+Figure 4: Texture transfer on curated public datasets. From top to bottom: TOPKIDS, SMAL, FAUST, and SCAPE. ATM consistently produces superior results across all datasets, while baseline methods struggle with topological noise and fail to produce meaningful correspondences. their home turf without any correspondence-specific train-ing. Furthermore, we match the performance of the fully supervised DenseMatcher (Zhu et al. 2025) on SHREC19 while outperforming it by 19% on FAUST and 15% on SCAPE. The success of ATM in this regime stems from the shared parametric space, which naturally encodes plau-sible human pose variations and seamlessly handles near-isometric articulations. Combined with our non-isometric results, ATM remains highly competitive across both defor-mation regimes without requiring task-specific correspon-dence training. Qualitative results in fig. 4 further confirm that ATM consistently produces superior texture transfer re-sults across all datasets. 
+
+4.3 Scalability to High-Resolution Raw Scans 
+
+Setup. To demonstrate the robustness of our method on uncurated real-world data, we evaluate on the raw scans from the original FAUST dataset (Bogo et al. 2014). These scans present severe topological corruptions ( e.g. , self-intersections and fused body parts) and high vertex counts (160k to 200k), which break intrinsic spectral methods that strictly rely on clean triangulation. To systematically evalu-ate scalability, we decimate the 100 raw scans into multiple resolution levels ranging from 5k to 120k vertices, and eval-uate the matching performance at each density alongside the original raw scans. 
+
+Results and analysis. As shown in table 3, ATM exhibits un-6Table 2: Average geodesic errors ×100 (↓) of near-isometric shape matching. Results highlighting follows table 1. 
+
+Method FAUST SCAPE SHREC19 
+
+Axiomatic Methods 
+
+BCICP 6.4 11.0 8.0 ZoomOut 6.1 7.5 7.8 Smooth Shells 2.5 4.7 7.6 
+
+Functional Map Methods 
+
+UnsupFMNet 4.8 9.6 11.1 SURFMNet 2.5 6.0 4.8 URSSM 1.6 1.9 5.7 
+
+Semantic Methods 
+
+Diff3F 20.7 22.1 26.3 DenseMatcher 1.6 2.0 3.1 
+
+Template-based Methods 
+
+3D-CODED 2.5 9.8 7.7 ATM (ours) 1.3 1.7 3.1 
+
+precedented robustness and scalability. While baseline meth-ods severely degrade due to topological noise on these uncu-rated scans—with the ZoomOut (Melzi et al. 2019b) plateau-ing around 20.0 and URSSM (Cao, Roetzer, and Bernard 2023) exceeding 20.0 before failing entirely—ATM main-tains a consistently low error. Notably, rather than degrad-ing, our performance monotonically improves from 2.4 at 5k vertices to 1.9 on the 160k–200k raw scans, outperform-ing baselines by up to an order of magnitude. Furthermore, existing methods suffer from quadratic or cubic complex-ity, encountering out-of-memory (OOM) failures at higher resolutions (80k for ZoomOut, 40k for URSSM). In con-trast, because our articulate-then-match paradigm operates through a fixed-size parametric space via 2D renderings, the computational cost is inherently decoupled from the input mesh resolution. Consequently, ATM effortlessly scales to the 200k raw scans with near-constant computation time, as shown in fig. 6. Qualitative results in fig. 5 confirm this trend, where ATM consistently produces superior texture transfer results across all resolutions, while baseline methods struggle with topological noise and fail to produce meaningful corre-spondences in higher mesh densities. Additional engineering details for high-resolution map conversion are provided in the supplementary material. This experiment highlights the practical applicability of ATM in real-world scenarios, where uncurated, high-resolution scans are common and traditional methods often fail. Table 3: Average geodesic errors ×100 (↓) of high-resolution in-the-wild scans matching at varying resolutions. 
+
+Resolution ATM (ours) ZoomOut URSSM 5k 2.4 20.9 10.0 10k 2.1 20.6 23.1 20k 2.0 20.2 21.6 40k 2.0 20.6 OOM 80k 1.9 OOM OOM 120k 1.9 OOM OOM Raw 1.9 OOM OOM Source Ours URSSM ZoomOut 
+
+> 5k
+> 20k
+> 40k
+> Raw
+> Messy
+> ❌
+> Messy
+> ❌
+> Messy
+> ❌
+> Messy
+> ❌
+> OOM
+> ❌
+> OOM
+> ❌
+> OOM
+> ❌
+
+Figure 5: Texture transfer on the original FAUST raw scans. From top to bottom: remeshed to 5k, 20k, and 40k vertices; the last row shows original raw scans with around 160k–200k vertices. 
+
+4.4 Robustness to Partial Scans 
+
+Setup. Partial observations are common in real scans and can remove large regions of the target surface. We evaluate this setting on the FAUST subset of the BeCoS benchmark (Ehm et al. 2025), which applies random rotation, remeshing, and ray-cropping to simulate laser-scan partiality. We report both partial-to-full (P-F) and partial-to-partial (P-P) match-ing, and compare against ZoomOut (Melzi et al. 2019b) and URSSM (Cao, Roetzer, and Bernard 2023). URSSM is trained from scratch for 30 epochs on the training split. 
+
+Results and analysis. As shown in table 4, ATM degrades only mildly under partiality, achieving 3.03 on P-F and 3.92 on P-P, while the intrinsic baselines fail under missing sur-faces and changed triangulations. This supports our central motivation: by first grounding the input into a shared articu-lated space through multi-view evidence, ATM can recover reliable correspondence even when the observed surface is incomplete. Table 4: Average geodesic errors ×100 (↓) on BeCoS FAUST partial scans. 
+
+Method P-F P-P ZoomOut 42.19 68.73 URSSM 24.16 18.45 ATM (ours) 3.03 3.92 
+
+70k 50k 100k 150k 200k     
+
+> Number of Vertices
+> 0
+> 50
+> 100
+> Inference Time (s)
+> Articulation Map Extraction+Refinement 0k 50k 100k 150k 200k
+> Number of Vertices
+> 5
+> 10
+> 15
+> 20
+> Geodesic Distance Error  ATM ULRSSM ZoomOut OOM Limit
+
+Figure 6: Scalability analysis. Left: inference time. Right: averaged geodesic error. 
+
+Figure 7: Texture transfer examples on partial scans. ATM remains robust despite missing surface regions introduced by ray-cropping. 
+
+4.5 Versatility to Diverse 3D Representations 
+
+A unique advantage of our articulate-then-match paradigm is its inherent agnosticism to the underlying 3D representation. Because our entire pipeline operates on 2D multi-view ren-derings and maps them into a shared parametric space, any renderable 3D representation can be seamlessly processed. We demonstrate this unprecedented versatility by evaluat-ing ATM on point clouds and 3D Gaussians, where existing mesh-based methods either fail entirely or require significant architectural modifications. 
+
+Point clouds. We strip connectivity from FAUST, SCAPE, and SHREC19 and compare with DPC (Lang et al. 2021), CorrNet3D (Zeng et al. 2021), 3D-CODED (Groueix et al. 2018), and IFMatch (Sundararaman, Pai, and Ovsjanikov 2022). Table 5 reports ATM errors of 2.0, 2.0, and 5.5, re-spectively. Because these inputs have no LBO, the results directly test the connectivity-independent core map without spectral refinement. 
+
+3D Gaussians. As a purely render-based framework, ATM extends naturally to neural radiance fields. We train a stan-dard 3D Gaussian Splatting model (Kerbl et al. 2023) for each shape and directly feed its rendered views into our multi-view grounding pipeline. Crucially, this requires no algorithmic modifications. Please refer to the supplementary material for qualitative 3DGS matching results and imple-mentation details. To the best of our knowledge, ATM is the first shape matching framework capable of directly process-ing explicit meshes, point clouds, and 3D Gaussians in a unified zero-shot manner. Table 5: Experimental results of point cloud shape matching. Results highlighting follows table 1. 
+
+Method FAUST(PC) SCAPE(PC) SHREC19(PC) DPC 11.6 16.0 17.6 CorrNet3D 26.5 37.3 33.7 3D-CODED 2.5 9.8 7.7 IFMatch 2.6 11.0 6.5 ATM (ours) 2.0 2.0 5.5 
+
+4.6 Ablation Study 
+
+Setup. We validate the contribution of our core components on the TOPKIDS (Lähner et al. 2016) dataset by evaluating four variants of ATM: (1) w/o grounding : naïvely averaging the multi-view predictions from the 2D foundation models without any geometric consistency optimization; (2) w/o key-point stage : omitting the keypoint-based pose optimization ( section 3.2) and directly applying surface alignment; (3) 
+
+w/o surface stage : performing only keypoint-based pose op-timization without subsequent surface refinement; and (4) w/ all stages : our full multi-view grounded articulation pipeline. We evaluate all variants both before and after applying the spectral map refinement ( section 3.3). 
+
+Results and analysis. As reported in table 6, every stage of our pipeline contributes critically to the final matching performance. The most substantial performance drop occurs when removing the multi-view geometric grounding: rely-ing solely on ungrounded 2D foundation model predictions (w/o grounding ) yields a severe average geodesic error of 5.4 even after refinement, more than doubling the error of our full pipeline (2.4). This confirms that our grounding strategy is indispensable for resolving 2D-to-3D ambiguities and establishing reliable 3D articulations. Furthermore, both the keypoint and surface optimization stages prove highly effective, with their removals increasing refined errors to 3.6 and 3.0, respectively. Finally, spectral refinement consis-tently improves results across all configurations, validating our coarse-to-fine design that first extracts robust topological alignment before optimizing for precise dense maps. Table 6: Average geodesic errors ×100 (↓) for different ab-lation variants of ATM on the TOPKIDS dataset, evaluated both before and after spectral map refinement. Results high-lighting follows table 1. 
+
+Method w/o refinement w/ refinement w/o grounding 6.2 5.4 w/o keypoint stage 4.0 3.6 w/o surface stage 4.0 3.0 w/ all stages 3.0 2.4 
+
+## 5 Limitation 
+
+While ATM demonstrates strong performance and versatil-ity, it has several limitations. First, our method relies on the availability of a category-specific parametric model ( e.g. ,8MHR for humans, SMAL for animals) and a corresponding single-view reconstruction foundation model. Extending to novel object categories thus requires both a suitable para-metric prior and a compatible 2D estimator, which may not yet exist for all domains. Second, the quality of our articu-lated shape is inherently bounded by the expressiveness of the underlying parametric model; shapes with fine-grained geometric details ( e.g. , clothing, hair) or highly unusual body proportions may not be faithfully captured, potentially limit-ing coarse correspondence accuracy in such cases. Third, as a test-time optimization framework, ATM incurs higher per-pair inference cost compared to feed-forward methods, which may limit its applicability in latency-sensitive scenarios. We believe that the rapid advancement of general-purpose 2D vision foundation models and expressive parametric shape representations will progressively alleviate these constraints. 
+
+## 6 Conclusion 
+
+In this paper, we introduced ATM, a novel zero-shot frame-work for dense shape correspondence that requires no correspondence-specific training and addresses the long-standing challenges of topological noise and uncurated real-world data. By shifting from intrinsic geometric descriptors to an articulate-then-match paradigm, we demonstrated how 2D vision foundation models can be lifted into consistent 3D parametric spaces via multi-view geometric grounding. This enables robust coarse correspondence that is inherently im-mune to connectivity artifacts, followed by spectral ICP for precise dense mapping. Extensive evaluations confirm that ATM achieves strong performance on non-isometric bench-marks, generalizes seamlessly to diverse 3D representations including point clouds and 3D Gaussians, and exhibits un-precedented robustness on high-resolution, in-the-wild raw scans. We believe that leveraging image-based priors for ro-bust 3D mapping opens a promising new direction for corre-spondence in the wild. 
+
+## References 
+
+Abdelreheem, A.; Eldesokey, A.; Ovsjanikov, M.; and Wonka, P. 2023. Zero-shot 3d shape correspondence. In 
+
+SIGGRAPH Asia 2023 Conference Papers , 1–11. Anguelov, D.; Srinivasan, P.; Koller, D.; Thrun, S.; Rodgers, J.; and Davis, J. 2005. Scape: shape completion and anima-tion of people. In ACM SIGGRAPH 2005 Papers , 408–416. Bogo, F.; Kanazawa, A.; Lassner, C.; Gehler, P.; Romero, J.; and Black, M. J. 2016. Keep it SMPL: Automatic estimation of 3D human pose and shape from a single image. In Euro-pean conference on computer vision , 561–578. Springer. Bogo, F.; Romero, J.; Loper, M.; and Black, M. J. 2014. FAUST: Dataset and evaluation for 3D mesh registration. In 
+
+Proceedings of the IEEE conference on computer vision and pattern recognition , 3794–3801. Cao, D.; Eisenberger, M.; El Amrani, N.; Cremers, D.; and Bernard, F. 2024. Spectral Meets Spatial: Harmonising 3D Shape Matching and Interpolation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 3658–3668. Cao, D.; Laehner, Z.; and Bernard, F. 2024. Synchronous Diffusion for Unsupervised Smooth Non-Rigid 3D Shape Matching. In ECCV .Cao, D.; Roetzer, P.; and Bernard, F. 2023. Unsupervised Learning of Robust Spectral Shape Matching. ACM Trans-actions on Graphics (TOG) , 42(4): 1–15. Deng, Y.; Yang, J.; and Tong, X. 2021. Deformed implicit field: Modeling 3d shapes with learned dense correspon-dence. In Proceedings of the IEEE/CVF conference on com-puter vision and pattern recognition , 10286–10296. Donati, N.; Sharma, A.; and Ovsjanikov, M. 2020. Deep ge-ometric functional maps: Robust feature learning for shape correspondence. In Proceedings of the IEEE/CVF Confer-ence on Computer Vision and Pattern Recognition , 8592– 8601. Dutt, N. S.; Muralikrishnan, S.; and Mitra, N. J. 2024. Diffu-sion 3d features (diff3f): Decorating untextured shapes with distilled semantic features. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,4494–4504. Ehm, V.; Amrani, N. E.; Xie, Y.; Bastian, L.; Gao, M.; Wang, W.; Sang, L.; Cao, D.; Weissberg, T.; Laehner, Z.; et al. 2025. Beyond Complete Shapes: A Benchmark for Quantitative Evaluation of 3D Shape Surface Matching Algorithms. In 
+
+Computer Graphics Forum , volume 44, e70186. Wiley On-line Library. Eisenberger, M.; Lahner, Z.; and Cremers, D. 2020. Smooth shells: Multi-scale shape registration with functional maps. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 12265–12274. Eisenberger, M.; Novotny, D.; Kerchenbaum, G.; Labatut, P.; Neverova, N.; Cremers, D.; and Vedaldi, A. 2021. Neu-romorph: Unsupervised shape interpolation and correspon-dence in one go. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 7473–7483. 9Ezuz, D.; and Ben-Chen, M. 2017. Deblurring and denoising of maps between shapes. In Computer Graphics Forum ,volume 36, 165–174. Wiley Online Library. Ferguson, A.; Osman, A. A.; Bescos, B.; Stoll, C.; Twigg, C.; Lassner, C.; Otte, D.; Vignola, E.; Prada, F.; Bogo, F.; et al. 2025. Mhr: Momentum human rig. arXiv preprint arXiv:2511.15586 .Fischler, M. A.; and Bolles, R. C. 1981. Random sample consensus: a paradigm for model fitting with applications to image analysis and automated cartography. Communications of the ACM , 24(6): 381–395. Groueix, T.; Fisher, M.; Kim, V. G.; Russell, B. C.; and Aubry, M. 2018. 3d-coded: 3d correspondences by deep deformation. In Proceedings of the european conference on computer vision (ECCV) , 230–246. Halimi, O.; Litany, O.; Rodola, E.; Bronstein, A. M.; and Kimmel, R. 2019. Unsupervised learning of dense shape cor-respondence. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 4370–4379. Kerbl, B.; Kopanas, G.; Leimkühler, T.; Drettakis, G.; et al. 2023. 3d gaussian splatting for real-time radiance field ren-dering. ACM Trans. Graph. , 42(4): 139–1. Kingma, D. P.; and Ba, J. 2014. Adam: A method for stochas-tic optimization. arXiv preprint arXiv:1412.6980 .Lähner, Z.; Rodola, E.; Bronstein, M. M.; Cremers, D.; Burghard, O.; Cosmo, L.; Dieckmann, A.; Klein, R.; Sahillioˇ glu, Y.; et al. 2016. SHREC’16: Matching of de-formable shapes with topological noise. In Eurographics Workshop on 3D Object Retrieval, EG 3DOR , 55–60. Euro-graphics Association. Lang, I.; Ginzburg, D.; Avidan, S.; and Raviv, D. 2021. Dpc: Unsupervised deep point correspondence via cross and self construction. In 2021 International Conference on 3D Vision (3DV) , 1442–1451. IEEE. Li, L.; Donati, N.; and Ovsjanikov, M. 2022. Learning multi-resolution functional maps with spectral attention for robust shape matching. Advances in Neural Information Processing Systems , 35: 29336–29349. Li, Z.; Litvak, D.; Li, R.; Zhang, Y.; Jakab, T.; Rupprecht, C.; Wu, S.; Vedaldi, A.; and Wu, J. 2024. Learning the 3d fauna of the web. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 9752–9762. Litany, O.; Remez, T.; Rodola, E.; Bronstein, A.; and Bron-stein, M. 2017. Deep functional maps: Structured prediction for dense shape correspondence. In Proceedings of the IEEE international conference on computer vision , 5659–5667. Loper, M.; Mahmood, N.; Romero, J.; Pons-Moll, G.; and Black, M. J. 2023. SMPL: A skinned multi-person linear model. In Seminal Graphics Papers: Pushing the Bound-aries, Volume 2 , 851–866. Lyu, J.; Zhu, T.; Gu, Y.; Lin, L.; Cheng, P.; Liu, Y.; Tang, X.; and An, L. 2025. AniMer: Animal Pose and Shape Estimation Using Family Aware Transformer. In Proceedings of the Computer Vision and Pattern Recognition Conference ,17486–17496. Maheshwari, S.; Narain, R.; and Hebbalaguppe, R. 2023. Transfer4d: A framework for frugal motion capture and defor-mation transfer. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 12836–12846. Melzi, S.; Marin, R.; Rodolà, E.; Castellani, U.; Ren, J.; Poulenard, A.; et al. 2019a. SHREC’19: matching humans with different connectivity. In Eurographics Workshop on 3D Object Retrieval . The Eurographics Association. Melzi, S.; Ren, J.; Rodolà, E.; Sharma, A.; Wonka, P.; Ovs-janikov, M.; et al. 2019b. ZoomOut: spectral upsampling for efficient shape correspondence. ACM TRANSACTIONS ON GRAPHICS , 38(6): 1–14. Osman, A. A.; Bolkart, T.; and Black, M. J. 2020. Star: Sparse trained articulated human body regressor. In Euro-pean Conference on Computer Vision , 598–613. Springer. Ovsjanikov, M.; Ben-Chen, M.; Solomon, J.; Butscher, A.; and Guibas, L. 2012. Functional maps: a flexible representa-tion of maps between shapes. ACM Transactions on Graphics (ToG) , 31(4): 1–11. Pavlakos, G.; Choutas, V.; Ghorbani, N.; Bolkart, T.; Osman, A. A.; Tzionas, D.; and Black, M. J. 2019. Expressive body capture: 3d hands, face, and body from a single image. In 
+
+Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 10975–10985. Pavlakos, G.; Malik, J.; and Kanazawa, A. 2022. Human mesh recovery from multiple shots. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 1485–1495. Ren, J.; Melzi, S.; Wonka, P.; and Ovsjanikov, M. 2021. Dis-crete optimization for shape matching. In Computer Graph-ics Forum , volume 40, 81–96. Wiley Online Library. Ren, J.; Poulenard, A.; Wonka, P.; and Ovsjanikov, M. 2018. Continuous and orientation-preserving correspondences via functional maps. ACM Transactions on Graphics (ToG) ,37(6): 1–16. Roufosse, J.-M.; Sharma, A.; and Ovsjanikov, M. 2019. Un-supervised deep learning for structured shape matching. In 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision , 1617–1627. Sun, M.; Mao, S.; Jiang, P.; Ovsjanikov, M.; and Huang, R. 2023. Spatially and spectrally consistent deep functional maps. In Proceedings of the IEEE/CVF International Con-ference on Computer Vision , 14497–14507. Sundararaman, R.; Pai, G.; and Ovsjanikov, M. 2022. Implicit field supervision for robust non-rigid shape matching. In Eu-ropean Conference on Computer Vision , 344–362. Springer. Umeyama, S. 2002. Least-squares estimation of transforma-tion parameters between two point patterns. IEEE Trans-actions on pattern analysis and machine intelligence , 13(4): 376–380. Xiao, Q.; Mei, G.; Yang, B.; Zhang, L.; Zhang, J.; and Yick, K.-l. 2026. Universal 3D Shape Matching via Coarse-to-Fine Language Guidance. arXiv preprint arXiv:2602.19112 .Yang, X.; Kukreja, D.; Pinkus, D.; Sagar, A.; Fan, T.; Park, J.; Shin, S.; Cao, J.; Liu, J.; Ugrinovic, N.; Feiszli, M.; Malik, J.; Dollar, P.; and Kitani, K. 2025. SAM 3D Body: Robust 10 Full-Body Human Mesh Recovery. arXiv preprint; identifier to be added .Zeng, Y.; Qian, Y.; Zhu, Z.; Hou, J.; Yuan, H.; and He, Y. 2021. Corrnet3d: Unsupervised end-to-end learning of dense correspondence for 3d point clouds. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 6052–6061. Zhang, B.; Li, J.; Deng, X.; Zhang, Y.; Ma, C.; and Wang, H. 2023. Self-supervised learning of implicit shape representa-tion with dense correspondence for deformable objects. In 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision , 14268–14278. Zheng, Z.; Yu, T.; Dai, Q.; and Liu, Y. 2021. Deep implicit templates for 3d shape representation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 1429–1439. Zhu, J.; Ju, Y.; Zhang, J.; Wang, M.; Yuan, Z.; Hu, K.; and Xu, H. 2025. DenseMatcher: Learning 3D Semantic Corre-spondence for Category-Level Manipulation from a Single Demo. In ICLR .Zuffi, S.; Kanazawa, A.; and Black, M. J. 2018. Lions and tigers and bears: Capturing non-rigid, 3d, articulated shape from images. In Proceedings of the IEEE conference on Computer Vision and Pattern Recognition , 3955–3963. Zuffi, S.; Kanazawa, A.; Jacobs, D. W.; and Black, M. J. 2017. 3D menagerie: Modeling the 3D shape and pose of animals. In Proceedings of the IEEE conference on computer vision and pattern recognition , 6365–6373. 
+
+## Supplementary Material 
+
+In this supplementary material, we provide additional im-plementation details in section A, 3DGS matching figures and details in section F, additional robustness experiments in section B, animal-shape benchmarks and prior-use clarifi-cations in section C, high-resolution baseline details in sec-tion D, and a memory efficient geodesic distance evaluation approach for the high-resolution uncurated mesh matching experiment in section E. 
+
+## A Implementation Details 
+
+We use Adam (Kingma and Ba 2014) for all optimization stages, with a learning rate of 0.01 for pose optimization and 
+
+0.001 for surface refinement. λskel = 1 .0 and λkps = 0 .1 to balance the losses. We initially render 18 views using three elevation levels with 4, 6, and 8 azimuths, respectively. The overlap ratio threshold τ is set to 0.7 to filter out views with poor initial alignment; this retains 17.75 views on average on FAUST and 15.92 views on average on TOPKIDS. For view selection, we set Nselect = 3 . The keypoints are predefined by the parametric models: 70 MHR/SAM3D Body joints for humans and 26 SMAL/AniMer keypoints for animals. For spectral refinement, we use the first k = 200 LBO eigenvectors and run for niter = 1 iteration. This choice was ablated: one spectral ICP step improves accuracy, while repeated steps tend to drift away from the original point-wise map and degrade the final correspondence. We set M = 5000 
+
+for Chamfer distance computation. 
+
+## B Additional Robustness Results 
+
+Noise robustness. We evaluate robustness to corrupted ge-ometry by adding Gaussian noise to the input mesh vertices. As shown in fig. 8, ATM remains stable under substantial surface corruption because its core articulation is grounded through multi-view evidence rather than mesh connectivity. 
+
+Failure cases. Figure 8 also shows representative failure modes. The first is extreme truncation, where too many visi-ble joints or surface cues are removed for reliable articulation. The second is applying the framework to a category without a suitable parametric prior and corresponding single-view estimator, which violates a core assumption of ATM.  
+
+> (a) Noise robustness. (b) Failure cases.
+
+Figure 8: Additional robustness analysis. 
+
+## C Additional Animal Benchmarks and Prior Use 
+
+The name “SMAL” refers both to a parametric animal model and to a benchmark dataset. AniMer uses the SMAL para-11 metric model to annotate external animal data and synthe-size animal shapes; the SMAL benchmark shapes used in the main paper are not directly used as AniMer training in-stances. Nevertheless, ATM is not free of pretrained animal priors: applying it to animals relies on the availability of the SMAL parametric model and a compatible single-view animal estimator. To further test animal-shape generalization, we also evalu-ate on TOSCA and SHREC’20. As reported in table 7, ATM outperforms the intrinsic baselines by a large margin on both datasets. Table 7: Average geodesic errors ×100 (↓) on additional animal-shape datasets.         
+
+> Method TOSCA SHREC’20 ZoomOut 41.74 35.13 URSSM 7.12 34.18 ATM (ours) 6.89 10.03
+
+## D Runtime and High-Resolution Baseline Details 
+
+Runtime. ATM uses test-time optimization, so it is slower than feed-forward or purely intrinsic matching methods. In our experiments, articulation costs roughly 1.6–2.1 minutes per shape, while map extraction and refinement are under 5 seconds per pair. This is a practical limitation of the cur-rent implementation. Possible accelerations include stopping optimization once the loss has flattened, initializing consecu-tive scans from previous frames if they are from a continues scanning sequence, or distilling ATM’s output to a faster 3D-native correspondence networks. 
+
+Spectral refinement and OOM. The main matching signal of ATM is the coarse map obtained through the shared para-metric topology; spectral ICP is optional. On full-resolution raw FAUST, omitting LBO refinement changes the error only slightly, from 1.93 to 2.13, so users can skip refinement when preprocessing cost is sensitive. The main high-resolution memory bottleneck is not LBO eigendecomposition itself, but functional-to-pointwise con-version, which materializes a dense |Vx| × | Vy | distance ma-trix. ATM avoids this bottleneck by using chunked nearest search and sparse assignment storage. The high-resolution table in the main paper reports the original ZoomOut bench-mark result. For completeness, we also tested an engineering-only ZoomOut variant with the same chunked nearest-search idea. This avoids OOM, but the accuracy remains poor and the computation time becomes long at high resolution, as shown in table 8. We cannot apply the same engineering tweak to URSSM because its loss computation relies on a full dense correspon-dence matrix. For the high-resolution raw-scan experiments in the main paper, URSSM is retrained from scratch for 30 epochs at each resolution, with Test-Time Adaptation dis-abled for a fair comparison. Table 8: Chunked nearest-search ZoomOut variant on the test set of raw FAUST (400 pairs). Errors are average geodesic distance ×100 (↓); wall-clock time is shown in parentheses.                 
+
+> Resolution Error Time 5k 20.92 4m23s 10k 20.54 4m31s 20k 20.24 8m25s 40k 20.57 31m45s 80k 20.31 2h6m 120k 20.21 4h46m Raw 19.89 11h6m
+
+## E Memory Efficient Geodesic Distance Evaluation 
+
+Traditional geodesic distance benchmarking uses ground-truth template-to-shape (t2s) correspondence, as shown in fig. 9a. Given shapes m and n, ground-truth correspon-dence t → m and predicted correspondence m → npred , we generate predicted t → npred and compare it with ground-truth t → ngt by querying the geodesic distance matrix Dn
+
+of shape n. However, this approach does not scale to ultra-high resolution meshes: a 200k-vertex mesh alone requires a geodesic distance matrix Dn ∈ R200 k×200 k, occupying nearly 300 GB per shape – making full storage across a dataset impractical, let alone loading it into memory for com-putation. Shape m Shape n                 
+
+> Template
+> t→m
+> m→npred
+> t→ngt
+> Query Dn(npred , n gt )
+> (a)
+> Shape mShape n
+> Template
+> m→npred
+> npred →tgt m→tgt
+> Query Dt(tpred , t gt )
+> (b)
+
+Figure 9: Comparison of geodesic distance evaluation approaches. (a) Traditional geodesic distance evaluation based on template-to-shape ground-truth correspondence; (b) Memory efficient geodesic distance evaluation based on shape-to-template ground-truth correspondence. We devise a memory efficient geodesic distance evalua-tion approach based on the ground-truth shape-to-template (s2t) correspondence, as shown in fig. 9b. It only requires the 12 geodesic matrix on a single A-pose template (approximately 6k vertices) rather than on high-resolution test shapes, reduc-ing memory requirements by over three orders of magnitude. The key idea is to compose the predicted shape-to-shape (s2s) correspondence with the ground-truth s2t correspon-dence to obtain a predicted s2t correspondence, which can then be compared with the ground-truth s2t correspondence by querying the geodesic matrix on the template. The detailed algorithm is shown in algorithm 3. 
+
+Algorithm 3 Memory Efficient Geodesic Distance Evalua-tion 
+
+Require: Predicted correspondence m → npred , ground truth n → tgt , template geodesic matrix Dt 
+
+> 1:
+
+Compose: m → tpred = ( m → npred ) ◦ (npred → tgt ) 
+
+> 2:
+
+Query geodesic distances on template using Dt(tpred , t gt ) 
+
+> 3:
+
+Compute average geodesic error of Dt(tpred , t gt )
+
+Ensure: Average geodesic error For fair comparison, this memory efficient evaluation ap-proach is only applied to the high-resolution uncurated mesh experiments (Sec. 4.3 in the manuscript). In the other exper-iments, we stick to the traditional evaluation approach. 
+
+## F 3DGS Matching Details  
+
+> (a) Human shapes. (b) Animal shapes.
+
+Figure 10: 3D Gaussian Splatting matching results. Each pair shows the source 3DGS on the left and the target 3DGS on the right, with source texture transferred to the target according to the correspondences estimated by ATM. 
+
+3DGS construction. For each input mesh in the 3DGS ex-periment, we sample 10k surface points and initialize one anisotropic Gaussian at each sampled point. The Gaussian mean is the sampled point position; its rotation aligns the local z-axis to the sampled surface normal; its scale is ini-tialized from the average nearest-neighbor distance, with the normal-axis scale multiplied by 0.3; and the initial opac-ity is 0.9. Colors are sampled from the mesh texture when available, otherwise from face or vertex colors. We render 
+
+512 × 512 dense multi-view mesh images for 3DGS fitting using 16 azimuths at each elevation from −80 ◦ to 70 ◦ in 10 ◦
+
+steps. We then optimize the 3DGS with gsplat for 10k steps using the default densification strategy. The photometric ob-jective is 0.8 L1 loss plus 0.2 SSIM loss, with SH degree 3 and per-parameter Adam optimizers. 
+
+Grounding and correspondence extraction. After fitting, we render the trained 3DGS from the same 18-view camera set used by the main multi-view grounding pipeline: eight horizontal views, six views at 30 ◦ elevation, and four views at −20 ◦ elevation. Each RGB rendering is paired with its saved camera intrinsics, extrinsics, and depth map, so the single-view SAM3D estimates can be lifted back to world coordinates and optimized with the same multi-view key-point and surface grounding losses as in the mesh pipeline. Depth maps are back-projected to 3D point maps and fil-tered by the 3DGS occupancy score before multi-view sur-face pairing. For 3DGS surface grounding, we treat the splats as a mixture of anisotropic Gaussians with covari-ance Σi = R(qi) diag( s2 
+
+> i
+
+)R(qi)⊤ and opacity-normalized mixture weights. We sample 5k points from this mixture for the surface term, and optimize the parametric identity and pose variables for 1000 Adam steps with learning rate 10 −3
+
+using bidirectional Chamfer distance, the bone-length regu-larizer, and the keypoint loss. Qualitative transfers are shown in fig. 10. 13

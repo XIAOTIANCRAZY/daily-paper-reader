@@ -1,0 +1,216 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-06T21:42:02.700005+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 3,
+    "deep_cap": 6,
+    "deep_selected": 3,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2606.29165v1",
+      "source": "arxiv",
+      "title": "Multi-Contact Force Estimation for Continuum Robots via Gaussian-Parameterized Factor Graphs",
+      "abstract": "Continuum robots offer key advantages in navigating unstructured environments, but their safe operation requires accurate estimation of the external contact forces acting anywhere along the robot body. Estimating these forces at unknown locations is an ill-conditioned problem, particularly for multiple contacts. We propose a unified shape and force estimation framework formulated on a factor graph. By incorporating a Gaussian mixture force parameterization into a discretized probabilistic Cosserat rod model, we reduce the dimensionality of the unknown external forces and mitigate the ill-conditioning of node-wise force estimation. The framework fuses strain, tendon tension, and pose measurements to simultaneously estimate the robot's shape and external forces while accounting for modeling and sensor uncertainties. Numerical simulations demonstrate that the proposed method outperforms existing methods in terms of force location and magnitude estimation for both single and multi-contact scenarios. We further present a progressive variant that introduces basis functions on demand to estimate contact forces sequentially during a simulated confined-navigation task.",
+      "authors": [
+        "Aditya Prakash",
+        "Panagiotis Tsiotras"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-06-28T03:01:04+00:00",
+      "link": "https://arxiv.org/pdf/2606.29165v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "estimating external contact forces on continuum robots",
+      "llm_evidence_cn": "估计连续机器人的外部接触力，属于铰接系统物理属性",
+      "llm_evidence": "估计连续机器人的外部接触力，属于铰接系统物理属性",
+      "canonical_evidence": "估计连续机器人的外部接触力，属于铰接系统物理属性",
+      "llm_tldr_en": "A unified shape and force estimation framework for continuum robots using Gaussian-parameterized factor graphs, estimating multiple contact forces along the robot body from strain, tendon tension, and pose measurements.",
+      "llm_tldr_cn": "连续机器人在未知位置的多点接触力估计是病态问题。该文提出基于因子图的统一形状与力估计框架，通过高斯混合力参数化降低维度，融合应变、肌腱张力和位姿测量同时估计机器人的形状和多接触力。实验表明该方法能准确估计连续体上的力分布，对理解和预测铰接系统的物理属性具有重要价值。",
+      "llm_tldr": "连续机器人在未知位置的多点接触力估计是病态问题。该文提出基于因子图的统一形状与力估计框架，通过高斯混合力参数化降低维度，融合应变、肌腱张力和位姿测量同时估计机器人的形状和多接触力。实验表明该方法能准确估计连续体上的力分布，对理解和预测铰接系统的物理属性具有重要价值。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "predicting physical properties of 3D articulated objects",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.29686v2",
+      "source": "arxiv",
+      "title": "PoseShield: Neural Collision Fields for Human Self-Collision Resolution",
+      "abstract": "Self-collision remains a persistent challenge in SMPL-based human pose estimation and motion generation. Under extreme articulations or stochastic motion synthesis, generated meshes frequently exhibit self-penetrations, leading to physically implausible results. We propose PoseShield, a neural collision constraint defined directly in SMPL pose space. We formulate collision correction as a constrained optimization problem and connect the learned constraint with the Eikonal equation. Enforcing Eikonal regularization ensures non-vanishing gradients near the collision boundary, improving numerical stability and robustness of the optimization process. Unlike prior methods that operate in the mesh space or rely on heuristic penalties, our approach operates directly in the low-dimensional space of human poses and is theoretically grounded. The same learned constraint extends to human motion sequences, providing a generator-agnostic post-hoc collision corrector without retraining the underlying motion model. Experiments on a newly constructed SMPL pose benchmark show that our method achieves a 95.8% success rate and outperforms state-of-the-art baselines.",
+      "authors": [
+        "Zhengyuan Li",
+        "Zeyun Deng",
+        "Yifan Shen",
+        "Liangyan Gui",
+        "Miaolan Xie",
+        "Joseph Campbell",
+        "Xifeng Gao",
+        "Kui Wu",
+        "Zherong Pan",
+        "Aniket Bera"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-29T01:20:25+00:00",
+      "link": "https://arxiv.org/pdf/2606.29686v2",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "predicting physical collisions for articulated humans",
+      "llm_evidence_cn": "预测铰接人体的物理碰撞",
+      "llm_evidence": "预测铰接人体的物理碰撞",
+      "canonical_evidence": "预测铰接人体的物理碰撞",
+      "llm_tldr_en": "Proposes PoseShield, a neural collision field in SMPL pose space for human self-collision resolution via constrained optimization with Eikonal regularization, enabling physically plausible pose generation.",
+      "llm_tldr_cn": "人体姿态估计和运动生成中自碰撞导致不合理结果。本文提出PoseShield，一种在SMPL姿态空间中定义的神经碰撞约束，将碰撞修正建模为约束优化问题，并通过Eikonal方程保证优化稳定性，从而在姿态空间中直接解决自碰撞问题。实验表明该方法能有效消除穿透并保持姿态自然，为生成物理可信的铰接人体运动提供了新思路。",
+      "llm_tldr": "人体姿态估计和运动生成中自碰撞导致不合理结果。本文提出PoseShield，一种在SMPL姿态空间中定义的神经碰撞约束，将碰撞修正建模为约束优化问题，并通过Eikonal方程保证优化稳定性，从而在姿态空间中直接解决自碰撞问题。实验表明该方法能有效消除穿透并保持姿态自然，为生成物理可信的铰接人体运动提供了新思路。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "predicting physical properties of 3D articulated objects",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.29167v1",
+      "source": "arxiv",
+      "title": "Articulating then Matching: Zero-Shot Shape Matching for Uncurated Data",
+      "abstract": "Finding dense correspondences between 3D shapes is a fundamental yet unresolved challenge, especially in real-world environments. These environments present severe challenges, including the lack of time and sufficient samples for training, the prevalence of uncurated extreme-high resolution data with topological distortions, and the need to handle diverse 3D representations. In this paper, we present ATM, a zero-shot framework that requires no correspondence-specific training and robustly addresses these issues at once through an articulate-then-match paradigm. Rather than relying on intrinsic geometric properties, we leverage powerful pretrained vision foundation models and parametric shape priors to estimate parametric shape models from multi-view renderings, and systematically ground these estimations via multi-view geometric consistency. By mapping diverse inputs into a shared canonical parametric space, we inherently establish robust coarse correspondences that bypass topological noise, which are then refined into precise dense mappings via spectral refinement. Operating purely on test-time optimized parametric reconstructions, ATM requires no correspondence training data, is naturally immune to connectivity artifacts, and seamlessly handles diverse 3D modalities, including meshes, point clouds, and 3D Gaussians. Extensive experiments demonstrate that our method achieves strong results on non-isometric benchmarks (average geodesic errors of 2.4-TOPKIDS, 3.8-SMAL), reducing errors by 73% and 37% respectively compared to the baseline URSSM. Furthermore, it exhibits unprecedented robustness on in-the-wild raw scans of up to 200k vertices per shape while maintaining near-constant computation time and consistent superior accuracy.",
+      "authors": [
+        "Qilong Liu",
+        "Qinfeng Xiao",
+        "Chenyuan Yi",
+        "Liying Zhang",
+        "Kit-lun Yick"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-28T03:05:46+00:00",
+      "link": "https://arxiv.org/pdf/2606.29167v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "articulate-then-match paradigm for shape matching, estimates parametric models",
+      "llm_evidence_cn": "先铰接再匹配的范式，估计参数化形状模型",
+      "llm_evidence": "先铰接再匹配的范式，估计参数化形状模型",
+      "canonical_evidence": "先铰接再匹配的范式，估计参数化形状模型",
+      "llm_tldr_en": "ATM proposes a zero-shot shape matching framework that first estimates parametric articulated models and then matches, enabling robust correspondence on uncurated real-world 3D data.",
+      "llm_tldr_cn": "真实世界3D形状匹配面临拓扑扭曲、缺乏标注等挑战。ATM提出先铰接再匹配的零样本框架，利用预训练视觉基础模型和参数化形状先验从多视角渲染估计铰接参数化模型，再基于这些模型计算密集对应。该方法无需对应专用训练，在多种3D表示上展示出鲁棒性，实现了对铰接物体形状的理解和对应。",
+      "llm_tldr": "真实世界3D形状匹配面临拓扑扭曲、缺乏标注等挑战。ATM提出先铰接再匹配的零样本框架，利用预训练视觉基础模型和参数化形状先验从多视角渲染估计铰接参数化模型，再基于这些模型计算密集对应。该方法无需对应专用训练，在多种3D表示上展示出鲁棒性，实现了对铰接物体形状的理解和对应。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2606.31981v1",
+      "source": "arxiv",
+      "title": "LUNA: Learning Universal 3D Human Animation Beyond Skinning",
+      "abstract": "Creating photorealistic, animatable 3D human avatars from monocular images still largely depends on Linear Blend Skinning (LBS) and parametric body models, which constrain expressivity and often introduce artifacts due to imperfect fitting. We propose LUNA, an LBS-free universal neural animation model that directly maps multiple 2D controls like images, keypoints, sketches, and unseen characters into 3D Gaussian deformations, bypassing explicit body fitting. At its core, a transformer-based motion regressor disentangles global rigid motion from fine-grained local dynamics to capture both coherent movement and subtle non-rigid effects. To resolve the inherent ambiguity of 2D-to-3D lifting while scaling beyond fitted datasets, we introduce hybrid supervision that distills soft structural priors from an LBS teacher and a loss that supports training on both limited fitted data and large in-the-wild unlabeled videos. Extensive experiments show LUNA achieves competitive visual fidelity compared to LBS-based approaches, while delivering realistic human motion and zero-shot cross-identity generalization across diverse driving modalities. To the best of our knowledge, LUNA is the first end-to-end 3D animatable model that supports implicit 2D driving.",
+      "authors": [
+        "Peng Li",
+        "Rawal Khirodkar",
+        "Junxuan Li",
+        "Yuan Dong",
+        "Chen Cao",
+        "Yuan Liu",
+        "Wenhan Luo",
+        "Yike Guo",
+        "Shunsuke Saito"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-06-30T17:19:55+00:00",
+      "link": "https://arxiv.org/pdf/2606.31981v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "generates articulated human motion with realistic parameters",
+      "llm_evidence_cn": "生成具有真实运动参数的三维铰接人体运动",
+      "llm_evidence": "生成具有真实运动参数的三维铰接人体运动",
+      "canonical_evidence": "生成具有真实运动参数的三维铰接人体运动",
+      "llm_tldr_en": "LUNA proposes an LBS-free neural animation model that directly maps 2D controls to 3D Gaussian deformations for animating human avatars, bypassing body fitting and enabling universal 3D human animation.",
+      "llm_tldr_cn": "现有方法依赖线性混合蒙皮和参数化人体模型，限制了表现力并引入伪影。LUNA提出了一种无LBS的通用神经动画模型，直接从2D控制映射到3D高斯变形，无需显式人体拟合。其基于Transformer的运动回归器可分离全局刚体运动与局部细节，混合监督策略解决了2D到3D的歧义。实验表明该方法能生成逼真且可泛化的3D人体动画，适用于多种控制信号。",
+      "llm_tldr": "现有方法依赖线性混合蒙皮和参数化人体模型，限制了表现力并引入伪影。LUNA提出了一种无LBS的通用神经动画模型，直接从2D控制映射到3D高斯变形，无需显式人体拟合。其基于Transformer的运动回归器可分离全局刚体运动与局部细节，混合监督策略解决了2D到3D的歧义。实验表明该方法能生成逼真且可泛化的3D人体动画，适用于多种控制信号。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.02516v1",
+      "source": "arxiv",
+      "title": "Alignment Is All You Need For X-to-4D Generation",
+      "abstract": "Generative diffusion models excel at synthesizing high-quality images, videos, and 3D content under multimodal control. However, arbitrary user-defined modality-to-4D (X-to-4D) generation remains challenging due to the high cost of constructing diverse datasets and the limited scalability of existing methods. This paper presents Align4D, a flexible framework that translates any-modal input into coherent video-3D pairs, using video to guide 4D motion and 3D data to shape 4D geometry. Align4D introduces three key techniques: (1) Object Distance Alignment, which searches Video-Aligned and Multiview-Aligned Object Distances (VAOD/MAOD), respectively, to reconcile 4D renderings with video and the priors of multiview diffusion models; (2) Motion-Geometry Joint Alignment, which constrains known and unknown views through synchronized video and 3D inputs, ensuring consistent 4D generation; and (3) Asynchronous Optimization, which decouples Gaussian attribute and deformation network training to enhance motion and geometry fidelity. We further propose the X4D dataset, which integrates prompt, image, video, and 3D data for benchmarking. Experiments on X4D and Consistent4D demonstrate that Align4D achieves state-of-the-art quality and consistency in X-to-4D generation. Project page: https://miaoqiaowei.github.io/Align4D/.",
+      "authors": [
+        "Qiaowei Miao",
+        "Kehan Li",
+        "Yawei Luo",
+        "Yi Yang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-02T17:59:57+00:00",
+      "link": "https://arxiv.org/pdf/2607.02516v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "generates 4D content (video+3D) with motion guided by video",
+      "llm_evidence_cn": "生成4D内容（视频+3D），利用视频引导运动",
+      "llm_evidence": "生成4D内容（视频+3D），利用视频引导运动",
+      "canonical_evidence": "生成4D内容（视频+3D），利用视频引导运动",
+      "llm_tldr_en": "Align4D enables X-to-4D generation by aligning video and 3D priors, producing coherent video-3D pairs with realistic motion and geometry.",
+      "llm_tldr_cn": "任意模态到4D内容生成面临数据集构建成本高和可扩展性差的问题。Align4D提出灵活框架，将任意模态输入转化为一致视频-3D对，通过物体距离对齐和运动-几何联合对齐技术，协调视频和扩散先验。该方法能够生成包含运动参数的4D物体，包括铰接物体的动态，为铰接物体的生成和理解提供了新工具。",
+      "llm_tldr": "任意模态到4D内容生成面临数据集构建成本高和可扩展性差的问题。Align4D提出灵活框架，将任意模态输入转化为一致视频-3D对，通过物体距离对齐和运动-几何联合对齐技术，协调视频和扩散先验。该方法能够生成包含运动参数的4D物体，包括铰接物体的动态，为铰接物体的生成和理解提供了新工具。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

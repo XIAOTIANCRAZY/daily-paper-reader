@@ -1,0 +1,1045 @@
+Title: Multi-Contact Force Estimation for Continuum Robots via Gaussian-Parameterized Factor Graphs
+
+URL Source: https://arxiv.org/pdf/2606.29165v1
+
+Published Time: Tue, 30 Jun 2026 00:56:45 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# Multi-Contact Force Estimation for Continuum Robots via Gaussian-Parameterized Factor Graphs 
+
+Aditya Prakash 
+
+School of Aerospace Engineering Georgia Institute of Technology 
+
+Atlanta, GA, USA leibton@gatech.edu 
+
+Panagiotis Tsiotras 
+
+School of Aerospace Engineering Georgia Institute of Technology 
+
+Atlanta, GA, USA tsiotras@gatech.edu 
+
+Abstract —Continuum robots offer key advantages in navigat-ing unstructured environments, but their safe operation requires accurate estimation of the external contact forces acting anywhere along the robot body. Estimating these forces at unknown locations is an ill-conditioned problem, particularly for multiple contacts. We propose a unified shape and force estimation framework formulated on a factor graph. By incorporating a Gaussian mixture force parameterization into a discretized probabilistic Cosserat rod model, we reduce the dimensionality of the unknown external forces and mitigate the ill-conditioning of node-wise force estimation. The framework fuses strain, tendon tension, and pose measurements to simultaneously estimate the robot’s shape and external forces while accounting for modeling and sensor uncertainties. Numerical simulations demonstrate that the proposed method outperforms existing methods in terms of force location and magnitude estimation for both single and multi-contact scenarios. We further present a progressive variant that introduces basis functions on demand to estimate contact forces sequentially during a simulated confined-navigation task. 
+
+I. I NTRODUCTION 
+
+Continuum robots [1] offer an inherent mechanical advan-tage over rigid robots in unstructured and confined environ-ments due to their flexibility and compliance [2]. Continu-ous deformation makes soft robots well-suited for operations in complex and cluttered environments. Furthermore, their structural compliance enables continuum robots to interact safely with the environment without damaging the robot or its surroundings. Together, these characteristics enable continuum and soft robots to operate effectively in unstructured and confined environments that are completely unknown or highly uncertain [3], [4], making them suited for several applications, including minimally invasive surgery [5], post-disaster search and rescue [6], and the inspection of complex machinery [7]. Safe and effective navigation in unknown or uncertain envi-ronments requires accurate force sensing along the continuum robot [8]. For example, force estimates can be used to regulate the contact force between the catheter and tissue during cardiac ablation procedures. It can also be used during navigation through constrained paths, such as pipes, to enable adaptive stiffness and shape adjustments, ensuring safe and smooth movement. In the absence of an explicit environmental map and visual sensors, the robot must localize and estimate contact forces utilizing only on-board measurements. Recent research has addressed force estimation for contin-uum robots, primarily focusing on isolated tip-force estimation [9]–[12]. Estimating forces at the tip is effective for targeted tasks like ablation or tactile exploration, where the robot body remains in free space while the tip interacts with the environment. However, tip-contact assumptions break down during operation in unstructured and unknown environments, where collisions can occur anywhere along the robot’s length [8]. To address collisions along continuum robots, the authors in [13] proposed a kinematics-based method for contact de-tection and localization using screw motion deviation. Their method primarily addressed single-contact estimation and was extended to multiple-contact estimation in [14] using a contact particle filter and a kinetostatic model. However, reliable estimation was confined to the distal segments, and the particle filter scaled poorly as the number of contacts grows. Alter-natively, in [15] the authors used a statics model to jointly localize and estimate contact forces. They showed that the force estimation problem is inherently ill-posed, as multiple force distributions can yield the same physical deformation, and certain external forces have reduced observability due to the lack of resulting deformation. To resolve this, the authors of [15] used Gaussian functions to parameterize the external load and showed that they can successfully approximate both point loads and uniformly distributed loads by varying the standard deviation of the parameterization. However, their ap-proach relies on known pose measurements and deterministic models, making it vulnerable to sensor noise. In parallel, there has been a trend toward using proprio-ceptive measurements for force estimation, with a particular focus on strain and tendon tension. In [16], contact is localized along a catheter using the shape measured by an embedded multi-core FBG fiber. Similarly, [17] combines embedded stretch sensors with actuation variables in a kinetostatic strain model to recover both shape and 3D force. In [18], tension profiles alongside FBG-instrumented actuation fibers are used to recover the location and magnitude of body contacts. Furthermore, in [19], force and shape are estimated from tendon length and tendon tension alone. Together, these studies demonstrate that utilizing backbone strain and tendon tension provides an experimentally proven, sensor-efficient approach 
+
+> arXiv:2606.29165v1 [cs.RO] 28 Jun 2026
+
+to force estimation. Building on these multimodal sensing strategies, the authors of [20] introduced a unified shape and force estimation frame-work that utilizes Gaussian process regression. While effective, modeling distributed forces via Brownian motion is poorly suited for the localized, discrete point forces characteristic of environmental obstacle collisions. Reference [21] provided the probabilistic foundation needed for modeling point forces by introducing a discretized stochastic Cosserat model that accounts for uncertainty in sensing, tendons, and mechanics. The model in [21] admits a wrench at every node; however, determining point forces at unknown locations would require estimating forces at every node, rendering the estimation problem severely ill-conditioned. To overcome the previous limitations, we incorporate a Gaussian mixture parameterization of the distributed external forces in the discrete Cosserat model and formulation of a unified shape-and-force estimation problem. We exploit the Lie group algebra structure of the problem formulation to derive the integration of the discretized model for the parameterized forces. We then formulate the state estimation problem using a factor graph architecture [22], which allows us to probabilistically fuse the multi-sensory measurements with the robot’s static model. By varying the standard deviation of the Gaussian functions, the parameterization can model both point and distributed forces. By controlling the number of basis functions, we reduce the dimensionality of the unknown external forces. The rest of the paper is organized as follows: Section II discusses the Cosserat rod model and its discretized version with force parameterization. Section III formulates the factor graph for shape and force estimation. Section IV presents numerical simulation results demonstrating the efficiency of the proposed method, followed by Section V, which demon-strates the framework’s practical application for progressively estimating sequential contacts within a confined environment. Finally, we conclude the paper in Section VI. II. C OSSERAT ROD MODEL 
+
+The pose of a continuum rod-shaped robot along its arc length, s ∈ [0 , L ], is denoted by T(·) : s 7 → T(s) ∈ SE(3) . It is typically represented by the matrix 
+
+T(s) = 
+
+R(s) r(s)
+
+0 1
+
+
+
+, (1) where r(s) ∈ R3 is the position vector of the body frame origin at s, and R(s) ∈ SO(3) is the rotation matrix repre-senting the orientation of the body frame at s with respect to the world frame. Figure 1 shows the schematic of a continuum robot. The kinematics equation is given by 
+
+dds T(s) = T(s)ξ(s)∧, (2) where ξ(·) : s 7 → ξ(s) = ΨT ΓTT
+
+∈ R6 defines the strain of the continuum robot and 
+
+ξ(s)∧ =
+
+Ψ× Γ0 0
+
+
+
+∈ se (3) . (3) In the above equations, Ψ(s) ∈ R3 represents the angular strain, Γ(s) ∈ R3 represents the linear strain, and (·)× denotes the skew-symmetric matrix of the corresponding vector in R3.The constitutive equation is given by 
+
+Λ(s) = 
+
+m(s)
+
+n(s)
+
+
+
+= K(ξ(s) − ξ∗) + n¯ξ (s) (4) where K is the generalized stiffness matrix and Λ(s) is the body-frame internal wrench composed of the moment m(s)
+
+and force n(s). In (4) ξ∗ ∈ R6 denotes the reference strain of the rod in its natural (unloaded) configuration and n¯ξ (s) ∼N (0 , Σ¯ξ ) with Σ¯ξ ∈ R6×6 captures the modeling error due to the linear approximation. Antagonistic Tendons Backbone Discrete Sensors Unkown Environmental Contact 
+
+Fig. 1: Schematic of a tendon driven continuum robot operat-ing in an unknown environment. The statics of the Cosserat rod in the world frame is governed by [23] 
+
+dds Λw(s) = −Fw
+
+> ext
+
+(s) − Fw
+
+> ten
+
+(s), (5) where Λw(s) ∈ R6 is the world-frame internal wrench, related to the body-frame wrench by Λ(s) = Ad T(T(s)) Λw(s) where the adjoint operator is given by 
+
+Ad( T) = 
+
+ R 0r×R R
+
+
+
+. (6) In (5), Fw
+
+> ext
+
+(s) is the distributed load due to external factors, and Fw
+
+> ten
+
+(s) is the distributed load due to tendon actuation, both expressed in the world frame. We detail these load models in the subsequent section. 
+
+A. Discretization 
+
+We discretize the arc length into K nodes {sk}Kk=1 ⊂ [0 , L ]
+
+with uniform spacing ∆s = sk+1 − sk. Assuming that the strain ξk = ξ(sk) is constant over the interval [sk, s k+1 ], the discrete version of (2) is 
+
+Tk+1 = Tk exp  ξ∧ 
+
+> k
+
+∆s . (7) We use a midpoint approximation to evaluate the strain ( ξk)from the internal wrench ( Λ). From (4), we have that 
+
+ξk = 12 K−1(Λk + Λk+1 ) + ξ∗ + nξ,k , (8) where nξ,k ∼ N (0 , Σξ ) with Σξ ∈ R6×6 captures the modeling error due to the linear approximation ( n¯ξ (s)) as well as the approximation error due to the discretization. Because (5) contains no coupling term in the world frame, it can be integrated exactly over each interval [sk, s k+1 ],yielding: 
+
+Λwk+1 = Λwk −
+
+Z sk+1 
+
+> sk
+
+Fw
+
+> ext
+
+(x) d x −
+
+Z sk+1 
+
+> sk
+
+Fw
+
+> ten
+
+(x) d x. 
+
+(9) Rewriting (9) back into the body frame using Λk =Ad T(Tk) Λwk , we obtain 
+
+Λk+1 = Ad T(T−1 
+
+> k
+
+Tk+1 ) Λk
+
+− Ad T(Tk+1 )
+
+Z sk+1 
+
+> sk
+
+Fw
+
+> ext
+
+(x) d x
+
+− Ad T(Tk+1 )
+
+Z sk+1 
+
+> sk
+
+Fw
+
+> ten
+
+(x) d x. (10) Assuming the environment exerts no moment at the point of contact, the distributed external load in the world frame takes the form: 
+
+Fw
+
+> ext
+
+(s) = 
+
+r(s) × fe(s)
+
+fe(s)
+
+
+
+, (11) where fe(s) is the distributed external force acting at s as shown in Fig. 1. In [21], the authors model the distributed external load as point forces at each node. However, directly estimating exter-nal force vectors at every discrete node is an ill-conditioned problem due to the under-determined mapping from distributed forces to backbone shape [15], [21]. Therefore, following [15], we parameterize the distributed external force in the world frame using a fixed number M of normalized Gaussian basis functions: 
+
+fe(s) = 
+
+> M
+
+X
+
+> i=1
+
+
+
+αx,i 
+
+αy,i 
+
+αz,i 
+
+ 1
+
+√2πσ i
+
+exp 
+
+
+
+− (s − μi)2
+
+2σ2
+
+> i
+
+
+
+(12) This force parameterization reduces the dimensionality of the force parameters to be estimated. To ensure the basis centers μi remain strictly bounded within [0 , L ], we apply the parameterization: 
+
+μi = h(βi) = L
+
+2
+
+ tanh( βi) + 1 . (13) Furthermore, let αi ≜ [αx,i , α y,i , α z,i ]T. Then, the force parameter vector to be estimated becomes γ =αT
+
+> 1
+
+, β 1, . . . , αT 
+
+> M
+
+, β M
+
+T
+
+∈ R4M . Defining the cumulative external force as 
+
+ve,k =
+
+Z sk
+
+> 0
+
+fe(x) d x
+
+= 12
+
+> M
+
+X
+
+> i=1
+
+αx,i 
+
+αy,i 
+
+αz,i 
+
+
+
+erf 
+
+ sk − μi
+
+√2σi
+
+
+
+− erf 
+
+ −μi
+
+√2 σi
+
+ 
+
+,
+
+(14) it follows that the integral of the distributed external force over the interval [sk, s k+1 ] is given by 
+
+Z sk+1 
+
+> sk
+
+fe(x) d x = ve,k +1 − ve,k . (15) The discrete external wrench contribution in (10) can then be evaluated as 
+
+I1 = Ad T(Tk+1 )
+
+Z sk+1 
+
+> sk
+
+Fw
+
+> ext
+
+(x) d x
+
+= Ad T(Tk+1 )
+
+R sk+1  
+
+> sk
+
+r(x) × fe(x)d x
+
+R sk+1  
+
+> sk
+
+fe(x)d x
+
+
+
+= Ad T(Tk+1 )
+
+rk+1 × (ve,k +1 − ve,k ) + nm
+
+ve,k +1 − ve,k 
+
+
+
+,
+
+(16) where nm = R sk+1  
+
+> sk
+
+(r(x) − rk+1 ) × fe(x)d x = O(∆ s) is the error due to the moment approximation. Expanding the adjoint transformation yields the simplified body-frame formulation: 
+
+I1 =
+
+RT 
+
+> k+1
+
+−RT
+
+> k+1
+
+r×
+
+> k+1
+
+0 RT
+
+> k+1
+
+  rk+1 × (ve,k +1 − ve,k ) + nm
+
+ve,k +1 − ve,k 
+
+
+
+= Rot T(Tk+1 )
+
+ nm
+
+ve,k +1 − ve,k 
+
+
+
+,
+
+(17) where Rot( Tk) = diag( Rk, Rk).Similarly, the tendons interact with the backbone only at the routing discs as shown in Fig. 1. Denoting D ⊆ { 1, . . . , K }
+
+as the set of arc-length indices coincident with a disc, the distributed actuation load is concentrated at these locations 
+
+Fw
+
+> ten
+
+(s) = X
+
+> d∈D
+
+δ(s − sd) Fw
+
+> ten ,d
+
+, (18) where Fw 
+
+> ten ,d
+
+is the discrete wrench due to tendon actuation at disc d. Using the above tendon actuation model, we get the discrete tendon contribution in (10) to be 
+
+I2 = Ad T(Tk+1 )
+
+Z sk+1 
+
+> sk
+
+Fw
+
+> ten
+
+(x) d x
+
+= Ad T(Tk+1 )
+
+Z sk+1 
+
+> sk
+
+X
+
+> d∈D
+
+δ(x − sd) Fw 
+
+> ten ,d
+
+dx
+
+= 1[k + 1 ∈ D ] Ad T(Tk+1 )Fw
+
+> ten ,k +1
+
+= 1[k + 1 ∈ D ] Rot T(Tk+1 )Dk+1 
+
+(19) where 1[·] is the indicator function, Ad T(Tk+1 )Fw 
+
+> ten ,k +1
+
+=Rot T(Tk+1 )Dk+1 from [21], and 
+
+Dd =
+
+> N
+
+X
+
+> i=1
+
+
+
+f − 
+
+> d,i
+
++ f +
+
+> d,i
+
+
+
++ nD,d , d ∈ D . (20) Here, nD,d ∼ N (0, ΣD ) models small deviations such as tendon-disc friction. We refer to [21] for the detailed modeling of the single-tendon wrenches f ± 
+
+> d,i
+
+(shown in Fig. 1), which depend on the tendon routing geometry and the tendon tension vector. Substituting (17) and (19) in (10) yields 
+
+Λk+1 = Ad T(T−1 
+
+> k
+
+Tk+1 ) Λk
+
+− Rot T(Tk+1 )
+
+ 0ve,k +1 − ve,k 
+
+
+
+− 1[k + 1 ∈ D ] Rot T(Tk+1 )Dk+1 + nΛ,k , (21) where the process noise nΛ,k = [ nT
+
+> m
+
+, nT
+
+> n
+
+]T ∈ R6 absorbs the interval approximation error. The moment component nmexplicitly captures the O(∆ s) lumping error derived in (17), while the force component nn is drawn from a zero-mean Gaussian with a very small variance to softly enforce the static balance constraint during estimation. III. P ROBLEM FORMULATION 
+
+We consider the problem of unified shape and external force estimation for a continuum robot using the discretized Cosserat rod model described above, given measurements at discrete arc-length locations and known tendon tensions. In our discretized setting, the unknowns are the poses 
+
+Tk ∈ SE(3) , and the internal wrenches Λk ∈ R6 at each node k ∈ { 1, . . . , K }. Additionally, we estimate the disc-specific concentrated tendon wrench states Dd ∈ R6 at each routing disc d ∈ D , the tendon tension vector Q ∈ RN , and the external force parameter vector γ ∈ R4M , which encodes the amplitude and location of each of the M Gaussian basis functions. Collecting node-wise states into Xk = {Tk, Λk},the full unknown state vector is defined as 
+
+Θ =
+
+
+
+{Xk}Kk=1 , {Dd}d∈D , Q, γ
+
+
+
+. (22) 
+
+A. Factor Graph Construction 
+
+We adopt the factor graph framework [22] to formulate a Maximum a Posteriori (MAP) estimation problem in terms of the parameter vector in (22). A factor graph is a bipartite graphical model that factors the joint posterior of the entire system into a product of local factors, each constraining a subset of the variables. It consists of two types of nodes: 
+
+variable nodes representing the unknown states to be estimated (in our case, the combined state vector Θ), and factor nodes 
+
+representing the physical or measurement constraints applied to those variables. Under Gaussian noise assumptions, this formulation reduces the MAP estimation to a nonlinear least-squares optimization [24]. To comprehensively define our estimation problem, we group the factor nodes into three distinct categories: mechanics factors, measurement factors, and prior boundary factors. Fig. 2 illustrates the architecture of the proposed factor graph, with variable nodes represented by circles and factor nodes by squares. 
+
+1) Mechanics Factors: The first category consists of three sets of factors that enforce the discretized Cosserat rod model derived in Section II. 
+
+Kinematics factor. By combining the discrete kinematic equation (7) and the constitutive midpoint approximation (8), we enforce strain-pose consistency. The residual vector at interval k is defined as 
+
+eξ,k = 12 K−1(Λk + Λk+1 ) + ξ∗ − 1∆s log  T−1 
+
+> k
+
+Tk+1 
+
+∨ .
+
+(23) In Fig. 2, this factor is represented by the yellow squares. It yields the cost term 
+
+Jξ,k = 12 eT 
+
+> ξ,k
+
+Σ−1 
+
+> ξ
+
+eξ,k . (24) 
+
+Wrench balance factor. From the discrete body-frame static balance equation (21), the residual at interval k is 
+
+eΛ,k = Λk+1 − Ad T T−1 
+
+> k
+
+Tk+1 
+
+Λk
+
++ Rot T(Tk+1 )
+
+ 0ve,k +1 − ve,k 
+
+
+
++ 1[k+1 ∈D ] Rot T(Tk+1 )Dk+1 , (25) where ve,k is defined in (14) and depends on the force parameters γ. The concentrated tendon actuation term Dk+1 is added via the indicator function only when the node coincides with a routing disc. In Fig. 2, the blue squares represent this factor at standard nodes, and the cyan squares at disc nodes. The associated cost is 
+
+JΛ,k = 12 eT 
+
+> Λ,k
+
+Σ−1Λ eΛ,k . (26) 
+
+Tendon actuation factor. We enforce the analytical tendon actuation relationship originating from the tendon routing geometry. From (20), the residual at disc d is 
+
+eD,d = Dd −
+
+> N
+
+X
+
+> i=1
+
+
+
+f − 
+
+> d,i
+
++ f +
+
+> d,i
+
+
+
+, (27) with the associated cost function being 
+
+JD,d = 12 eT 
+
+> D,d
+
+Σ−1 
+
+> D
+
+eD,d . (28) This factor is represented by the violet squares in Fig. 2. 
+
+2) Measurement Factors: Measurement factors ground the robot’s internal states in observable, real-world data, rendering the otherwise underdetermined mechanics into a well-posed estimation problem. The various measurement modalities are given below and are represented by the green squares in Fig. 2. 
+
+Tendon tension measurement. To distinguish external wrenches from internal actuation loads, the tendon tensions must be measured. Given the observed tension vector ¯Q, the residual is 
+
+eQ = Q − ¯Q, (29) yielding the cost term 
+
+JQ = 12 eT 
+
+> Q
+
+Σ−1 
+
+> Q
+
+eQ, (30) where ΣQ is the measurement covariance. 
+
+Pose measurements. Let ST ⊆ { 1, . . . , K } denote the set of node indices where the local pose (or part thereof) is observed by sensors (e.g., electromagnetic trackers). At each node k ∈ST , the measured pose is ¯Tk ∈ SE(3) , and the corresponding residual is formulated as 
+
+eT,k = log   ¯T−1 
+
+> k
+
+Tk
+
+∨ , (31) yielding the cost term 
+
+JT,k = 12 eT
+
+> T,k
+
+Σ−1 
+
+> Tm
+
+eT,k . (32) 
+
+Strain measurements. Similarly, let Sξ ⊆ { 1, . . . , K } denote the set of node indices where local strain (or part thereof) is Fig. 2: Diagram of the proposed unified shape and force estimation factor graph. The circles represent the unknowns whereas the squares represent the factors. The green squares represent the measurement factors, the red squares represent the prior factors, the yellow squares represent the combined kinematics/constitutive factors, the violet squares represent the tendon actuation factors, and the blue and cyan squares represent the wrench balance factors (where cyan specifically denotes a node that coincides with a routing disc). observed (e.g., via FBG sensors). At each node k ∈ S ξ , given the measured strain ¯ξk, the residual is 
+
+eξm,k = K−1Λk + ξ∗ − ¯ξk, (33) yielding the cost term 
+
+Jξm,k = 12 eT
+
+> ξm,k
+
+Σ−1 
+
+> ξm
+
+eξm,k . (34) 
+
+3) Prior and Boundary Condition Factors: Priors and boundary conditions encode the system’s structural constraints and regularize the otherwise ill-posed inverse problem. In Fig. 2, these are represented by the red squares. 
+
+Base boundary condition. The robot’s base pose ¯T0 is structurally constrained. The residual is 
+
+ebase = log   ¯T−10 T1
+
+∨ , (35) yielding the cost term 
+
+Jbase = 12 eT
+
+> base
+
+Σ−10 ebase , (36) with Σ0 = diag( σ2 
+
+> p
+
+I3, σ 2 
+
+> θ
+
+I3) set to a small variance to pin the base. 
+
+Tip boundary condition. The internal wrench at the tip must balance any load applied there. Given a known tip wrench 
+
+Ftip , the residual is 
+
+etip = ΛK − Rot T(TK ) Ftip , (37) yielding the cost term 
+
+Jtip = 12 eT
+
+> tip
+
+Σ−1 
+
+> K
+
+etip . (38) For free-space operation, Ftip is set to 0. If tip contact is present, it can instead be supplied by a tip-mounted load cell or promoted to an unknown variable to be estimated jointly. 
+
+Force parameter prior. We place a zero-mean prior (α1 =
+
+α2 = . . . = αM = 0) on the Gaussian force amplitudes to regularize the ill-posed mapping between continuous shape and distributed load: 
+
+eγ = α, where α = [ αT
+
+> 1
+
+, . . . , αT 
+
+> M
+
+]T, (39) yielding the cost term 
+
+Jγ = 12 eT 
+
+> γ
+
+Σ−1 
+
+> γ
+
+eγ , (40) where Σγ encodes the expected maximum force scale. 
+
+B. MAP Objective 
+
+Combining all previous components, the MAP estimate ˆΘ
+
+is the solution to the nonlinear least-squares optimization 
+
+ˆΘ = arg min 
+
+> Θ
+
+J(Θ) (41) where 
+
+J(Θ) = Jbase + Jtip + Jγ
+
+| {z }
+
+> Jprior
+
++
+
+> K−1
+
+X
+
+> k=1
+
+(Jξ,k + JΛ,k ) + X
+
+> d∈D
+
+JD,d 
+
+| {z }
+
+> Jmech
+
++ X
+
+> k∈S T
+
+JT,k + X
+
+> k∈S ξ
+
+Jξm,k + JQ
+
+| {z }
+
+> Jmeas
+
+.
+
+(42) Here J(Θ) equals the negative log of the joint posterior up to an additive constant; its global minimizer therefore coincides with the MAP estimate of the factor graph. We implement the graph in the GTSAM library [25], adopting the linearization scheme of [21] together with the analytical Jacobian with respect to the force parameter vector γ derived in Appendix A, and optimize using Powell’s Dog-Leg algorithm [26]. We extract the Laplace approximation at the MAP solution to evaluate the posterior uncertainty. Solving the optimization in problem (41) requires an initial state guess. For isolated, single-frame estimation, we initialize the graph variables using the theoretical unloaded configura-tion of the robot. However, during continuous operation across sequential time steps, we instead initialize each step with the optimized posterior ˆΘ from the previous step. IV. N UMERICAL SIMULATION RESULTS 
+
+We evaluated the proposed estimator across several force estimation scenarios. Ground truth test scenarios were gen-erated using SoroSim [27], applying point loads such that their axial force component is zero in the body frame and no tendon actuation. The simulated robotic manipulator maintains properties consistent with those established in [15] to enable direct comparison. Furthermore, because the continuum robot is slender, the linear strain is modeled as a constant [1 , 0, 0] T,meaning the backbone is effectively inextensible and unshear-able, allowing only the angular strain to vary. These properties are listed in Table I. TABLE I: Properties of the continuum manipulator.     
+
+> Properties Value Length of the Manipulator 40 cm
+> Young’s Modulus 207 GPa
+> Diameter 1.4 mm
+
+For the proposed estimator, the standard deviation σ for the Gaussian basis functions is fixed at 12 mm to accurately model localized point forces. Decreasing σ further makes the basis functions unobservable depending on the step size, ∆s,whereas increasing σ fails to effectively model highly localized forces. Sensor measurements consist of the 3D position of the tip and angular strain measurements taken at 10 evenly spaced locations along the backbone. For the noisy simulations, 1 mm 
+
+of Gaussian noise is added to the tip position, and 0.1 rad m −1
+
+is added to the angular strain measurements. We benchmark our proposed method against two recent frameworks:  
+
+> •
+
+Baseline 1 [21]: A discrete node-wise estimator that estimates external wrench at every node. We run the implementation in [21] on SoroSim-generated datasets to directly compare performance. To localize the forces using this method, we identify the peaks of the node-wise force profile (one peak for a single force, two for two forces, etc).  
+
+> •
+
+Baseline 2 [15]: Gaussian force parameterization is used with a deterministic statics model, relying solely on discrete position measurements. Performance metrics for this baseline were taken directly from the original publication. Because the authors evaluated only single-contact scenarios, this baseline is used only for single-force analysis. 
+
+A. Single Force Estimation 
+
+For the single force estimation analysis, we evaluated 2,000 randomized samples. Ground truth forces were randomly generated between 0.5 and 1.0 N with varying direction and randomly located between 10 cm and 38 cm along the backbone, maintaining consistency with [15]. Table II summarizes the results. TABLE II: Simulation results for single force estimation.                                       
+
+> Baseline 1 Baseline 2 Proposed
+> No measurement noise
+> Location Error 9 mm 3.5 mm 3.47 mm Force Spread 50.1 mm –12 mm Shape Error 0.17 mm –0.46 mm Force Mag. Error –0.08 N 0.06 N Mean Runtime 90.8 ms –90.3 ms Mean No. of Iterations 9–23
+> With measurement noise
+> Location Error 36.68 mm 20.1 mm 8.74 mm Force Spread 122.59 mm –12 mm Shape Error 1.15 mm –1.34 mm Force Mag. Error –0.53 N 0.14 N Mean Runtime 122.20 ms –132.30 ms Mean No. of Iterations 11 –35
+
+In the noise-free case, the proposed method achieves a mean location error of 3.47 mm , which is comparable to the 3.5 mm 
+
+of Baseline 2, while significantly outperforming Baseline 1, which has error of 9 mm . When sensor noise is introduced, the proposed method’s mean location error remains highly robust at 8.74 mm , whereas Baseline 2 degrades significantly to 
+
+20 .1 mm and Baseline 1 to 36 .68 mm . We observe that while the proposed framework yields results similar to Baseline 2 in the absence of noise, it substantially outperforms Baseline 2 under noisy conditions because the proposed factor graph formulation explicitly models measurement uncertainty. To understand why Baseline 1 performs significantly worse than the proposed method, we analyzed the force spread, which is the spatial spread of the estimated force profile about its peak sX
+
+> k
+
+wk(sk − speak )2, (43) where wk is the normalized force magnitude at node k. A small value indicates a sharply localized estimate, while a large value indicates a force smeared across many nodes. Be-cause per-node force estimation is inherently ill-conditioned, Baseline 1 spreads the load widely ( 50 .1 mm vs. 12 mm in the noise-free case), misrepresenting localized contacts. This is reflected in the shape error. The over-parameterization in Baseline 1 closely matches the backbone by distributing force across many nodes and, under measurement noise, fitting the noise itself, producing large location errors and a spread in force. The proposed Gaussian basis cannot absorb error this way. Instead, it keeps the force estimate localized and leaves a small residual in the shape fit. TABLE III: Simulation results for two force estimation.                              
+
+> Baseline 1 Proposed
+> No measurement noise
+> Min Location Error 7.67 mm 3.94 mm Max Location Error 48 mm 36.95 mm Avg Location Error 27.84 mm 20.44 mm Shape Error 0.17 mm 0.91 mm Avg Force Mag. Error –0.25 N Mean Runtime 86.60 ms 93.10 ms Mean No. of Iterations 924
+> With measurement noise
+> Min Location Error 19.29 mm 9.86 mm Max Location Error 82.47 mm 48.32 mm Avg Location Error 50.88 mm 29.08 mm Shape Error 1.20 mm 1.43 mm Avg Force Mag. Error –0.27 N Mean Runtime 105.60 ms 140.20 ms Mean No. of Iterations 11 38
+
+The magnitude estimate for the proposed method is com-parable to Baseline 2 without noise, but significantly superior when noise is introduced. Based on these simulation results, the proposed method typically requires more iterations to converge, resulting in a slightly higher mean runtime than Baseline 1. However, per-step time is shorter for the proposed method due to a reduction in the number of unknown variables, despite a loss of sparsity. 
+
+B. Two Force Estimation 
+
+For the two-force estimation case, we evaluated 4,000 ran-domized samples with ground-truth force magnitudes ranging from 0.3 to 0.8 N . Table III reports the comparative results against Baseline 1. When analyzing the average minimum location error, both methods exhibit errors comparable to their single-force esti-mation performance, indicating that isolating at least one force works well under both clean and noisy conditions. However, the average maximum location error indicates that Base-line 1 struggles to localize the second force accurately. Under noisy conditions, the maximum location error is bounded at 
+
+48 .32 mm for the proposed estimator, whereas it spikes to 
+
+82 .47 mm for Baseline 1. As in the single-force scenario, Baseline 1 achieves asmaller shape error at the cost of producing a less localized and less accurate force estimate. Figure 3 makes this contrast visually, illustrating a specific test case where a force of 
+
+[0 , −0.2358 , −0.3003] T N is applied at 112 mm , and a second force of [0 , 0.2282 , −0.2599] T N is applied at 286 mm . While the estimated backbone shapes of both methods track the ground truth closely (Fig. 3a), the recovered force profiles differ sharply. For Baseline 1 (Fig. 3b), the estimated force spreads across many nodes and introduces several spurious peaks, leading to incorrect force localization. Conversely, the proposed estimate (Fig. 3c) resolves two distinct Gaussian 
+
+(a) Both methods recover the backbone shape accurately. 
+
+(b) Estimated force profile for Baseline 1. 0 100 200 300 400 
+
+> Arc-length (mm)
+> 00.1 0.2 0.3
+> Force Magnitude (N)
+> Proposed Method
+
+(c) Estimated force profile for the proposed method. 
+
+Fig. 3: Two force estimation. The black dotted line represents the ground truth force locations. peaks at the correct locations, recovering the two forces directly. Figure 4 maps the operational boundaries of the proposed method. Detectability (Fig. 4a) is defined as the activation ratio of the basis function magnitudes normalized by the ground truth force magnitude. We observe high mean force location errors in specific regions where detectability drops. This primarily occurs when both forces are applied in close proximity to one another, particularly near the tip. In these highly coupled regions, one basis function absorbs the ag-gregate effect of both forces, driving the detectability of the second basis function down (Fig. 4a). Because the location of this unactivated second basis function is still factored into the aggregate calculation, the mean location error artificially spikes in these configurations. 100 150 200 250 300 350 
+
+Ground Truth force 1 location (mm) 
+
+100 150 200 250 300 350 
+
+> Ground Truth force 2 location (mm)
+
+00.2 0.4 0.6 0.8 1Detectability (a) Heatmap showing detectability of forces with ground truth force locations. 0 means only one basis function is detectable, while 1 means both basis functions are detectable. 100 150 200 250 300 350 
+
+Ground Truth force 1 location (mm) 
+
+> 100 150 200 250 300 350
+> Ground Truth force 2 location (mm)
+> 20 40 60 80 100 Mean force location error (mm)
+> (b) Heatmap showing force location error with ground truth force locations
+
+Fig. 4: Two force estimation analysis for proposed method. V. P ROGRESSIVE MULTI -C ONTACT ESTIMATION DURING 
+
+CONFINED NAVIGATION 
+
+In this section, we evaluate the proposed estimation frame-work during a dynamic navigation task within a confined environment. The simulated manipulator is driven by user-defined tendon tension inputs to navigate quasi-statically through a rigid box, as depicted in Fig. 5. For this specific experiment, we simulate a continuum robot with a total length of L = 1 m , a radius of r = 0 .01 m , and a Young’s modulus of E = 1 MPa . The manipulator is driven by five pairs of antagonistic tendons routed along the ±y-axis. The i-th tendon pair terminates at arc length si ∈ { 1.0, 0.8, 0.6, 0.4, 0.2} m
+
+and is positioned at a corresponding radial offset of di ∈{0.01 , 0.02 , 0.03 , 0.04 , 0.05 } m from the backbone center. While this specific navigation task is constrained to a plane for simplicity, the proposed framework is formulated in SE(3) 
+
+and thus remains applicable to the full three-dimensional task space. 
+
+Fig. 5: A simulated continuum robot navigating through a con-fined box environment. The estimator progressively identifies contact locations as the robot interacts with the walls. To handle an unknown number of contacts, we propose a progressive estimation algorithm leveraging the sequential nature of quasi-static collisions. The estimator initializes with a single Gaussian basis function. During operation, if the esti-mated force magnitude of the active basis exceeds a predefined threshold ( τ ), the contact is registered as established, and a new basis function is dynamically appended to the state vector to capture subsequent interactions. To ensure numerical stability and prevent degenerate solu-tions during optimization, we introduce two additional terms into the factor graph objective beyond those defined in (42). 1) Axial Force Factor. The axial component of each basis force amplitude, in the local body frame, becomes unobservable in some configurations, particularly near-straight poses where axial loads cause minimal bending deformation. Without regularization, this renders the body-frame axial component a free variable that can diverge at zero cost to the mechanics residuals. We therefore apply a quadratic penalty on the tangent-direction projection of each basis amplitude: 
+
+Jaxial =
+
+> M
+
+X
+
+> i=1
+
+12σ2axial 
+
+ e1(h(βi)) Tαi
+
+2, (44) where e1(h(βi)) is the backbone tangent vector at 
+
+μi = h(βi) along the arc length, evaluated from the current pose estimate Tk(μi). This factor is implemented such that its Jacobian with respect to the pose variables is strictly zero, ensuring the penalty isolates the force vector without artificially stiffening or altering the esti-mated backbone shape. 2) Spatial Separation Penalty. When multiple basis func-tions are present ( M > 1), the optimizer may collapse two or more centers μi to the same arc-length location, producing redundant, physically degenerate representa-tions of a single contact point. To prevent this, we use a pairwise repulsion penalty on the normalized center coordinates μi = h(βi) as follows 
+
+Jsep = wrep 
+
+> M
+
+X
+
+> i=1
+> M
+
+X
+
+> j=i+1
+
+exp 
+
+
+
+− (μi − μj )2
+
+2σ2rep 
+
+
+
+, (45) where wrep > 0 is a repulsion weight and σrep is the exclusion radius in normalized arc-length space. This function ensures that two bases incur maximum repul-sion when they approach within one basis width of each other. Note that Jsep is a non-Gaussian regularization penalty, and is included purely to enforce geometric diversity among the basis locations. Proper state initialization is critical for the reliable conver-gence of the nonlinear optimizer. The first time step initializes a single basis at the backbone midpoint ( s = L/ 2); each subsequent step initializes from the previous step’s posterior. When a second basis is spawned on threshold crossing, it is initialized in the distal region, halfway between the established contact and the tip ( s = 0 .75 L). A proximal initialization instead risks a local minimum that traps the estimate until the second contact force grows large. 
+
+(a) Estimated force locations for both basis functions. 
+
+(b) Estimated force magnitude for both basis functions. 
+
+Fig. 6: Time-series analysis of the progressive multi-contact estimation scenario. A second basis function is added only after the first contact magnitude exceeds the threshold τ .Figure 6 shows the estimation timeline across navigation phases. In free space (steps 1–20), no contact is present: the estimated magnitude stays near zero and the location fluctuates widely (Fig. 6a), as the location Jacobian scales with the force amplitude and is therefore weakly observable. Around step 21 the robot meets the first corner; the location converges to the contact point and the magnitude rises with the applied actuation tension, crossing τ and triggering the second basis. The spawned basis then converges toward the tip and remains near τ as the robot engages the second wall, capturing the dual-contact state by the final steps. VI. C ONCLUSION 
+
+In this paper, we have presented a unified shape and force estimation framework for tendon-driven continuum robots op-erating in unknown environments. Recognizing that discrete, node-wise force estimation is ill-posed and susceptible to ill-conditioning, we have integrated a Gaussian force parame-terization into a discretized Cosserat rod mechanics model. By formulating the state estimation problem within a factor graph architecture, we probabilistically fused multi-modal sensor data including discrete strain, tendon tension, and pose measurements, to simultaneously estimate the robot’s shape and multiple localized contact forces. Numerical simulations showed that our method reduces mean location error compared to both a discrete node-wise baseline and an existing force-parameterization baseline, par-ticularly under realistic sensor noise. Furthermore, we demon-strated a progressive estimation strategy for detecting and localizing sequential body collisions during a confined box-navigation task. Future work will focus on integrating this estimation frame-work into closed-loop robotic systems, where the estimated contact locations and force magnitudes can support spatial planning, reactive obstacle avoidance, and force control. While the current framework relies on a quasi-static model, we also aim to extend it to full continuum dynamics for estimation during dynamic maneuvers. REFERENCES [1] G. Robinson and J. B. C. Davies, “Continuum robots-a state of the art,” in IEEE International Conference on Robotics and Automation , vol. 4, Detroit, MI, USA, May, 10–15, 1999, pp. 2849–2854. [2] M. Russo, S. M. H. Sadati, X. Dong, A. Mohammad, I. D. Walker, C. Bergeles, K. Xu, and D. A. Axinte, “Continuum robots: An overview,”                     
+
+> Advanced Intelligent Systems , vol. 5, no. 5, p. 2200367, 2023. [3] H. Wu, F. Sun, C. Huang, H. Huang, and Z. Chu, “Soft growing robot explore unknown environments through obstacle interaction,” IEEE Robotics and Automation Letters , vol. 10, no. 6, pp. 6015–6022, 2025. [4] C. Abah, A. L. Orekhov, G. L. Johnston, and N. Simaan, “A multi-modal sensor array for human–robot interaction and confined spaces exploration using continuum robots,” IEEE Sensors Journal , vol. 22, no. 4, pp. 3585–3594, 2022. [5] J. Burgner-Kahrs, D. C. Rucker, and H. Choset, “Continuum robots for medical applications: A survey,” IEEE Transactions on Robotics , vol. 31, no. 6, pp. 1261–1280, 2015. [6] Y. Yamauchi, Y. Ambe, H. Nagano, M. Konyo, Y. Bando, E. Ito, S. Arnold, K. Yamazaki, K. Itoyama, T. Okatani et al. , “Development of a continuum robot enhanced with distributed sensors for search and rescue,” Robomech Journal , vol. 9, no. 1, p. 8, 2022. [7] Y. Wang, F. Ju, Y. Cao, Y. Yun, Y. Wang, D. Bai, and B. Chen, “An aero-engine inspection continuum robot with tactile sensor based on eit for exploration and navigation in unknown environment,” in IEEE/ASME International Conference on Advanced Intelligent Mechatronics (AIM) ,Hong Kong, China, July 8–12, 2019, pp. 1157–1162. [8] A. Hu and Y. Sun, “Contact force estimation of continuum robots without embedded sensors: A review,” Advanced Intelligent Systems ,vol. 8, no. 3, p. e202500786, 2026. [9] F. Feng, W. Hong, and L. Xie, “A learning-based tip contact force estimation method for tendon-driven continuum manipulator,” Scientific Reports , vol. 11, no. 1, p. 17482, 2021.
+
+[10] M. A. Diezinger, B. Tamadazte, and G. J. Laurent, “3d curvature-based tip load estimation for continuum robots,” IEEE Robotics and Automation Letters , vol. 7, no. 4, pp. 10 526–10 533, 2022. [11] G.-B. Bian, M.-Y. Zhang, Q. Ye, H. Ren, Y.-P. Zhai, R. Ma, and Z. Li, “Accurate shape and tip-contact-force estimation of multisegment continuum-robotic tubular bronchoscopes,” IEEE/ASME Transactions on Mechatronics , vol. 30, no. 6, pp. 6724–6735, 2025. [12] S. H. Sadati, A. Shiva, N. Herzig, C. D. Rucker, H. Hauser, I. D. Walker, C. Bergeles, K. Althoefer, and T. Nanayakkara, “Stiffness imaging with a continuum appendage: Real-time shape and tip force estimation from base load readings,” IEEE Robotics and Automation Letters , vol. 5, no. 2, pp. 2824–2831, 2020. [13] A. Bajo and N. Simaan, “Kinematics-based detection and localization of contacts along multisegment continuum robots,” IEEE Transactions on Robotics , vol. 28, no. 2, pp. 291–302, 2012. [14] T.-D. Job, M. Bensch, and M. Schappler, “Multiple-contact estimation for tendon-driven continuum robots with proprioceptive sensor infor-mation by contact particle filter and kinetostatic models,” in IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) ,Detroit, MI, USA, October 1–5, 2023, pp. 10 224–10 231. [15] V. Aloi, K. T. Dang, E. J. Barth, and C. Rucker, “Estimating forces along continuum robots,” IEEE Robotics and Automation Letters , vol. 7, no. 4, pp. 8877–8884, 2022. [16] X. T. Ha, D. Wu, C.-F. Lai, M. Ourak, G. Borghesan, A. Menciassi, and E. Vander Poorten, “Contact localization of continuum and flexible robot using data-driven approach,” IEEE Robotics and Automation Letters ,vol. 7, no. 3, pp. 6910–6917, 2022. [17] P. Wang, D. Feliu-Talegon, Y. Sun, Z. Xie, W. Xin, M. S. Nazeer, C. Della Santina, C. Laschi, and F. Renda, “Strain-based shape and 3d force estimation for rod-driven continuum robots with stretch sensors,” 
+
+IEEE Transactions on Robotics , vol. 42, pp. 894–911, 2026. [18] A. Gao, Z. Lin, C. Zhou, X. Ai, B. Huang, W. Chen, and G.-Z. Yang, “Body contact estimation of continuum robots with tension-profile sensing of actuation fibers,” IEEE Transactions on Robotics , vol. 40, pp. 1492–1508, 2024. [19] D. Feliu-Talegon, A. Y. Alkayas, Y. A. Adamu, A. T. Mathew, and F. Renda, “Actuation reading insights: Estimating shape and forces in tendon-driven slender soft robots,” IEEE/ASME Transactions on Mechatronics , vol. 30, no. 6, pp. 7878–7888, 2025. [20] J. M. Ferguson, D. C. Rucker, and R. J. Webster, “Unified shape and external load state estimation for continuum robots,” IEEE Transactions on Robotics , vol. 40, pp. 1813–1827, 2024. [21] J. M. Ferguson, A. Kuntz, and T. Hermans, “Continuum robot state estimation with actuation uncertainty,” IEEE Robotics and Automation Letters , pp. 1–8, 2026. [22] F. Dellaert and M. Kaess, “Factor graphs for robot perception,” Foun-dations and Trends in Robotics , vol. 6, no. 1-2, pp. 1–139, 2017. [23] S. Lilge, T. D. Barfoot, and J. Burgner-Kahrs, “Continuum robot state estimation using gaussian process regression on se (3),” The Interna-tional Journal of Robotics Research , vol. 41, no. 13-14, pp. 1099–1120, 2022. [24] T. D. Barfoot, State estimation for robotics , 2nd ed. Cambridge University Press, 2024. [25] F. Dellaert, “Factor graphs and gtsam: A hands-on introduction,” Geor-gia Institute of Technology, Tech. Rep , vol. 2, no. 4, 2012. [26] M. J. D. Powell, “A hybrid method for nonlinear equations,” in Nu-merical Methods for Nonlinear Algebraic Equations , P. Rabinowitz, Ed. London: Gordon and Breach Science Publishers, 1970, pp. 87–114. [27] A. T. Mathew, D. Feliu-Talegon, A. Y. Alkayas, F. Boyer, and F. Renda, “Reduced order modeling of hybrid soft-rigid robots using global, local, and state-dependent strain parameterization,” The International Journal of Robotics Research , vol. 44, no. 1, pp. 129–154, 2025. 
+
+APPENDIX 
+
+ANALYTICAL JACOBIAN OF THE WRENCH RESIDUAL WITH 
+
+RESPECT TO THE FORCE VECTOR PARAMETERS 
+
+The wrench-balance residual (25) depends on the force parameters γ solely through the cumulative interval force 
+
+∆ve,k ≜ ve,k +1 − ve,k . Therefore, we have 
+
+∂eΛ,k 
+
+∂γ = ∂eΛ,k 
+
+∂∆ve,k 
+
+| {z }
+
+> 6×3
+
+· ∂∆ve,k 
+
+∂γ
+
+| {z }
+
+> 3×4M
+
+, (A.1) where ∂eΛ,k 
+
+∂∆ve,k 
+
+=
+
+ 03×3
+
+RT
+
+> k+1
+
+
+
+. (A.2) From (14), the integrated interval force is block-separable across the M basis functions, 
+
+∆ve,k (γ) = 
+
+> M
+
+X
+
+> i=1
+
+αi Φi,k , (A.3) where 
+
+Φi,k = 12
+
+
+
+erf 
+
+ sk+1 − μi
+
+√2 σi
+
+
+
+− erf 
+
+ sk − μi
+
+√2 σi
+
+ 
+
+(A.4) with μi = L
+
+> 2
+
+ 1+tanh βi
+
+ from (13). The amplitude derivative is immediate from ∂∆ve,k /∂ αi = Φ i,k I3. Using the chain rule, we get ∂∆ve,k 
+
+∂β i
+
+= αi
+
+∂Φi,k 
+
+∂μ i
+
+∂μ i
+
+∂β i
+
+, (A.5) where 
+
+∂Φi,k 
+
+∂μ i
+
+= e−z2 
+
+> i,k
+
+− e−z2
+
+> i,k +1
+
+√2π σ i
+
+, (A.6) and ∂μ i
+
+∂β i
+
+= L
+
+2 sech 2(βi), (A.7) with zi,k = ( sk − μi)/(√2 σi).Because the derivative with respect to βi is proportional to αi, a zero-force amplitude renders the location parameter unobservable, zeroing out its Jacobian block. To prevent this, we initialize each amplitude with a small magnitude ϵ > 0.Stacking the partial derivatives for all M basis functions yields 
+
+∂∆ve,k 
+
+∂γ =
+
+h
+
+· · · Φi,k I3| αi
+
+∂Φi,k 
+
+∂β i
+
+· · · 
+
+i
+
+, (A.8) so that 
+
+∂eΛ,k 
+
+∂γ =
+
+
+
+03×4M
+
+RT
+
+> k+1
+
+∂∆ve,k 
+
+∂γ 
+
+ ∈ R6×4M . (A.9)

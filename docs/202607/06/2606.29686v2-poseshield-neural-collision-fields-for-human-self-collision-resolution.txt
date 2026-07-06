@@ -1,0 +1,1056 @@
+Title: PoseShield: Neural Collision Fields for Human Self-Collision Resolution
+
+URL Source: https://arxiv.org/pdf/2606.29686v2
+
+Published Time: Thu, 02 Jul 2026 00:35:24 GMT
+
+Number of Pages: 35
+
+Markdown Content:
+# PoseShield: Neural Collision Fields for Human Self-Collision Resolution 
+
+Zhengyuan Li 1 , Zeyun Deng 1, Yifan Shen 3, Liangyan Gui 3 , Miaolan Xie 1 ,Joseph Campbell 1 , Xifeng Gao 2 , Kui Wu 2 , Zherong Pan 2 , and Aniket Bera 1 
+
+> 1
+
+Purdue University, West Lafayette IN 47907, USA  
+
+> 2
+
+LightSpeed Studios, Bellevue WA 98004, USA  
+
+> 3
+
+University of Illinois Urbana-Champaign, Champaign IL 61820, USA 
+
+Abstract. Self-collision remains a persistent challenge in SMPL-based human pose estimation and motion generation. Under extreme articula-tions or stochastic motion synthesis, generated meshes frequently exhibit self-penetrations, leading to physically implausible results. We propose PoseShield, a neural collision constraint defined directly in SMPL pose space. We formulate collision correction as a constrained optimization problem and connect the learned constraint with the Eikonal equation. Enforcing Eikonal regularization ensures non-vanishing gradients near the collision boundary, improving numerical stability and robustness of the optimization process. Unlike prior methods that operate in the mesh space or rely on heuristic penalties, our approach operates directly in the low-dimensional space of human poses and is theoretically grounded. The same learned constraint extends to human motion sequences, providing a generator-agnostic post-hoc collision corrector without retraining the underlying motion model. Experiments on a newly constructed SMPL pose benchmark show that our method achieves a 95.8% success rate and outperforms state-of-the-art baselines. 
+
+## 1 Introduction 
+
+Parametric human body models such as SMPL [37], SMPL+H [51], and SMPL-X [49] have become the standard geometric representation in human pose esti-mation [4, 7, 13, 26, 30, 71, 72] and motion generation [32, 36, 60, 70]. Thanks to their explicit mesh topology and low-dimensional pose parameterization, these models enable efficient optimization and tight integration with learning-based pipelines. Despite their widespread adoption, self-collision remains a persistent challenge. Self-collisions arise across diverse SMPL-based applications, ranging from motion-capture-based reconstruction to motion synthesis. For reconstruction, COAP [41] shows that poses from datasets such as PROX [20] may contain body self-intersections. For motion synthesis, recent self-collision-aware genera-tion work [22] further analyzes that modern motion synthesis methods [18,61] are prone to producing motions with non-negligible self-intersections under stochas-tic sampling. Such artifacts degrade physical plausibility. Consequently, there   
+
+> arXiv:2606.29686v2 [cs.CV] 1 Jul 2026 2Z. Li et al. Ours  Original
+> Time
+> Time
+> Fig. 1: PoseShield provides a robust collision constraint for SMPL-based bodies. While effective for individual human poses, it naturally extends to temporally consistent motion generation.
+
+is a pressing need for a reliable, post-hoc self-collision resolution approach . An ideal approach must decouple collision handling from specific generative priors to act as a universal refinement module, ensuring geometric consistency across diverse SMPL-based scenarios without relying on original generative conditions like textual prompts or reference images. Classical collision-handling methods have been extensively studied in geom-etry processing and physical simulation [19, 33, 54]. These approaches typically operate directly in mesh space , optimizing over vertex positions and leveraging penalty energies or interior-point formulations. While effective in simulation set-tings where a collision-free reference configuration is available, these methods are not naturally compatible with learning-based SMPL pipelines. In human pose estimation and motion generation, the optimization variable is the pose parameter θ rather than raw mesh vertices. Moreover, a collision-free reference pose is generally unavailable. As a result, classical mesh-space solvers cannot be directly transferred to pose-space constrained optimization. In the domain of human body modeling, several works incorporate interpenetration penalties as “soft constraints” during model fitting or as auxiliary losses in learning-based pre-dictors [4, 17, 22, 49, 63]. Recent volumetric human modeling approaches [41, 42] learn smooth articulated occupancy representations of posed human bodies. Such models provide continuous geometric fields that can implicitly encode collisions through occupancy evaluation. Other recent learning-based approaches [58, 59] train smooth neural collision classifiers and use them as differentiable constraints in post-hoc optimization. Unlike these methods, our approach is motivated by the regularity conditions required by gradient-based constrained optimization algorithms. In this work, we formulate collision resolution as a constrained optimization problem that searches for the nearest collision-free pose to a self-intersecting con-figuration. Under this formulation, we introduce PoseShield , a neural collision constraint function defined directly in SMPL pose space, and solve the result-PoseShield 3
+
+ing problem using well-established gradient-based constrained optimization algo-rithms such as SLSQP and augmented Lagrangian methods [46]. For PoseShield to work reliably within these solvers, two requirements must be met. First, its sign must reliably indicate collision status: positive for collision-free poses and negative for self-intersecting ones. Second, these algorithms require the Linear Independence Constraint Qualification (LICQ) [46], which demands a nonvan-ishing constraint gradient away from the constraint boundary. Our key insight is the connection between this regularity requirement and the Eikonal equation :enforcing an Eikonal regularization on PoseShield ensures that its gradient norm is bounded away from zero throughout pose space, thereby satisfying LICQ and improving numerical stability. Such a constraint function is guaranteed to ex-ist: the signed distance function to the collision boundary, characterized as the unique viscosity solution of the Eikonal equation [9]. Together, these properties yield a principled, self-contained post-hoc collision resolver for individual SMPL poses. We further extend our framework to human motion generation, enabling post-hoc self-collision correction for human motion sequences without knowing the generator. In summary, our contributions are: 
+
+– We propose a principled theoretical framework for self-collision resolution in SMPL pose space by formulating it as a constrained optimization prob-lem with a learnable differentiable collision constraint. We further show that, under suitable assumptions on the learned collision field, gradient-based con-strained solvers admit global and local convergence guarantees for this prob-lem. 
+
+– We introduce PoseShield , a neural collision constraint trained with Eikonal regularization in pose space, and show how its training objective is designed to make these theoretical assumptions approximately hold in practice. In particular, we prove that the Eikonal training loss bounds the volume of pose-space regions where LICQ fails to hold, providing a quantitative connection between training accuracy and solver reliability. 
+
+– We demonstrate that the learned collision constraint can be seamlessly reused for temporally consistent motion correction without retraining the underly-ing motion generator, providing a generator-agnostic post-processing module for human motion synthesis .
+
+– We perform evaluations on the newly curated Human with Collisions 
+
+(HwC) dataset and the PROX dataset, where PoseShield substantially out-performs prior post-hoc collision-handling baselines. 
+
+## 2 Related Work 
+
+Human Self-Collision in SMPL-based Modeling. Self-collision is a long-standing issue for parametric human models like SMPL/SMPL-X, particularly under ex-treme articulations or depth ambiguities in monocular reconstruction. Early ap-proaches primarily relied on coarse geometric heuristics, approximating the hu-man body with primitive proxies such as capsules [4] to simplify intersection 4 Z. Li et al. 
+
+queries. Subsequently, the field shifted toward mesh-level penetration penal-ties. For example, SMPLify-X [49] adapted differentiable self-interpenetration terms for expressive body capture, often implemented via distance-field-style losses [2,63] and accelerated intersection detection [27]. This paradigm has been extended to scene-aware constraints in PROX [20]. For motion generation, recent work [22] employs efficient sphere-based proxies to incorporate self-intersection losses during the training of human motion models [18, 61]. Recently, implicit representations like COAP [41] and VolumetricSMPL [42] have advanced the state-of-the-art by demonstrating that learned occupancy fields can effectively reduce self-intersections through gradient-based refinement. While effective in reducing interpenetration for interaction modeling, these approaches are not explicitly designed to provide regularity guarantees for post-hoc constrained op-timization. Relevantly, implicit neural representations have also been explored for modeling geometric or interaction constraints in the pose space [31]. Our work instead focuses on learning a collision constraint with properties tailored to support stable and theoretically grounded pose-space optimization. 
+
+General Mesh Collision Resolution. Classical collision-handling techniques, in-cluding penalty-based energies [5,6,15], interior-point formulations [12,19,24,33], and geometric frameworks like Repulsive Shells [54], share a fundamental limita-tion: they operate directly in mesh space by optimizing raw vertex positions. This makes them neither directly applicable nor computationally practical in pose-space optimization. Furthermore, these methods often necessitate a collision-free reference configuration, which is generally unavailable in modern pose-prediction pipelines [57, 58, 61, 71]. While specialized neural architectures have addressed collisions in specific domains, such as ContourCraft [16] and Self-Supervised Collision Handling [53] for garments, or Quaffure [56] for hair simulation, these solutions are tailored to their respective generative priors and do not generalize to the high-dimensional articulated manifold of human bodies. Ultimately, exist-ing neural classifiers used for post-hoc resolution [57, 58, 68] often learn decision boundaries or proxy penetration depth signals for gradient guidance, but do not enforce global regularity conditions needed for robust constrained optimization. 
+
+Neural Solution of the Eikonal Equation. Solving the Eikonal equation [55, 73] subject to a sign constraint in 3D space corresponds to computing the Signed Distance Field (SDF) of an arbitrary shape. Thanks to its expressive power, the neural approximation of SDFs has become central to modern 3D generative models [34, 48, 66]. Although the SDF can represent highly complex geometry, these methods all assume a low-dimensional underlying domain—namely, the standard 3D Euclidean space. More recently, some research [44] demonstrated configuration-space distance fields whose gradients guide collision-free planning. Closer to our setting, PoseNDF [62] and NRDF [21] also learn SDF-style neural fields on the articulated pose manifold SO (3) K , using their zero level-set to encode the data-driven manifold of plausible poses and serving as generic priors for tasks such as denoising and inverse kinematics. In contrast, we model a PoseShield 5
+
+specific geometric constraint, self-collision, and design the field for constrained pose-space optimization. 
+
+## 3 Problem: SMPL Self-Collision Resolution 
+
+In this section, we define the collision-resolution problem for the SMPL family of parametric human body models [37, 49]. An SMPL mesh is defined by shape parameters β ∈ Rdβ and pose parameters θ ∈ Rdθ . Given (β, θ), the SMPL function produces a mesh: 
+
+X = M(β, θ),
+
+where the mesh connectivity T is predefined and independent of β and θ. Due to imperfect motion capture or errors introduced by neural motion predictors [61], the generated SMPL meshes may exhibit self-collisions. In many practical sce-narios, such as motion correction, the body shape remains fixed across frames. Therefore, we assume the shape parameter β is fixed and only optimize the pose parameter θ. We also ignore the global translation and rotation, since self-collision is invariant to them. To characterize whether a posed SMPL mesh is collision-free, we employ an exact mesh self-intersection test. Concretely, given a pose θ, we first decode it into a mesh X = M(β, θ) and then apply a classical collision detector (e.g., FCL [47]) to obtain a binary collision indicator defined as: 
+
+ι M(β, θ) ∈ {− 1, +1 },
+
+which equals −1 if the mesh exhibits self-penetration and +1 otherwise. Given a self-colliding SMPL configuration (β, θ0), our goal is to find a corrected pose 
+
+θ such that the decoded mesh: 
+
+X = M(β, θ),
+
+is collision-free while remaining visually close to the original configuration. Let 
+
+dSMPL (·, ·) denote a distance function that measures the discrepancy between two SMPL poses of a fixed shape. We formulate SMPL self-collision resolution as the following constrained optimization problem: 
+
+θ⋆ = arg min  
+
+> θ
+
+dSMPL (θ, θ0) subject to ι M(β, θ) = +1 . (1) 
+
+## 4 Learning a Differentiable Collision Constraint 
+
+As discussed in Sec. 3, the exact collision indicator ι(·) provides a binary fea-sibility test. However, ι(·) is non-differentiable with respect to the pose pa-rameter θ, making gradient-based constrained optimization intractable. Modern constrained optimization algorithms, including Sequential Least Squares Pro-gramming (SLSQP), modified differential multiplier methods, and augmented Lagrangian approaches, require at least C1 smooth constraint functions in or-der to compute well-defined gradients. Constraint functions must satisfy certain 6 Z. Li et al. MLP g=-1.3 g=-0.8 g=0.02 MLP Optimizer Optimizer Latent Space No Collision (g>0) Collision (g<0) 
+
+Fig. 2: Neural collision handling with PoseShield . PoseShield approximates the signed distance function (SDF) to the boundary between colliding and collision-free regions in the latent space. In practice, collision resolution algorithms optimize a self-penetrating sample toward its nearest point in the collision-free region, where the learned neural field provides local gradient guidance throughout the optimization pro-cess. 
+
+constraint qualifications such as LICQ for the iterates to reliably converge to a KKT point [3]. Since ι(·) yields only binary feasibility labels and is discontinuous with zero gradient almost everywhere, these methods cannot be applied. To enable robust constrained optimization in pose space, we introduce a surrogate, learnable neural constraint function g(θ), whose superlevel set {θ |
+
+g(θ) ≥ 0} approximates the set of collision-free SMPL poses under a fixed shape 
+
+β. With the surrogate function and given a self-colliding initial pose θ0, the optimization problem becomes: 
+
+θ⋆ = arg min  
+
+> θ
+
+dSMPL (θ, θ0) subject to g(θ) ≥ Cl. (2) where Cl is a margin threshold. Theoretically, Cl = 0 is the optimal choice assuming a perfectly learned constraint g. In practice, however (as detailed in Sec. 5.2), we demonstrate that adjusting this threshold facilitates a controllable trade-off between maintaining geometric fidelity to the input pose and the effec-tiveness of collision resolution. Our method is illustrated in Fig. 2. The neural collision-handling process operates in a latent space and follows a standard constrained optimization for-mulation, with g serving as a differentiable constraint function. We first analyze, in Sec. 4.1, the convergence behavior of standard gradient-based constrained solvers on this formulation under three assumptions on g. We then introduce in Sec. 4.2 our Eikonal regularization, which is designed to encourage the most non-trivial of these assumptions. A complete theoretical analysis is in the sup-plement. Building on these theoretical insights, Sec. 4.3 and Sec. 4.4 detail the practical training strategies for learning the differentiable collision constraint g.Finally, in Sec. 4.5, we generalize our framework from static pose optimization to accommodate continuous, temporally consistent human motion sequences. PoseShield 7
+
+4.1 Convergence Analysis 
+
+We analyze the convergence behavior of standard gradient-based constrained solvers on the surrogate problem in (2). Let Ω ⊂ [−1, 1] dθ denote a bounded region of plausible SMPL poses in the 6D rotation representation. For the anal-ysis, we set the threshold Cl = 0 and adopt the squared-Euclidean distance 
+
+dSMPL (θ, θ0) = ∥θ − θ0∥2. We further assume the minimizer is interior to Ω and non-degenerate, so that g ≥ 0 is the only active constraint. Classical nonlinear optimization theory [46] establishes strong convergence guarantees for gradient-based constrained solvers under appropriate regularity conditions on the constraint function. We state three assumptions on the learned field g that together suffice for these guarantees in our setting. 
+
+Assumption 1 (Smoothness) g is C2 on Ω with Lipschitz-continuous gradi-ent and Hessian. 
+
+Assumption 2 (Feasibility consistency) The sign of g correctly identifies the collision status: g(θ) ≥ 0 if and only if θ is a collision-free pose. 
+
+Assumption 3 (Approximate Eikonal property) There exists δ ∈ [0 , 1) such that 1 − δ ≤ ∥∇ θ g(θ)∥2 ≤ 1 + δ for all θ ∈ Ω.
+
+The first assumption ensures that gradient-based methods are well-defined. The second ensures that the learned constraint faithfully represents the collision-free set. The third makes g behave like an approximate signed distance function in pose space; in particular, ∥∇ g∥ ≥ 1 − δ > 0 implies that the Linear In-dependence Constraint Qualification (LICQ) holds globally. Under these three assumptions, standard gradient-based constrained solvers (e.g., SLSQP) admit both global and local convergence guarantees: 
+
+Theorem 1 (Global Convergence and Complexity). Consider problem (2) 
+
+under Assumptions 1, 2, and 3. Then: 
+
+(i) Global LICQ: The constraint qualification holds globally on Ω.
+
+(ii) Global Convergence: From any starting pose θ0 ∈ Ω, a standard line-search SQP method with an ℓ1 merit function (and sufficiently large penalty parameter) produces iterates whose every accumulation point is a first-order KKT point (θ⋆, λ ⋆).
+
+(iii) Iteration Complexity: An ε-approximate KKT point—satisfying 
+
+2( θk−θ0)−λk∇θ g(θk) ≤ ε, | min(0 , g (θk)) | ≤ ε, λk ≥ 0, |λk g(θk)| ≤ ε, 
+
+is no harder to obtain than in unconstrained smooth optimization, whose worst-case first-order complexity is O(ε−2).
+
+Theorem 2 (Local Convergence). Consider problem (2) under Assump-tions 1, 2, and 3. Let θ⋆ be a local minimizer, and assume the initial pose is infeasible, i.e., g(θ0) < 0. Then: 8 Z. Li et al. 
+
+(i) LICQ and Strict Complementarity: LICQ holds at θ⋆, and the unique KKT multiplier satisfies 0 < 21+ δ ∥θ⋆ − θ0∥ ≤ λ⋆ ≤ 21−δ ∥θ⋆ − θ0∥.
+
+(ii) SOSC and Fast Convergence: Define κ ≜ λ⋆∥∇ 2 
+
+> θ
+
+g(θ⋆)∥2. If κ < 2, then the full Lagrangian Hessian is positive definite (implying Second-Order Suf-ficient Conditions), and SQP with exact Hessian converges locally to (θ⋆, λ ⋆)
+
+at a quadratic rate. A quasi-Newton (BFGS) variant satisfying the Dennis– Moré condition converges superlinearly. Proof. The complete proofs are provided in the supplementary material. 
+
+4.2 Eikonal Regularization 
+
+Among the three assumptions in Sec. 4.1, smoothness is automatically satisfied by an MLP with smooth activations (e.g., Softplus), and feasibility consistency is encouraged by direct sign supervision (Sec. 4.3). The approximate Eikonal property (Assumption 3), however, requires a dedicated regularizer. The ideal pointwise target is 
+
+∥∇ θ g(θ)∥ = 1 , (3) which we encourage in expectation over Ω (assuming a uniform probability mea-sure for analysis) by minimizing the average violation: 
+
+Li 
+
+> grad
+
+= ∥∇ g(θi)∥ − 1 ,
+
+Lgrad = Eθ∼Ω
+
+h
+
+∥∇ g(θ)∥ − 1
+
+i
+
+. (4) The following proposition shows that this loss provides a quantitative volume bound on the regions where Assumption 3 fails: 
+
+Proposition 1 (Volume Bound on Approximate Eikonal Failure). Let 
+
+Sδ denote the region where the approximate Eikonal condition fails for a given margin δ ∈ (0 , 1) :
+
+Sδ = θ ∈ Ω ∥∇ θ g(θ)∥ − 1 > δ .
+
+If the expected Eikonal loss satisfies Lgrad ≤ ε, then the probability measure of this failure region is bounded by: 
+
+P(θ ∈ Sδ ) ≤ εδ . (5) 
+
+Proof. The complete proofs are provided in the supplementary material. Combined with the fact that the approximate Eikonal property implies LICQ (∥∇ g∥ ≥ 1−δ > 0), this proposition provides a quantitative link between training accuracy and the volume of pose-space regions where LICQ is guaranteed to hold, directly supporting the convergence guarantees in Sec. 4.1. PoseShield 9
+
+4.3 Training Objective 
+
+To enforce Assumption 2, we impose boundary supervision using the exact col-lision indicator ι. Concretely, we encourage: 
+
+g(θ) ι(M(β, θ)) > 0,
+
+so that g(θ) > 0 for collision-free poses and g(θ) < 0 otherwise. Together, Eikonal regularization and sign supervision encourage g(θ) to approximate a SDF-like function to the collision boundary in SMPL pose space. Using Monte Carlo sampling, we construct: Dθ = {⟨ θi, ι i⟩} Ni=1 , where ιi = ι(M(β, θi)) , and optimize the empirical PINNs-style [50] objective: 
+
+Li 
+
+> sign
+
+= − min  g(θi)ιi, 0,
+
+LEikonal = 1
+
+|Dθ | 
+
+> |Dθ|
+
+X
+
+> i=1
+
+ Li 
+
+> grad
+
++ Li
+
+> sign
+
+ . (6) This objective is a direct high-dimensional analogue of standard Eikonal training used in low-dimensional SDF learning [45, 48]. 
+
+4.4 Temporal-Difference Variant 
+
+Inspired by the connection between Lgrad and the Temporal Difference (TD) loss in offline reinforcement learning, and following Ni et al. [43] who show that a finite-timestep TD variant improves training, we replace Lgrad with a symmetric TD loss parameterized by a small timestep ∆t :
+
+Li 
+
+> TD
+
+= g(θi + vi∆t ) − g(θi − vi∆t ) − 2∆t , (7) where vi = ∇θ g(θi)/∥∇ θ g(θi)∥ is the normalized velocity function. We find that replacing Lgrad with LTD improves the performance as demonstrated in Tab. 1. 
+
+4.5 Collision Resolution for Motion Sequence 
+
+Our formulation naturally extends from static pose optimization to human mo-tion sequences. Specifically, the sampling process in human motion diffusion models [10,23,32,35,40,52,61,65,69,74] and human motion flow matching mod-els [60] can be formulated as a differentiable generative mapping: m = f (x),where x denotes the input noise, and m is the generated human motion se-quence. To enforce task-specific constraints (e.g., obstacle or self-collision avoid-ance), DNO [28] proposes a conditional motion synthesis formulated as: 
+
+x⋆ = arg min  
+
+> x
+
+Q f (x), (8) where Q is a user-defined criterion measuring constraint satisfaction or motion plausibility. This formulation is naturally compatible with our constrained op-timization formulation in Equation 2. Specifically, we first train PoseShield as 10 Z. Li et al. 
+
+usual for static human poses. Suppose we are given a motion sequence with self-collisions defined as ms = [ θ0
+
+> s
+
+, θ1
+
+> s
+
+, · · · , θTs ], and let the optimization variable be 
+
+m = [ θ0, θ1, · · · , θT ], we define the objective function Q as follows: 
+
+Q(m) = 
+
+> T
+
+X
+
+> i=0
+
+max  Cl − g(θi), 0 + λm dmotion (m, ms), (9) where the first term penalizes violations of the collision constraint, and the sec-ond term enforces proximity to the original motion. The coefficient λm balances collision resolution and motion preservation. The distance metric dmotion is de-tailed in the supplementary material. Note that we avoid the hard constraints from Equation 2, which are disallowed by DNO, and replace them with soft constraint functions. 
+
+## 5 Evaluation 
+
+In this section, we evaluate the performance of PoseShield and compare it against baselines. We first discuss collision resolution for static human poses (Section 5.1), and then ablate key design choices and demonstrate properties of our method (Section 5.2). Next, we scale the constraint function learned from individual poses to human motion sequences (Section 5.3). 
+
+5.1 Application: Static Human Pose 
+
+Humans with Collisions (HwC) Dataset. Despite the availability of various hu-man pose datasets [11, 25, 38], meshes sampled solely from the collision-free ground-truth distribution do not expose PoseShield to any self-colliding exam-ples. To address this, we introduce the Humans with Collisions (HwC) 
+
+dataset of nearly 931 k SMPL poses, which is detailed in the supplementary. A subset of 500 representative self-penetrating meshes serves for benchmarking. This dataset also serves as the sampling pool to approximate Ω in Sec. 4.2. In addition, we follow previous work [41] and evaluate the methods on a subset of PROX dataset [20]. 
+
+Metrics. Following [58], we adopt the following metrics: 
+
+– Success Rate (SCC): The rate of the collision resolution method producing penetration-free meshes. 
+
+– Penetration Depth Reduction (PDR): The ratio of reduced penetration depth (PD) [47] relative to the original penetration depth defined as: 
+
+PDR = max 
+
+
+
+1 − PD after optimization PD before optimization , 0
+
+
+
+.
+
+– Mean Vertex Distance (MVD): The average L2 distance of the vertices be-tween the original and the optimized mesh. (An ideal collision handler re-solves collisions while keeping the resulting pose as close as possible to the original sample.) PoseShield 11                                                                                
+
+> Table 1: Quantitative results and ablation study on the pose datasets. Our method achieves significant improvement in collision resolution ability over all baselines. ↑:higher values are better; ↓: lower values are better. Bold and underlined values indicate the best and second-best performers in each category, respectively. Lgrad and LTD
+> represent the gradient loss terms; WD denotes the weighted distance metric in pose space (see Sec. 5.2). Method Lgrad LTD WD HwC PROX [20] SCC ↑PDR ↑MVD ↓SCC ↑PDR ↑MVD ↓
+> Torch-mesh-isect [63] 0.100 0.357 0.041 0.110 0.291 0.012 Classifier baseline 0.056 0.081 0.002 0.170 0.204 0.006
+> COAP [41] 0.446 0.832 0.106 0.560 0.775 0.016 VolumetricSMPL [42] 0.250 0.541 0.068 0.333 0.699 0.013
+> Ours ✓✓0.958 0.982 0.059 0.800 0.893 0.021 Ours (w/o WD) ✓0.960 0.987 0.067 0.850 0.918 0.036 Ours ( Lgrad )✓✓0.862 0.917 0.062 0.520 0.615 0.019 Ours ( Lgrad +LTD )✓✓✓0.870 0.922 0.062 0.670 0.743 0.022 Ours (w/o grad term) ✓0.068 0.081 0.458 0.050 0.106 0.431
+
+Baselines. We consider the following baselines: 1) Torch-mesh-isect [63]: An open-source tool developed specifically for SMPL-based collision resolution. 2) Classifier-baseline: Inspired by N-Penetrate [58], we replace the collision con-straint function with the probability of being a non-colliding mesh predicted by a classifier using the cross-entropy loss. More details are deferred to the sup-plementary. 3) COAP [41]: a volumetric occupancy-field approach that treats collision resolution as a sampling-based occupancy penalty in the 3D workspace rather than a direct pose-space constraint. 4) VolumetricSMPL [42]: a follow-up volumetric body representation that extends COAP by modeling the human body as a signed distance field (SDF) instead of an occupancy field. 
+
+Implementation Details. For optimization, we use the standard SLSQP method implemented in SciPy [64]. The network is a 12-layer MLP with a hidden dimen-sion of 512. We train it for 200 epochs, where we adopt active learning [58] to collect boundary samples every 40 epochs. The entire training process requires around 17 hours on a single GPU. For the loss term, the default ∆t in Equation 7 is 0.01. Inference takes 7.26 seconds per pose on average. 
+
+Quantitative Results. As shown in Tab. 1, our method substantially outper-forms all baselines in both success rate and penetration depth reduction. The classifier baseline, which also performs latent-space optimization, achieves a very low success rate, highlighting that our proposed neural field is a crucial compo-nent for effective collision handling within such frameworks. Similarly, Torch-mesh-isect [63] applies triangle-level penetration losses in pose optimization, but its local face-level loss formulation [49] prevents it from resolving deep self-penetrations, often causing it to converge to local minima and fail to move the 12 Z. Li et al.  
+
+> Fig. 3: Qualitative comparison with baseline methods on three cases (left to right). Within each case, results are shown from left to right: Original input, Ours, COAP [41], and Torch-mesh-isect [63]. Our method consistently removes self-collisions. Insets high-light representative local self-collision regions. Torch-mesh-isect fails to resolve the col-lisions in all three cases, while COAP almost resolves the first case but still leaves minor residual intersections.
+
+mesh sufficiently. Among the baselines, COAP [41] attains the highest SCC and PDR, but its performance degrades in challenging cases with severe penetra-tions. Most notably, our method increases the success rate on the HwC dataset from 0.446 to 0.958 while achieving a significantly lower MVD, which is also re-flected in Fig. 5. This indicates that our formulation resolves self-collisions with smaller pose deviations, empirically approximating minimal-distance corrections to collision-free configurations. 
+
+Qualitative Results. Fig. 3 presents qualitative comparisons with baseline collision-handling methods. Across the three examples, our method consistently removes the highlighted self-intersections, producing visually collision-free configurations in the inset regions. In contrast, Torch-mesh-isect fails to resolve the collisions in all three cases, which is consistent with its low success rate reported in Tab. 1. COAP is able to reduce penetrations in some cases and can nearly eliminate the collision in relatively simple scenarios (e.g., the first case), although small residual intersections often remain. This behavior is also reflected in Tab. 1, where COAP achieves relatively high PDR but still falls short of fully resolving collisions in some cases. In more complex cases involving multiple body contacts (e.g., the second and third cases), COAP is unable to remove the intersections. Overall, our method achieves more reliable collision resolution while preserving the overall pose structure of the input. 
+
+5.2 Ablation Study 
+
+Choices of dSMPL (θ, θ′). We ablate the choice of the pose distance metric. We compare the standard L2 distance: 
+
+dstd (θ, θ′) = 1
+
+J
+
+> J
+
+X
+
+> j=1
+
+|| θj − θ′ 
+
+> j
+
+|| 2, (10) PoseShield 13 Time  Time  
+
+> Fig. 4: Our method resolves the collision in the original samples while preserving the overall motion structure. The red ones are original samples, and the green ones are optimized ones.
+
+against a weighted L2 distance: 
+
+dWD (θ, θ′) = 1
+
+PJj=1 wjJX
+
+> j=1
+
+wj || θj − θ′ 
+
+> j
+
+|| 2, (11) where θj ∈ R6 denotes the 6D parameters of the j-th joint, and wj represents the weight assigned based on the size of the subtree rooted at joint j within the kinematic hierarchy. We refer to the former as “Ours w/o WD” (Weighted Distance). As shown in Tab. 1, while “Ours w/o WD” achieves slightly higher collision resolution rates, it suffers from a higher Mean Vertex Distance (MVD). In contrast, our full model with WD significantly reduces MVD from 0.067 to 
+
+0.059 . This reduction is achieved by penalizing rotations of proximal joints more heavily, as their perturbations propagate through the kinematic hierarchy and cause large-scale displacements of downstream subtrees. 
+
+LT D is sufficient. As shown in Tab. 1, using LT D alone yields the best overall performance across all metrics. We conjecture that incorporating Lgrad intro-duces second-order derivatives during optimization, which increases training in-stability and hinders convergence. In contrast, LT D effectively enforces the local geometric consistency. The variant that omits both loss terms fails to approxi-mate a solution to the Eikonal equation, leading to poor performance. 
+
+Tradeoff between SCC and MVD. As shown in Fig. 5b, increasing the constraint margin Cl in Equation 2 leads to higher SCC while also increasing MVD. This reflects the inherent trade-off between collision resolution and geometric fidelity, as also observed in [58]. Importantly, our method provides a controllable mecha-nism to navigate this trade-off simply by tuning Cl. As illustrated in Fig. 5b, our approach consistently achieves higher SCC at the same or lower level of MVD compared with baseline methods, indicating a more favorable trade-off between collision removal and motion preservation. 14 Z. Li et al. 0.0 0.5 1.0 1.5 2.0 2.5 3.0 Total penetration depth      
+
+> 0.35
+> 0.30
+> 0.25
+> 0.20
+> 0.15
+> 0.10
+> 0.05
+> 0.00 Collision field value
+> Regression (Pearson r = -0.853)
+> (a) Correlation between gvalues and PD. 0.007
+> 0.012
+> 0.018
+> 0.025
+> 0.033
+> 0.039
+> 0.059
+> 0.114
+> 0.180
+> MVD
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> SCC
+> Ours
+> COAP
+> torch-mesh-isect
+> VolumetricSMPL (b) Trade-off between SCC and MVD.
+
+Fig. 5: Analysis of the neural collision constraint. (a) Our neural field g(θ) shows a strong correlation with physical penetration depth (PD). We sample 500 instances for visualization. (b) The threshold Cl provides a controllable trade-off between col-lision resolution success (SCC) and geometric fidelity (MVD). The points correspond to Cl ∈ {− 0.2, −0.1, −0.05 , 0, 0.05 , 0.1, 0.2, 0.4, 0.6}, ordered left to right. Performance from baseline methods is also included for reference. 
+
+Correlation between g and penetration depth. Our method can learn the degree of collision, even though the dataset provides only binary collision labels. While this latent function is not directly visualizable, Fig. 5a shows that its values are correlated with the total penetration depth on the training set. 
+
+5.3 Application: Human Motion Sequence 
+
+We obtain the trained g from Sec. 5.1 and show that g can be robustly gener-alized to human motion sequences. We utilize a pre-trained motion model [60] as the generative prior f and select motion sequences with self-penetration from a motion dataset [1]. Examples are presented in Fig. 4. Our method effectively resolves collisions while preserving the overall motion and avoiding noticeable artifacts. More quantitative results are provided in the supplementary material. 
+
+## 6 Conclusion 
+
+We presented PoseShield, a neural collision constraint defined directly in SMPL pose space for post-hoc self-collision resolution. By establishing a connection between collision handling and the Eikonal equation, we provide theoretical grounding for neural constraint learning. In particular, we showed that Eikonal-regularized constraint functions satisfy the LICQ, ensuring the feasibility and nu-merical stability of constrained optimization in the pose space. The same learned constraint further serves as a generator-agnostic post-hoc corrector for human motion sequences, requiring no retraining of the underlying motion model. Ex-periments validate that PoseShield significantly improves collision resolution suc-cess rates compared to prior state-of-the-art approaches. PoseShield 1
+
+# PoseShield: Neural Collision Fields for Human Self-Collision Resolution 
+
+# — Supplementary Material — 
+
+## A Humans with Collisions Dataset 
+
+Fig. 6: Twenty randomly selected samples from the HwC Dataset. The sam-ples are split into two example sets with ten poses each. Red indicates poses with collisions, while green denotes collision-free poses. 
+
+Human Pose Collision Labeling. In human pose representations, self-intersections frequently appear in regions such as the underarm or behind the knees. Although these are technically self-collisions, they primarily arise from the well-known ar-tifacts of linear blend skinning (LBS) and do not affect the perceived physical plausibility of the motion. In contrast, collisions that truly degrade motion re-alism typically involve interactions across distinct body parts (e.g., hand–body, hand–leg, or left–right leg contacts). Therefore, when detecting collisions, we exclude triangle–triangle pairs whose topological geodesic distance is less than 
+
+50 , as these are considered local artifacts rather than meaningful penetrations. This consideration has been detailed in SMPL-X [49]. For the remaining pairs, a human pose is labeled as “colliding” if any self-collision is detected; otherwise, it is labeled as “non-colliding.” 
+
+Dataset. To ensure that the synthesized colliding poses remain close to the nat-ural distribution of valid human poses, we use MotionFix [1] as a seed set of meshes and augment it by adding Gaussian noise and applying Gram–Schmidt orthonormalization to generate self-intersecting samples. Specifically, we adopt the SMPL [37] parametric space without global translation or global rotation, and convert all remaining joint rotations to the 6D representation. In total, the resulting latent space has 21 ×6 = 126 dimensions. Using this strategy, we obtain a dataset of 931 k poses. Among them, 531 k poses (57%) exhibit self-collisions, while 399 k poses (43%) are collision-free. The dataset is split into training and 2 Z. Li et al. 0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 
+
+> Total Penetration Depth
+> 0
+> 5000
+> 10000
+> 15000
+> 20000
+> 25000
+> 30000
+> 35000
+> Frequency
+
+Fig. 7: Penetration depth distribution of the HwC dataset. Only self-colliding samples are included in the statistics. Non-colliding poses are excluded. 
+
+test sets with a 9 : 1 ratio. We further analyze the penetration depth statis-tics of the generated poses. The distribution of penetration depth is shown in Fig. 7, illustrating a wide range of collision severities in the dataset. However, even with only 10% of the data assigned to the test split, evaluating collision resolution performance for all baselines remains computationally expensive. Fol-lowing the practice of previous work [41], we randomly sample a subset of 500 
+
+self-penetrating meshes from the HwC test set for benchmarking. Examples of the HwC dataset are shown in Fig. 6, which contains a diverse set of plausible human poses. 
+
+## B Theoretical Analysis 
+
+In this section, we provide a self-contained theoretical analysis. We first present the rigorous constrained-optimization formulation of SMPL self-collision resolu-tion (Sec. B.1). Next, we show that a pose-space signed distance function (SDF) to the collision boundary can be defined (Sec. B.2). Under idealized assumptions on the neural collision field g (Sec. B.3), we establish convergence guarantees for the resulting optimization (Sec. B.4). The central practical contribution is to design a training objective for g that encourages these assumptions to hold ap-proximately; we provide theoretical justification for the Eikonal regularization (Sec. B.5). PoseShield 3
+
+B.1 Problem Formulation 
+
+An SMPL mesh [37, 49] is defined by shape parameters β ∈ Rdβ and pose pa-rameters θ ∈ Rdθ . Given (β, θ), the SMPL function produces a mesh: 
+
+X = M(β, θ),
+
+where the mesh connectivity T is fixed and defined by the SMPL function itself. Since global translation and rotation don’t affect self-collisions, we ignore them and let θ ∈ RJ×6 represent the 6D rotations [75] of the J joints. We assume the shape parameter β is fixed and only optimize the pose parameter θ.
+
+Definition 1 ( 6D pose domain). For one joint, write the 6D representation as r = ( a, b) ∈ R3 × R3. Its non-degenerate domain is 
+
+D := 
+
+
+
+(a, b) ∥a∥2 > 0, b − (u⊤b)u 2 > 0, u = a
+
+∥a∥2
+
+
+
+. (12) 
+
+On D, the Gram–Schmidt map π6D : D → SO (3) is 
+
+π6D (r) = u v u × v, u = a
+
+∥a∥2
+
+, v = b − (u⊤b)u
+
+∥b − (u⊤b)u∥2
+
+. (13) In our setting, we restrict the 6D coordinates to a bounded region 
+
+ΩB := [ −B, B ]J×6 ⊂ RJ×6, B > 1. (14) Thus the optimized pose variable is the concatenated 6D vector 
+
+θ = ( r1, . . . , rJ ) ∈ Θ := DJ ∩ ΩB . (15) The associated output of the Gram–Schmidt map is not 6D; it is a tuple of rotation matrices (π6D (r1), . . . , π 6D (rJ )) ∈ SO (3) J , which is what SMPL uses to produce the mesh. 
+
+Definition 2 (Extended exact collision indicator). For a fixed shape β,we define the exact collision indicator on the full bounded pose box as a map 
+
+ιβ : ΩB → {− 1, +1 }. For non-degenerate poses θ ∈ Θ, it is obtained by decoding the mesh X = M(β, θ) and applying an exact mesh self-intersection test, e.g., a classical collision detector such as FCL [47]: 
+
+ιβ (θ) := 
+
+(
+
+ι M(β, θ), θ ∈ Θ, 
+
+−1, θ ∈ ΩB \ Θ, θ ∈ ΩB . (16) Here ιβ (θ) = −1 denotes a colliding or degenerate input, and ιβ (θ) = +1 
+
+denotes a non-degenerate collision-free pose. The exact collision-free pose set for the fixed shape β is 
+
+Fβ := {θ ∈ ΩB | ιβ (θ) = +1 }. (17) 4 Z. Li et al. 
+
+Thus all degenerate inputs in ΩB \ Θ are treated as infeasible and are outside 
+
+Fβ by definition. Given a self-colliding SMPL configuration (β, θ0) with ιβ (θ0) = −1, our goal is to find a corrected pose θ whose decoded mesh is collision-free while remaining close to the original configuration. Let dSMPL (·, ·) denote a pose discrepancy measure for a fixed shape. We formulate SMPL self-collision resolution as 
+
+θ⋆ = arg min  
+
+> θ∈Θ
+
+dSMPL (θ, θ0) subject to θ ∈ F β . (18) In practice, the starting pose θ0 is a normalized 6D rotation, hence θ0 ∈ [−1, 1] J×6.
+
+B.2 Indicator-Induced Signed Distance Function 
+
+We show that the collision indicator induces an SDF in ΩB .
+
+Definition 3 (Indicator-induced pose-space SDF). The extended exact col-lision indicator induces the infeasible set 
+
+Cβ := ι−1 
+
+> β
+
+(−1) = ΩB \ F β . (19) 
+
+For any nonempty set A ⊂ ΩB , define 
+
+dist( θ, A ) := inf  
+
+> y∈A
+
+∥θ − y∥2, θ ∈ ΩB . (20) 
+
+When both Fβ and Cβ are nonempty, we define the indicator-induced relative signed distance function by 
+
+ϕβ (θ) := dist  θ, Cβ
+
+ − dist  θ, Fβ
+
+, θ ∈ ΩB . (21) 
+
+Theorem 3 (Properties of the indicator-induced SDF). The function 
+
+ϕβ in (21) is well-defined on ΩB and satisfies 
+
+(
+
+ϕβ (θ) ≥ 0, θ ∈ F β ,ϕβ (θ) ≤ 0, θ ∈ C β . (22) 
+
+Moreover, ϕβ is Lipschitz continuous and differentiable almost everywhere. At differentiability points away from the zero level set where the relevant closest point is unique, it satisfies the Eikonal property 
+
+∥∇ ϕβ (θ)∥2 = 1 . (23) 
+
+Proof. By the nonemptiness condition in Definition 3, the two distance-to-set terms are finite on ΩB . The sign property follows from dist( θ, Fβ ) = 0 for 
+
+θ ∈ F β and dist( θ, Cβ ) = 0 for θ ∈ C β . Each distance-to-set function is Lip-schitz continuous, so ϕβ is Lipschitz continuous; by Rademacher’s theorem, it is differentiable almost everywhere. Finally, on either side of the zero level set, 
+
+ϕβ locally reduces to either dist( ·, Cβ ) or − dist( ·, Fβ ). The standard Euclidean distance function satisfies ∇ dist( θ, A ) = ( θ − p)/∥θ − p∥2 at differentiability points with unique closest point p ∈ A, and hence has unit gradient norm. This proves the Eikonal property in (23). PoseShield 5
+
+Suppose the SMPL distance is simply the Euclidean distance in the 6D pose coordinates, 
+
+dSMPL (θ, θ0) = ∥θ − θ0∥22. (24) For an infeasible pose θ0 ∈ C β , the optimal value of Eq. (18) equals the distance to the closure Fβ [39] 
+
+inf 
+
+> θ∈F β
+
+∥θ − θ0∥2 = min 
+
+> θ∈F β
+
+∥θ − θ0∥2, (25) which is attained in Fβ (and then solves Eq. (18)) when Fβ is closed. 
+
+B.3 Assumptions on the Neural Collision Field 
+
+The exact SDF ϕβ is intractable in the high-dimensional space ΩB . To obtain a differentiable surrogate, we learn a neural collision field on the full bounded 6Dbox 
+
+gβ : ΩB → R. (26) Since the shape is clear from context, we denote it by g(θ). For the following formulation, we state three idealized assumptions on g.
+
+Assumption 4 (Smoothness) The learned field is twice continuously differ-entiable on the bounded domain, with Lipschitz-continuous gradient and Hessian: 
+
+g ∈ C2(ΩB ). (27) This is satisfied by a multi-layer perceptron (MLP) with standard Softplus ac-tivations, which is in fact smooth. 
+
+Assumption 5 (Feasibility consistency) The non-negative superlevel set of the learned field exactly recovers the collision-free set: 
+
+F = {θ ∈ ΩB | g(θ) ≥ 0}. (28) 
+
+Equivalently, for non-degenerate inputs, 
+
+ιβ (θ) = +1 ⇒ g(θ) ≥ 0, ιβ (θ) = −1 ⇒ g(θ) < 0, θ ∈ Θ,  (29) 
+
+and all degenerate inputs are also infeasible: 
+
+θ ∈ ΩB \ Θ ⇒ g(θ) < 0. (30) 
+
+Thus g ≥ 0 denotes collision-free poses, while g < 0 denotes colliding or degen-erate inputs. 
+
+Assumption 6 (Approximate Eikonal property) There exists a constant 
+
+δ ∈ [0 , 1) such that the learned field satisfies 
+
+1 − δ ≤ ∥∇ θ g(θ)∥2 ≤ 1 + δ, ∀θ ∈ ΩB . (31) 6 Z. Li et al. 
+
+This assumption makes g an approximate signed distance function (SDF) in pose space: its gradient is non-vanishing near the collision boundary, and |gβ (θ)| can be interpreted as an approximate distance to the learned boundary g(θ) = 0 .With this surrogate constraint, the collision-resolution problem becomes 
+
+θ⋆ = arg min  
+
+> θ∈Θ
+
+dSMPL (θ, θ0) subject to g(θ) ≥ 0. (32) The training objective for g is designed to encourage these assumptions to hold approximately. 
+
+B.4 Convergence Analysis 
+
+Assuming a g that satisfies the assumptions above, we establish the convergence properties of the SLSQP algorithm in Eq. (32). For simplicity, the subsequent analysis assumes that all iterates θk remain bounded within ΩB . Throughout, we take the squared-Euclidean objective dSMPL (θ, θ0) = ∥θ − θ0∥2 and assume the minimizer is interior to ΩB and non-degenerate, so that g ≥ 0 is the only active constraint. We recall that θ0 ∈ [−1, 1] J×6. If necessary, B could be expanded to a sufficiently large value, such as 100 , yielding analogous results. 
+
+Theorem 4 (Global Convergence and Complexity). Consider problem (32) 
+
+under Assumptions 4, 5 and 6. Then: 
+
+(i) Global LICQ: The constraint qualification holds globally on ΩB .
+
+(ii) Global Convergence: From any starting pose θ0 ∈ ΩB , a standard line-search SQP method with an ℓ1 merit function (and sufficiently large penalty parameter) produces iterates whose every accumulation point is a first-order KKT point (θ⋆, λ ⋆).
+
+(iii) Iteration Complexity: An ε-approximate KKT point—satisfying 
+
+2( θk−θ0)−λk∇θ g(θk) ≤ ε, | min(0 , g (θk)) | ≤ ε, λk ≥ 0, |λk g(θk)| ≤ ε, 
+
+is no harder to obtain than in unconstrained smooth optimization, whose worst-case first-order complexity is O(ε−2).Proof. We establish the three claims in sequence. 
+
+Part (i): Global LICQ. For a single inequality constraint  g(θ) ≥ 0, LICQ requires that the gradient of the active constraint be nonzero. The approximate Eikonal assumption gives 
+
+∥∇ θ g(θ)∥ ≥ 1 − δ > 0 (since δ < 1) 
+
+for all  θ ∈ ΩB , so LICQ holds strictly and globally. 
+
+Part (ii): Global Convergence. We use SQP with the  ℓ1 exact penalty merit function 
+
+ϕ(θ; μ) = dSMPL (θ, θ0) + μ max(0 , −g(θ)) ,PoseShield 7
+
+where  μ > 21−δ diam( ΩB ) is a penalty parameter. At each iteration, a search di-rection  dk is obtained by solving a QP subproblem that linearizes the constraint, and a line search on  ϕ ensures progress. The primary failure mode in nonconvex settings is stagnation at an infeasible stationary point : a point  θ where  g(θ) < 0 but  ∇θ g(θ) = 0 . At such a point, the linearized feasibility condition 
+
+g(θk) + ∇θ g(θk)⊤d ≥ 0
+
+reduces to the false statement  g(θk) ≥ 0, so no direction  d can improve feasibility in the linear model and the QP subproblem degenerates. The approximate Eikonal assumption eliminates this failure mode. At any infeasible point  θ with  g(θ) < 0, the direction 
+
+d = t ∇θ g(θ), t > 0,
+
+satisfies 
+
+g(θ) + ∇θ g(θ)⊤d = g(θ) + t ∥∇ θ g(θ)∥2 ≥ g(θ) + t(1 − δ)2,
+
+which is nonnegative for 
+
+t ≥ |g(θ)|
+
+(1 − δ)2 .
+
+Thus, the linearized constraint always admits a feasible direction and the QP subproblem is always strictly feasible. Since  ∥∇ θ dSMPL ∥ = 2 ∥θ−θ0∥ ≤ 2 diam( ΩB ), the choice of  μ gives  ∥∇ θ ϕ(θ; μ)∥ ≥ 
+
+μ(1 − δ) − 2 diam( ΩB ) > 0 whenever  g(θ) < 0; hence  ϕ(·; μ) has no infeasible stationary point and is exact. Moreover, 
+
+dSMPL (θ, θ0) = ∥θ − θ0∥2
+
+is coercive, so the sublevel set 
+
+{θ : ϕ(θ; μ) ≤ ϕ(θ0; μ)}
+
+is compact and the iterates  {θk} remain bounded. With (i) bounded iterates, (ii) Lipschitz continuous gradients and Hessians, and (iii) uniformly full-rank constraint Jacobian 
+
+∥∇ θ g(θ)∥ ≥ 1 − δ > 0 for all θ ∈ ΩB ,
+
+The hypotheses of the standard SQP global convergence theorem are satisfied. The line search ensures sufficient decrease of  ϕ at each iteration, and every limit point of  {θk} is a first-order KKT point. 
+
+Part (iii):  O(ϵ−2) Iteration Complexity. In unconstrained nonconvex optimization with  L-Lipschitz gradient, gradient descent requires at most  O(ϵ−2)
+
+iterations to find an  ϵ-stationary point. 8 Z. Li et al. 
+
+In constrained optimization, the complexity additionally depends on the con-ditioning of the constraint Jacobian 
+
+J(θ) = ∇θ g(θ)⊤ ∈ R1×N .
+
+Its minimum singular value  σmin (J(θ))  governs how effectively the solver projects steps onto the feasible region. If  σmin → 0, the penalty parameter  μ must grow as  O(1 /σ min ) to enforce feasibility, step sizes shrink, and complexity degrades. Under the approximate Eikonal assumption, 
+
+J(θ)J(θ)⊤ = ∥∇ θ g(θ)∥2 ≥ (1 − δ)2,
+
+so 
+
+σmin (J(θ)) ≥ 1 − δ > 0 for all θ ∈ ΩB .
+
+The constraint Jacobian therefore has a singular value bounded uniformly away from zero over the entire domain. Consequently, the penalty parameter  μ remains 
+
+O(1 /(1 − δ)) , and the constrained problem inherits the worst-case evaluation complexity of unconstrained smooth optimization. 
+
+Theorem 5 (Local Convergence). Consider problem (32) under Assump-tions 4, 5 and 6. Suppose the initial pose θ0 is infeasible ( g(θ0) < 0). Let θ⋆ be a local minimizer. Then: 
+
+(i) LICQ and Strict Complementarity: LICQ holds at θ⋆, and the unique KKT multiplier satisfies 0 < 21+ δ ∥θ⋆ − θ0∥ ≤ λ⋆ ≤ 21−δ ∥θ⋆ − θ0∥.
+
+(ii) SOSC and Fast Convergence: Define κ ≜ λ⋆∥∇ 2 
+
+> θ
+
+g(θ⋆)∥2. If κ < 2, then the full Lagrangian Hessian is positive definite (implying Second-Order Suf-ficient Conditions), and SQP with exact Hessian converges locally to (θ⋆, λ ⋆)
+
+at a quadratic rate. A quasi-Newton (BFGS) variant satisfying the Dennis– Moré condition converges superlinearly. Proof. Part (i): LICQ and Strict Complementarity. The approximate Eikonal assumption gives 
+
+∥∇ θ g(θ⋆)∥ ≥ 1 − δ > 0,
+
+so LICQ holds at  θ⋆.Since  θ0 is strictly infeasible ( g(θ0) < 0) and the unconstrained minimizer of  dSMPL (θ, θ0) is  θ0 itself, any constrained local minimizer must lie on the boundary  g(θ⋆) = 0 . Moreover,  θ⋆̸ = θ0 because  θ0 is infeasible while  θ⋆ is feasible. Because LICQ holds, the KKT conditions are necessary at  θ⋆. The station-arity condition 
+
+∇θ L(θ⋆, λ ⋆) = 0 
+
+requires 
+
+2( θ⋆ − θ0) = λ⋆∇θ g(θ⋆).PoseShield 9
+
+Taking norms on both sides gives 
+
+2∥θ⋆ − θ0∥ = |λ⋆| ∥∇ θ g(θ⋆)∥.
+
+Using 
+
+1 − δ ≤ ∥∇ θ g(θ⋆)∥ ≤ 1 + δ, 
+
+we obtain 
+
+|λ⋆|(1 − δ) ≤ 2∥θ⋆ − θ0∥ ≤ | λ⋆|(1 + δ).
+
+Since  θ⋆̸ = θ0, we have  ∥θ⋆ − θ0∥ > 0, which implies  |λ⋆| > 0. Combined with dual feasibility  λ⋆ ≥ 0, this yields 
+
+0 < 21 + δ ∥θ⋆ − θ0∥ ≤ λ⋆ ≤ 21 − δ ∥θ⋆ − θ0∥,
+
+establishing strict complementarity. 
+
+Part (ii): SOSC and Convergence. The Lagrangian Hessian with respect to  θ is 
+
+∇2 
+
+> θθ
+
+L(θ⋆, λ ⋆) = ∇2 
+
+> θθ
+
+dSMPL (θ⋆, θ0) − λ⋆∇2 
+
+> θ
+
+g(θ⋆) = 2 I − λ⋆∇2 
+
+> θ
+
+g(θ⋆),
+
+where the  2I term comes from 
+
+dSMPL (θ, θ0) = ∥θ − θ0∥2.
+
+For any nonzero  v ∈ RN , the spectral norm bound gives 
+
+|v⊤∇2 
+
+> θ
+
+g(θ⋆)v| ≤ ∥∇ 2 
+
+> θ
+
+g(θ⋆)∥2 ∥v∥2,
+
+and hence 
+
+v⊤∇2 
+
+> θθ
+
+L(θ⋆, λ ⋆)v ≥ 2∥v∥2 − λ⋆∥∇ 2 
+
+> θ
+
+g(θ⋆)∥2∥v∥2 = (2 − κ)∥v∥2.
+
+When  κ < 2, the coefficient  2 − κ > 0, so the full Lagrangian Hessian is pos-itive definite on all of  RN . Since positive definiteness on  RN implies positive definiteness on any subspace—in particular on the tangent space 
+
+w : ∇θ g(θ⋆)⊤w = 0 ,
+
+the second-order sufficient condition holds. 
+
+Convergence. Because the constraint is active at  θ⋆ with  λ⋆ > 0, the problem locally reduces to the equality-constrained problem 
+
+g(θ) = 0 .
+
+SQP applied to this equality-constrained problem is equivalent to Newton’s method on the KKT system  F (θ, λ ) = 0 , where 
+
+F (θ, λ ) = 2( θ − θ0) − λ ∇θ g(θ)
+
+g(θ)
+
+!
+
+, J(θ, λ ) = 2I − λ∇2 
+
+> θ
+
+g(θ) −∇ θ g(θ)
+
+∇θ g(θ)⊤ 0
+
+!
+
+.10 Z. Li et al. 
+
+At  (θ⋆, λ ⋆), the KKT matrix is nonsingular: LICQ ensures  ∇θ g(θ⋆)̸ = 0 , and SOSC ensures invertibility of the reduced Hessian block. Since  F is continuously differentiable with a Lipschitz Jacobian by Assumption 4, the classical New-ton convergence theorem guarantees local quadratic convergence: there exist a neighborhood  N of  (θ⋆, λ ⋆) and a constant  M > 0 such that 
+
+θk+1 − θ⋆
+
+λk+1 − λ⋆
+
+
+
+≤ M
+
+θk − θ⋆
+
+λk − λ⋆
+
+ 2
+
+.
+
+In practice, SLSQP uses a BFGS approximation of the Lagrangian Hessian. Because 
+
+∇2 
+
+> θθ
+
+L(θ⋆, λ ⋆)
+
+is positive definite when  κ < 2, the BFGS updates maintain positive definiteness and, under the Dennis–Moré condition, yield superlinear convergence. The convergence guarantees above depend critically on the approximate Eikonal property (Assumption 6). We next provide a theoretical justification for the loss term used to encourage this property during training. 
+
+B.5 Theoretical Justification of the Eikonal Loss 
+
+To support our Eikonal regularization Lgrad , we demonstrate that minimizing 
+
+Lgrad can provide a volume bound of regions where Assumption 6 fails. For analysis, we assume a uniform probability measure over ΩB . Recall that: 
+
+Lgrad = Eθ∼ΩB
+
+h
+
+∥∇ g(θ)∥ − 1
+
+i
+
+. (33) 
+
+Proposition 2 (Volume Bound on Approximate Eikonal Failure). Let 
+
+Sδ denote the region where the approximate Eikonal condition fails for a given margin δ ∈ (0 , 1) :
+
+Sδ = θ ∈ ΩB ∥∇ θ g(θ)∥ − 1 > δ .
+
+If the Eikonal regularization satisfies Lgrad ≤ ϵ, then the probability measure of this failure region is bounded by: 
+
+P(θ ∈ Sδ ) ≤ ϵδ .
+
+Proof. Define  X(θ) = |∥∇ g(θ)∥ − 1| on  ΩB with the uniform measure. Since 
+
+{X > δ } ⊆ { X ≥ δ}, we have 
+
+P(X > δ ) ≤ P(X ≥ δ).
+
+Markov’s inequality then gives 
+
+P(X > δ ) ≤ P(X ≥ δ) ≤ E[X]
+
+δ = Lgrad 
+
+δ ≤ ϵδ .PoseShield 11 
+
+## C The Gap between Theory and Practice 
+
+The convergence guarantees in Sec. B.4 rest on idealized assumptions that are only approximately satisfied in practice. We discuss the main discrepancies below and their implications for the implementation. 
+
+Smoothness (Assumption 4). The smoothness of an MLP is determined by its activation function. Softplus activations yield a C∞ network, while ReLU and ELU [8] are smooth almost everywhere. We observe no significant performance difference among these choices in practice. 
+
+Feasibility Consistency (Assumption 5) Failure. As indicated in Sec. E, the ac-curacy of collision indication is 93 .9% on the test set. 
+
+Approximate Eikonal (Assumption 6) Failure. As stated in Proposition 2, min-imizing Lgrad bounds the volume of the region where Assumption 6 fails, but exact satisfaction of this assumption is not guaranteed. Fig. 8 reports the empir-ical distribution of ∥∇ g∥ on the test set: 95% of samples satisfy the approximate Eikonal property with δ = 0 .1, suggesting the assumption holds for the vast majority of poses encountered in practice. 0.8 0.9 1.0 1.1 1.2 Gradient Norm 02000 4000 6000 8000 10000 12000 14000 Frequency 
+
+Fig. 8: Empirical verification of the approximate Eikonal property on the test set ( ≈ 92 k samples). 0.5% outliers on both sides are removed. 95% of the samples satisfy the approximate Eikonal property with δ = 0 .1.
+
+Sampling. The analysis in Proposition 2 assumes a uniform distribution over 
+
+ΩB . In practice, samples are drawn from a data-induced distribution: we add Gaussian noise to existing motion data and project the perturbed poses to valid 6D rotations (Sec. A). This concentrates samples in regions of high practical relevance, though it does not exactly match the uniform measure assumed in the analysis. 12 Z. Li et al. 
+
+Network Input Pre-processing. Our training data consists solely of normalized 6D rotations (Sec. A), providing poor coverage of the full domain ΩB . However, unnormalized poses can arise during optimization. To keep inputs in-distribution, we apply Gram–Schmidt orthonormalization to all inputs to g, so the network effectively computes ˜g(θ) := g(π6D(θ)) . This imposes the constraint that ˜g is constant on the level sets of π6D :
+
+˜g(θ1) = ˜ g(θ2), ∀ θ1, θ2 ∈ D s.t. π6D (θ1) = π6D(θ2), (34) restricting the effective input domain of g to SO (3) J and potentially limiting its approximation capacity over the full ΩB .
+
+## D Limitations and Future Work 
+
+Currently, distances between poses and motions are measured solely using ge-ometric metrics. In practical applications, however, users may care more about semantic fidelity. For example, whether a hand is exactly touching the head can be important in certain animations. For such applications, integrating our method with semantic distance metrics would be a valuable direction for future work. Our method can be seamlessly extended to parametric human models beyond SMPL, such as the Momentum Human Rig [14]. However, the current formulation assumes a fixed body shape. This assumption is sufficient for some applications. For example, in digital content creation, a character’s body shape is typically fixed, making it feasible to train the model once and then apply it to that character in diverse scenarios. Nevertheless, other applications may require the learned constraint function to generalize across a range of body shapes. Ex-tending our method to handle varying body shapes is an important direction for future work. 
+
+## E Our Model as a Classifier 
+
+In principle, the sign of g indicates the collision status of a sample. Therefore, our method can also be used as a collision detector. We use the following metrics: 1. Prediction accuracy (ACC). It measures whether the method can successfully predict the collision label. 2. False negative rate (FNR). The rate at which a self-colliding mesh is pre-dicted as collision-free. The results are as shown in Table 2. Our method can serve as a classifier, achiev-ing performance comparable to that of a standard binary classifier. 
+
+## F Human Motion Collision Resolution: Implementation Details 
+
+In practice, to maintain the visual proximity of the optimized motion to the source motion, we define a motion distance term dmotion that operates on the pose PoseShield 13 
+
+Table 2: Comparison of collision detection on our pose dataset. ↑ indicates higher values are better, ↓ indicates lower values are better. Method ACC ↑ FNR ↓
+
+Classifier-baseline 0.931 0.035 Ours 0.939 0.031 
+
+representation and the corresponding SMPL joints. Given a motion sequence 
+
+m = [ θ0, θ1, · · · , θT ] and the source motion  ms = [ θ0
+
+> s
+
+, θ1
+
+> s
+
+, · · · , θTs ], we preserve the proximity between m and ms in the pose-parameter space using 
+
+Lfeat = 1
+
+T + 1 
+
+> T
+
+X
+
+> t=0
+
+∥θt − θts∥22. (35) To improve motion fidelity in 3D space, we convert each frame  θt into SMPL joint positions. Specifically, let  pt = SMPL J (θt) and  pts = SMPL J (θts), where 
+
+SMPL J (·) outputs 3D joints via SMPL forward kinematics. We supervise both joint configurations and their temporal changes: 
+
+Lpos = 1
+
+T + 1 
+
+> T
+
+X
+
+> t=0
+
+∥pt − pts∥22, (36) 
+
+Lvel = 1
+
+T 
+
+> T−1
+
+X
+
+> t=0
+
+∥(pt+1 − pt) − (pt+1  
+
+> s
+
+− pts)∥22. (37) 
+
+dmotion is defined as a weighted combination of the above losses: 
+
+dmotion (m, ms) = Lfeat + λjoint Lpos + λvel Lvel . (38) Here, Lfeat encourages frame-wise similarity in the pose-parameter space, while 
+
+Lpos and Lvel preserve joint-level fidelity and temporal consistency in 3D. By default, we set λjoint to 1 and λvel to 0.1.
+
+## G Details of Baseline Implementation 
+
+VolumetricSMPL We follow the official implementation and adopt the hyperpa-rameters provided in the paper. Since only pretrained weights for SMPL-X are released, we map the joint rotations in the test set from SMPL to the correspond-ing SMPL-X joints and evaluate collisions under the SMPL-X model for a fair comparison. Samples that exhibit self-collisions in SMPL but not in SMPL-X (140 out of 500 in the HwC benchmark set) are excluded from the evaluation. 14 Z. Li et al. 
+
+COAP We follow the official implementation. Self-collision resolution is imple-mented in tutorials/untangle_body.py : body pose is optimized with SGD to minimize the learned self-penetration loss (COAP) plus a pose prior. We use the hyperparameters provided in the repository (learning rate, pose prior weight, and self-penetration weight). Optimization stops when the weighted self-penetration loss falls below the script’s default threshold or when the maximum number of iterations (200) is reached. 
+
+Torch-mesh-isect Torch-mesh-isect [63] can be found on GitHub. Collision han-dling is implemented through the file examples/batch_smpl_untangle.py . No-tably, the original implementation does not include an internal stopping mecha-nism. To prevent indefinite execution, we set a maximum runtime of 3 minutes 
+
+for each case. 
+
+Classifier Baseline. This baseline follows the constrained optimization proce-dure in Algorithm 1. We train a binary classifier on the HwC dataset to predict whether an SMPL pose is collision-free. Let cls (θ; ϕ) ∈ [0 , 1] denote the pre-dicted probability that ι(M(β, θ)) = +1 under a fixed shape β. Given an initial self-colliding pose θ0, we solve a pose-space constrained optimization problem using the classifier output as a surrogate feasibility test. We note that since N-Penetrate [58] is not open-sourced, we are not able to directly compare with that method. 
+
+Algorithm 1 Neural Collision Resolution with a Classifier                                  
+
+> Require: Initial pose θ0, binary classifier cls (θ;ϕ), constrained solver F
+> Ensure: Optimized pose θ⋆
+> 1: Initialize optimization with θ←θ0
+> 2: Define constraint set C={cls (θ;ϕ)>0.5}
+> 3: Define objective function dSMPL (θ,θ0)
+> 4: Solve for θ⋆=F(initial state =θ0,
+> constraints =C,
+> objective =dSMPL (θ,θ0))
+> 5: return θ⋆
+
+## H Details of Active Learning 
+
+In our standard setup, we construct Dθ via random augmentation based on a seed set in the SMPL pose space. However, this approach often suffers from distribution bias, since the true underlying pose distribution is unknown. More critically, collision resolution requires g(θ) to accurately capture the decision boundary of the exact collision indicator ι(M(β, θ)) , i.e., the zero-level set {θ |PoseShield 15 
+
+Algorithm 2 Active Learning of PoseShield                                      
+
+> 1: Sample an initial pose dataset Dθ
+> 2: Train g(θ)using LPoseShield on Dθ
+> 3: while Not converged do
+> 4: Sample an additional pose set D+
+> θ
+> 5: for each θ0∈ D +
+> θdo
+> 6: Use θ0as the initial guess 7: Solve for θ†,D†
+> θ←argmin θ12g(θ)2
+> 8: Augment dataset D+
+> θ← D +
+> θ∪ D †
+> θ
+> 9: Retrain g(θ)using LPoseShield on D+
+> θ
+
+g(θ) = 0 }. In contrast, the precise shape of g(θ) far away from the boundary is less important, since those regions are mainly visited during intermediate steps of constrained optimization. Unfortunately, naive augmentation-based sampling does not emphasize this crucial near-boundary region. To address these limitations, N-Penetrate [58] introduced an active-learning strategy that incrementally augments the training set. Following this idea, we let argmin denote an optimization procedure that returns not only the final solution but also all intermediate iterates encountered during optimization. At each active-learning iteration, we draw pose samples as usual. For each sampled pose θ0, we solve: 
+
+argmin θ
+
+12 g(θ) 2, (39) where argmin is used to collect all intermediate poses produced by the optimizer. The final converged solutions approximate the current zero-level set of g(θ), and the collected iterates concentrate samples near the boundary. This improves the accuracy of the learned decision boundary over iterations. The full active-learning pipeline is summarized in Algorithm 2. We emphasize that this active-learning strategy is adopted from prior work [58] as an implementation detail, and we do not claim it as a contribution of this paper. 
+
+## I More Human Motion Collision Resolution Results 
+
+Data. We use 100 sequences with the largest total penetration depths from the MotionFix dataset [1]. 
+
+Metrics. We use the following metrics: 
+
+– Jitter [67] evaluates the smoothness of the motion, measured in units of 
+
+10 2m/s 3.
+
+– Foot Skating Ratio (FSR) [29] measures the proportion of frames exhibit-ing foot skating artifacts. Since aggressive collision resolution can introduce unnatural motion patterns such as foot sliding, FSR serves as an indirect indicator of overall motion quality. 16 Z. Li et al.                         
+
+> Table 3: Quantitative comparison on human motion collision resolution. Bold indicates the best result. Method Jitter ↓MFD ↓FSR (%) ↓RPD ↓
+> GT 0.5980 0.0000 7.47 1.7214 COAP (DNO) 0.6254 0.8248 13.93 0.5502 Direct Opt. 0.7652 0.0857 7.89 0.0713 Ours 0.5143 0.4007 2.42 0.0173
+
+– Residual Penetration Depth (RPD) measures the severity of residual inter-penetration after optimization. It is computed as the frame-averaged pene-tration depth of the output motion. 
+
+– Motion Feature Distance (MFD) measures the semantic discrepancy between the optimized and original motions in a learned motion feature space. Specif-ically, we extract motion features using a motion encoder [40] and compute the feature-space distance between the optimized motion and its correspond-ing original motion. 
+
+Baselines. We compare our method against two baselines. 
+
+– Direct motion optimization. An alternative that uses the same optimization objective as ours, but optimizes the motion sequence m itself instead of the input noise x to the diffusion model f . The optimization process is: 
+
+Lsmooth (m) = 1
+
+T 
+
+> T−1
+
+X
+
+> t=0
+
+∥θt+1 − θt∥22.
+
+m⋆ = arg min  
+
+> m
+
+Q(m) + λsmooth Lsmooth (m)
+
+We add the additional smoothness term to improve temporal consistency. 
+
+λsmooth is set to 0.5.
+
+– COAP (DNO) [41]. We apply the same optimization algorithm DNO and 
+
+dmotion as our method while replacing the collision term with COAP self-collision loss. To keep the inference time comparable with our method, the number of sampled points is set to 50 per body part. 
+
+Results. Quantitative results are reported in Tab. 3. Our method provides the best balance between collision removal and motion quality. Direct optimization is the fastest and stays closest to the input motion in feature space, but leaves more residual collisions and introduces more jitter and foot skating. This compar-ison highlights the advantage of the generative prior in preserving more natural motion during collision resolution. COAP (DNO) improves smoothness over di-rect optimization, but still leaves more residual penetration and foot skating. Since our method and COAP (DNO) share the same optimization framework and motion objective, this gap suggests that our learned collision loss is more effective. PoseShield 17 
+
+## References 
+
+1. Athanasiou, N., Cseke, A., Diomataris, M., Black, M.J., Varol, G.: Motionfix: Text-driven 3d human motion editing. In: SIGGRAPH Asia 2024 Conference Papers. pp. 1–11 (2024) 2. Ballan, L., Taneja, A., Gall, J., Van Gool, L., Pollefeys, M.: Motion capture of hands in action using discriminative salient points. In: European Conference on Computer Vision. pp. 640–653. Springer (2012) 3. Bertsekas, D.P.: Nonlinear programming. Journal of the Operational Research So-ciety 48 (3), 334–334 (1997) 4. Bogo, F., Kanazawa, A., Lassner, C., Gehler, P., Romero, J., Black, M.J.: Keep it smpl: Automatic estimation of 3d human pose and shape from a single image. In: Computer Vision–ECCV 2016: 14th European Conference, Amsterdam, The Netherlands, October 11-14, 2016, Proceedings, Part V 14. pp. 561–578. Springer (2016) 5. Chen, A.H., Hsu, J., Liu, Z., Macklin, M., Yang, Y., Yuksel, C.: Offset geometric contact. ACM Transactions on Graphics (TOG) 44 (4), 1–21 (2025) 6. Chen, H., Diaz, E., Yuksel, C.: Shortest path to boundary for self-intersecting meshes. ACM Transactions on Graphics (TOG) 42 (4), 1–15 (2023) 7. Choutas, V., Müller, L., Huang, C.H.P., Tang, S., Tzionas, D., Black, M.J.: Accu-rate 3d body shape regression using metric and semantic attributes. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 2718–2728 (2022) 8. Clevert, D.A., Unterthiner, T., Hochreiter, S.: Fast and accurate deep network learning by exponential linear units (elus). arXiv preprint arXiv:1511.07289 (2015) 9. Crandall, M.G., Ishii, H., Lions, P.L.: User’s guide to viscosity solutions of second order partial differential equations. Bulletin of the American mathematical society 
+
+27 (1), 1–67 (1992) 10. Dai, W., Chen, L.H., Wang, J., Liu, J., Dai, B., Tang, Y.: Motionlcm: Real-time controllable motion generation via latent consistency model. In: European Confer-ence on Computer Vision. pp. 390–408. Springer (2024) 11. Delmas, G., Weinzaepfel, P., Lucas, T., Moreno-Noguer, F., Rogez, G.: Posescript: Linking 3d human poses and natural language. IEEE transactions on pattern anal-ysis and machine intelligence (2024) 12. Fang, Y., Li, M., Jiang, C., Kaufman, D.M.: Guaranteed globally injective 3d deformation processing. ACM Transactions on Graphics 40 (4) (2021) 13. Feng, Y., Lin, J., Dwivedi, S.K., Sun, Y., Patel, P., Black, M.J.: Chatpose: Chatting about 3d human pose. In: CVPR (2024) 14. Ferguson, A., Osman, A.A., Bescos, B., Stoll, C., Twigg, C., Lassner, C., Otte, D., Vignola, E., Prada, F., Bogo, F., et al.: Mhr: Momentum human rig. arXiv preprint arXiv:2511.15586 (2025) 15. Fisher, S., Lin, M.C.: Deformed distance fields for simulation of non-penetrating flexible bodies. In: Computer Animation and Simulation 2001: Proceedings of the Eurographics Workshop in Manchester, UK, September 2–3, 2001. pp. 99–111. Springer (2001) 16. Grigorev, A., Becherini, G., Black, M., Hilliges, O., Thomaszewski, B.: Contour-craft: Learning to resolve intersections in neural multi-garment simulations. In: ACM SIGGRAPH 2024 conference papers. pp. 1–10 (2024) 17. Guan, P., Weiss, A., Balan, A.O., Black, M.J.: Estimating human shape and pose from a single image. In: 2009 IEEE 12th International Conference on Computer Vision. pp. 1381–1388. IEEE (2009) 18 Z. Li et al. 18. Guo, C., Mu, Y., Javed, M.G., Wang, S., Cheng, L.: Momask: Generative masked modeling of 3d human motions. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 1900–1910 (2024) 19. Harmon, D., Vouga, E., Smith, B., Tamstorf, R., Grinspun, E.: Asynchronous contact mechanics. ACM Trans. Graph. 28 (3) (Jul 2009) 20. Hassan, M., Choutas, V., Tzionas, D., Black, M.J.: Resolving 3D human pose ambiguities with 3D scene constraints. In: International Conference on Computer Vision. pp. 2282–2292 (Oct 2019) 21. He, Y., Tiwari, G., Birdal, T., Lenssen, J.E., Pons-Moll, G.: Nrdf: Neural rieman-nian distance fields for learning articulated pose priors. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 1661– 1671 (2024) 22. Herrmann, P., Bieshaar, M., Mack, D., Herzog, P.R., Gall, J.: Self-intersection-aware 3d human motion generation using an efficient human sphere proxy. In: British Machine Vision Conference (BMVC) (2025), poster session, Wednesday 26th November, Paper No. 737 23. Hong, S., Kim, C., Yoon, S., Nam, J., Cha, S., Noh, J.: Salad: Skeleton-aware latent diffusion for text-driven motion generation and editing. In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 7158–7168 (2025) 24. Huang, Z., Araújo, C., Kunz, A., Zorin, D., Panozzo, D., Zordan, V.: Intersection-free garment retargeting. In: Proceedings of the Special Interest Group on Com-puter Graphics and Interactive Techniques Conference Conference Papers. pp. 1–12 (2025) 25. Ionescu, C., Papava, D., Olaru, V., Sminchisescu, C.: Human3. 6m: Large scale datasets and predictive methods for 3d human sensing in natural environments. IEEE transactions on pattern analysis and machine intelligence 36 (7), 1325–1339 (2013) 26. Kanazawa, A., Black, M.J., Jacobs, D.W., Malik, J.: End-to-end recovery of human shape and pose. In: Proceedings of the IEEE conference on computer vision and pattern recognition. pp. 7122–7131 (2018) 27. Karras, T.: Maximizing parallelism in the construction of bvhs, octrees, and k-d trees. In: Proceedings of the Fourth ACM SIGGRAPH / Eurographics Conference on High-Performance Graphics. pp. 33–37. Eurographics Association (2012) 28. Karunratanakul, K., Preechakul, K., Aksan, E., Beeler, T., Suwajanakorn, S., Tang, S.: Optimizing diffusion noise can serve as universal motion priors. In: Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recogni-tion. pp. 1334–1345 (2024) 29. Karunratanakul, K., Preechakul, K., Suwajanakorn, S., Tang, S.: Guided mo-tion diffusion for controllable human motion synthesis. In: Proceedings of the IEEE/CVF international conference on computer vision. pp. 2151–2162 (2023) 30. Kocabas, M., Athanasiou, N., Black, M.J.: Vibe: Video inference for human body pose and shape estimation. In: Proceedings of the IEEE/CVF conference on com-puter vision and pattern recognition. pp. 5253–5263 (2020) 31. Kulkarni, N., Rempe, D., Genova, K., Kundu, A., Johnson, J., Fouhey, D., Guibas, L.: Nifty: Neural object interaction fields for guided human motion synthesis. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recog-nition. pp. 947–957 (2024) 32. Li, J., Wu, J., Liu, C.K.: Object motion guided human motion synthesis. ACM Transactions on Graphics (TOG) 42 (6), 1–11 (2023) 33. Li, M., Kaufman, D.M., Jiang, C.: Codimensional incremental potential contact. ACM Trans. Graph. (SIGGRAPH) 40 (4) (2021) PoseShield 19 34. Li, M., Duan, Y., Zhou, J., Lu, J.: Diffusion-sdf: Text-to-shape via voxelized diffu-sion. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 12642–12651 (2023) 35. Li, Z., Cheng, K., Ghosh, A., Bhattacharya, U., Gui, L., Bera, A.: Simmotionedit: Text-based human motion editing with motion similarity prediction. In: Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (2025) 36. Lin, J., Zeng, A., Lu, S., Cai, Y., Zhang, R., Wang, H., Zhang, L.: Motion-x: A large-scale 3d expressive whole-body human motion dataset. Advances in Neural Information Processing Systems 36 , 25268–25280 (2023) 37. Loper, M., Mahmood, N., Romero, J., Pons-Moll, G., Black, M.J.: Smpl: A skinned multi-person linear model. ACM Transactions on Graphics 34 (6), 248:1–248:16 (2015) 38. Mahmood, N., Ghorbani, N., Troje, N.F., Pons-Moll, G., Black, M.J.: Amass: Archive of motion capture as surface shapes. In: Proceedings of the IEEE/CVF international conference on computer vision. pp. 5442–5451 (2019) 39. Marz, T., Macdonald, C.B.: Calculus on surfaces with general closest point func-tions. SIAM Journal on Numerical Analysis 50 (6), 3303–3328 (2012) 40. Meng, Z., Xie, Y., Peng, X., Han, Z., Jiang, H.: Rethinking diffusion for text-driven human motion generation: Redundant representations, evaluation, and masked au-toregression. In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 27859–27871 (2025) 41. Mihajlovic, M., Saito, S., Bansal, A., Zollhoefer, M., Tang, S.: Coap: Compositional articulated occupancy of people. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 13201–13210 (2022) 42. Mihajlovic, M., Zhang, S., Li, G., Zhao, K., Muller, L., Tang, S.: Volumetricsmpl: A neural volumetric body model for efficient interactions, contacts, and collisions. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 5060–5070 (2025) 43. Ni, R., zherong pan, Qureshi, A.H.: Physics-informed temporal difference metric learning for robot motion planning. In: The Thirteenth International Conference on Learning Representations (2025) 44. Ni, R., Qureshi, A.H.: NTFields: Neural time fields for physics-informed robot motion planning. In: The Eleventh International Conference on Learning Repre-sentations (2023) 45. Ni, R., Schneider, T., Panozzo, D., Pan, Z., Gao, X.: Robust & asymptotically locally optimal uav-trajectory generation based on spline subdivision. In: 2021 IEEE International Conference on Robotics and Automation (ICRA). pp. 7715– 7721. IEEE (2021) 46. Nocedal, J., Wright, S.J.: Numerical optimization. Springer (2006) 47. Pan, J., Chitta, S., Manocha, D.: Fcl: A general purpose library for collision and proximity queries. In: 2012 IEEE international conference on robotics and automa-tion. pp. 3859–3866. IEEE (2012) 48. Park, J.J., Florence, P., Straub, J., Newcombe, R., Lovegrove, S.: Deepsdf: Learning continuous signed distance functions for shape representation. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 165– 174 (2019) 49. Pavlakos, G., Choutas, V., Ghorbani, N., Bolkart, T., Osman, A.A.A., Tzionas, D., Black, M.J.: Expressive body capture: 3d hands, face, and body from a single image. In: Proceedings IEEE Conf. on Computer Vision and Pattern Recognition (CVPR) (2019) 20 Z. Li et al. 50. Raissi, M., Perdikaris, P., Karniadakis, G.E.: Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations. Journal of Computational physics 378 ,686–707 (2019) 51. Romero, J., Tzionas, D., Black, M.J.: Embodied hands: Modeling and capturing hands and bodies together. arXiv preprint arXiv:2201.02610 (2022) 52. Ruiz-Ponce, P., Barquero, G., Palmero, C., Escalera, S., García-Rodríguez, J.: Mix-ermdm: Learnable composition of human motion diffusion models. In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 12380–12390 (2025) 53. Santesteban, I., Thuerey, N., Otaduy, M.A., Casas, D.: Self-supervised collision handling via generative 3d garment models for virtual try-on. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 11763– 11773 (2021) 54. Sassen, J., Schumacher, H., Rumpf, M., Crane, K.: Repulsive shells. ACM Trans-actions on Graphics 43 (4), 1–22 (2024) 55. Sethian, J.A.: A fast marching level set method for monotonically advancing fronts. proceedings of the National Academy of Sciences 93 (4), 1591–1595 (1996) 56. Stuyck, T., Lin, G.W.C., Larionov, E., Chen, H.y., Bozic, A., Sarafianos, N., Roble, D.: Quaffure: Real-time quasi-static neural hair simulation. In: Proceedings of the Computer Vision and Pattern Recognition Conference. pp. 239–249 (2025) 57. Tan, Q., Pan, Z., Manocha, D.: Lcollision: Fast generation of collision-free hu-man poses using learned non-penetration constraints. In: Proceedings of the AAAI Conference on Artificial Intelligence (2021) 58. Tan, Q., Pan, Z., Smith, B., Shiratori, T., Manocha, D.: N-penetrate: Active learn-ing of neural collision handler for complex 3d mesh deformations. In: ICML. pp. 21037–21049 (2022) 59. Tan, Q., Zhou, Y., Wang, T., Ceylan, D., Sun, X., Manocha, D.: A repulsive force unit for garment collision handling in neural networks. In: European conference on computer vision. pp. 451–467. Springer (2022) 60. Team, T.H.D.D.H.: Hy-motion 1.0: Scaling flow matching models for text-to-motion generation. arXiv preprint arXiv:2512.23464 (2025) 61. Tevet, G., Raab, S., Gordon, B., Shafir, Y., Cohen-or, D., Bermano, A.H.: Human motion diffusion model. In: The Eleventh International Conference on Learning Representations (2022) 62. Tiwari, G., Antic, D., Lenssen, J.E., Sarafianos, N., Tung, T., Pons-Moll, G.: Pose-ndf: Modeling human pose manifolds with neural distance fields. In: European Conference on Computer Vision (ECCV) (October 2022) 63. Tzionas, D., Ballan, L., Srikantha, A., Aponte, P., Pollefeys, M., Gall, J.: Cap-turing hands in action using discriminative salient points and physics simulation. International Journal of Computer Vision 118 (2), 172–193 (2016) 64. Virtanen, P., Gommers, R., Oliphant, T.E., Haberland, M., Reddy, T., Courna-peau, D., Burovski, E., Peterson, P., Weckesser, W., Bright, J., van der Walt, S.J., Brett, M., Wilson, J., Millman, K.J., Mayorov, N., Nelson, A.R.J., Jones, E., Kern, R., Larson, E., Carey, C.J., Polat, İ., Feng, Y., Moore, E.W., VanderPlas, J., Lax-alde, D., Perktold, J., Cimrman, R., Henriksen, I., Quintero, E.A., Harris, C.R., Archibald, A.M., Ribeiro, A.H., Pedregosa, F., van Mulbregt, P., SciPy 1.0 Con-tributors: SciPy 1.0: Fundamental Algorithms for Scientific Computing in Python. Nature Methods 17 , 261–272 (2020) PoseShield 21 65. Xu, S., Li, Z., Wang, Y.X., Gui, L.Y.: Interdiff: Generating 3d human-object in-teractions with physics-informed diffusion. In: Proceedings of the IEEE/CVF In-ternational Conference on Computer Vision. pp. 14928–14940 (2023) 66. Yariv, L., Puny, O., Gafni, O., Lipman, Y.: Mosaic-sdf for 3d generative mod-els. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 4630–4639 (2024) 67. Yi, X., Zhou, Y., Habermann, M., Shimada, S., Golyanik, V., Theobalt, C., Xu, F.: Physical inertial poser (pip): Physics-aware real-time human motion tracking from sparse inertial sensors. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 13167–13178 (2022) 68. Zesch, R.S., Modi, V., Sueda, S., Levin, D.I.: Neural collision fields for triangle primitives. In: SIGGRAPH Asia 2023 Conference Papers. pp. 1–10 (2023) 69. Zhang, M., Guo, X., Pan, L., Cai, Z., Hong, F., Li, H., Yang, L., Liu, Z.: Re-modiffuse: Retrieval-augmented motion diffusion model. In: Proceedings of the IEEE/CVF International Conference on Computer Vision. pp. 364–373 (2023) 70. Zhang, M., Jin, D., Gu, C., Hong, F., Cai, Z., Huang, J., Zhang, C., Guo, X., Yang, L., He, Y., et al.: Large motion model for unified multi-modal motion generation. In: European Conference on Computer Vision. pp. 397–421. Springer (2024) 71. Zhang, S., Bhatnagar, B.L., Xu, Y., Winkler, A., Kadlecek, P., Tang, S., Bogo, F.: Rohm: Robust human motion reconstruction via diffusion. In: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. pp. 14606– 14617 (2024) 72. Zhang, T., Huang, B., Wang, Y.: Object-occluded human shape and pose estima-tion from a single color image. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 7376–7385 (2020) 73. Zhao, H.: A fast sweeping method for eikonal equations. Mathematics of compu-tation 74 (250), 603–627 (2005) 74. Zhong, L., Xie, Y., Jampani, V., Sun, D., Jiang, H.: Smoodi: Stylized motion diffu-sion model. In: European Conference on Computer Vision. pp. 405–421. Springer (2024) 75. Zhou, Y., Barnes, C., Lu, J., Yang, J., Li, H.: On the continuity of rotation rep-resentations in neural networks. In: Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. pp. 5745–5753 (2019)
