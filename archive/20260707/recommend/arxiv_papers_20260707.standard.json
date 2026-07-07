@@ -1,0 +1,181 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-07T21:52:21.488401+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 2,
+    "deep_cap": 6,
+    "deep_selected": 2,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2606.31388v1",
+      "source": "arxiv",
+      "title": "One Video, One World: Turning Monocular Video into Physical 4D Scenes",
+      "abstract": "We introduce \\textbf{OVOW}, the first training-free system that reconstructs \\emph{instance-level, simulation-ready} 4D mesh scenes from a single monocular video. Recent 4D reconstruction achieves impressive rendering quality, but its outputs (\\eg, implicit fields, Gaussian primitives, or point clouds) lack the watertight topology, instance separation, and standardized physical interfaces required by physics simulators and embodied AI. OVOW closes this gap with a four-stage pipeline: a vision-language model discovers, labels, and motion-classifies all instances; category-aware reconstruction yields per-instance meshes for rigid objects and topology-consistent mesh sequences for deformable ones; an iterative render-match-optimize procedure recovers metric scale and 6-DoF pose trajectories; and physics-grounded assembly enforces ground contact and inter-object support. Crucially, we model all motion, rigid and non-rigid, through direct vertex deformation without category-specific priors or skeleton rigging, producing watertight mesh scenes ready for downstream physics simulation and editing. We further establish the first benchmark for \\emph{structured Video-to-4D} evaluation, with metrics for geometric correctness, instance separation, and physical plausibility beyond visual fidelity; the same pipeline doubles as a scalable engine for \\emph{synthesizing} paired video-to-4D simulation data for future 4D world models and embodied AI. Across two synthetic benchmarks (static and 4D), OVOW attains the best overall layout and geometry accuracy and the lowest photometric and semantic error among all baselines, and on monocular video runs one to two orders of magnitude faster than the baselines, while downstream physics simulation confirms its physical stability.",
+      "authors": [
+        "Junhao Chen",
+        "Boran Zhang",
+        "Mingjin Chen",
+        "Henghaofan Zhang",
+        "Saining Zhang",
+        "Congcong Zhu",
+        "Hao Zhao",
+        "Ruqi Huang",
+        "Zhihao Li",
+        "Yufei Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-30T09:16:21+00:00",
+      "link": "https://arxiv.org/pdf/2606.31388v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "reconstructs simulation-ready 4D meshes from monocular video, including motion classification and metric recovery for rigid and deformable objects, enabling understanding of articulated motion",
+      "llm_evidence_cn": "从单目视频重建仿真就绪的4D网格，包含运动分类和度量恢复，适用于刚体和变形物体，可理解铰接运动",
+      "llm_evidence": "从单目视频重建仿真就绪的4D网格，包含运动分类和度量恢复，适用于刚体和变形物体，可理解铰接运动",
+      "canonical_evidence": "从单目视频重建仿真就绪的4D网格，包含运动分类和度量恢复，适用于刚体和变形物体，可理解铰接运动",
+      "llm_tldr_en": "OVOW reconstructs instance-level simulation-ready 4D mesh scenes from a single video, using vision-language models for discovery and motion classification, enabling physics simulation and articulated object understanding.",
+      "llm_tldr_cn": "现有4D重建方法输出隐式场或点云，缺乏物理仿真所需的拓扑和实例分离。本文提出OVOW，首个无需训练的系统，从单目视频重建实例级的可仿真4D网格场景。通过视觉语言模型分类运动、重建每个物体的网格并恢复度量属性，输出可直接用于物理引擎。实验证明其在物理仿真和铰接物体理解上的有效性。",
+      "llm_tldr": "现有4D重建方法输出隐式场或点云，缺乏物理仿真所需的拓扑和实例分离。本文提出OVOW，首个无需训练的系统，从单目视频重建实例级的可仿真4D网格场景。通过视觉语言模型分类运动、重建每个物体的网格并恢复度量属性，输出可直接用于物理引擎。实验证明其在物理仿真和铰接物体理解上的有效性。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.03891v1",
+      "source": "arxiv",
+      "title": "BAT3R: Bootstrapping Articulated 3D Reconstruction from 2D Image Collections",
+      "abstract": "3D reconstruction of articulated objects from a single image is challenging because large training datasets with paired image and 3D supervision are difficult to obtain. Recent point map-based methods achieve strong performance but rely on synthetic datasets rendered from manually created articulated 3D assets with carefully curated pose distributions. While camera viewpoints can be easily sampled, generating realistic object articulations remains costly and labor-intensive. We propose a training framework that reduces this requirement by leveraging unannotated 2D images collections with only a single rigged canonical mesh per category. Starting from a weak 3D shape predictor trained on canonical-pose renders, we iteratively estimate object articulation and camera pose by fitting the mesh to predicted point maps. The recovered articulations and viewpoints are then used to render updated synthetic training data, progressively improving the predictor. Despite using substantially weaker 3D supervision, our models achieve performance comparable with DualPM, which requires manually curated articulated training datasets.",
+      "authors": [
+        "Jakub Zadrozny",
+        "Oisin Mac Aodha",
+        "Hakan Bilen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-04T14:15:21+00:00",
+      "link": "https://arxiv.org/pdf/2607.03891v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "bootstrapped articulated 3D reconstruction from 2D images, learns articulation",
+      "llm_evidence_cn": "从2D图像引导式铰接3D重建，学习铰接参数",
+      "llm_evidence": "从2D图像引导式铰接3D重建，学习铰接参数",
+      "canonical_evidence": "从2D图像引导式铰接3D重建，学习铰接参数",
+      "llm_tldr_en": "Proposes BAT3R, a training framework that bootstraps articulated 3D reconstruction from unannotated 2D image collections using a single rigged mesh per category, iteratively estimating object articulation.",
+      "llm_tldr_cn": "针对单张图像铰接物体3D重建训练数据缺乏的问题，提出了BAT3R框架，利用每类一个带骨骼的标准网格和未标注2D图像集合，通过迭代估计物体铰接状态来训练重建模型。该方法减少了对人工标注铰接姿态的依赖，实验表明能有效从2D图像学习铰接结构，推动铰接物体理解。",
+      "llm_tldr": "针对单张图像铰接物体3D重建训练数据缺乏的问题，提出了BAT3R框架，利用每类一个带骨骼的标准网格和未标注2D图像集合，通过迭代估计物体铰接状态来训练重建模型。该方法减少了对人工标注铰接姿态的依赖，实验表明能有效从2D图像学习铰接结构，推动铰接物体理解。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.00534v1",
+      "source": "arxiv",
+      "title": "Learning from Demonstration via Spatiotemporal Tubes for Unknown Euler-Lagrange Systems",
+      "abstract": "We present STT-LfD, a unified Learning from Demonstration (LfD) framework that integrates motion learning with control for unknown Euler-Lagrange systems. Unlike traditional decoupled approaches that track a fixed reference, the proposed method treats demonstrations as a data-driven safety specification. Using heteroscedastic Gaussian Processes, STT-LfD learns Spatiotemporal Tubes (STTs) as an intent envelope that capture time-varying precision requirements of a task. A closed-form feedback controller then enforces these learned constraints while respecting actuator limits, without requiring explicit system identification. The approach preserves the temporal structure of demonstrations, remains computationally efficient, and avoids explicit system identification. Hardware experiments on a mobile robot and a 7-DOF manipulator show that it outperforms baselines in robustness to disturbances and computational speed.",
+      "authors": [
+        "Ratnangshu Das",
+        "Puneeth Shankar",
+        "Varuni Buereddy",
+        "Ravi Prakash",
+        "Pushpak Jagtap"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "eess.SY"
+      ],
+      "published": "2026-07-01T07:24:45+00:00",
+      "link": "https://arxiv.org/pdf/2607.00534v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "learning motion from demonstration for Euler-Lagrange systems, applicable to articulated objects",
+      "llm_evidence_cn": "从示范学习欧拉-拉格朗日系统运动，适用于铰接物体",
+      "llm_evidence": "从示范学习欧拉-拉格朗日系统运动，适用于铰接物体",
+      "canonical_evidence": "从示范学习欧拉-拉格朗日系统运动，适用于铰接物体",
+      "llm_tldr_en": "STT-LfD learns spatiotemporal tubes from demonstration for unknown Euler-Lagrange systems, enabling safe motion generation without explicit system identification.",
+      "llm_tldr_cn": "面对未知欧拉-拉格朗日系统（如铰接物体）的运动学习与控制，STT-LfD利用异构高斯过程从示范中学习时空管（STT）作为意图包络，并通过闭式反馈控制器执行运动，避免了系统辨识。该方法保留了示范的时间结构，为铰接物体的物理属性推理和运动生成提供了可迁移的框架。",
+      "llm_tldr": "面对未知欧拉-拉格朗日系统（如铰接物体）的运动学习与控制，STT-LfD利用异构高斯过程从示范中学习时空管（STT）作为意图包络，并通过闭式反馈控制器执行运动，避免了系统辨识。该方法保留了示范的时间结构，为铰接物体的物理属性推理和运动生成提供了可迁移的框架。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "inferring physical properties of articulated systems",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.01938v1",
+      "source": "arxiv",
+      "title": "PhysMani: Physics-principled 3D World Model for Dynamic Object Manipulation",
+      "abstract": "Manipulating fast and dynamically moving targets in unstructured 3D environments remains challenging for embodied AI. Existing visual-language-action models and world models struggle with accurate 3D geometry and physically meaningful forecasting. We propose PhysMani, a framework that couples a physics-principled 3D Gaussian world model with a future-aware action policy model. The world model learns a divergence-free Gaussian velocity field via online optimization for fast and physically grounded future dynamics prediction. The policy model integrates the predicted 3D scene future dynamics through a learnable token based cross-attention module. We introduce PhysMani-Bench, a dynamic manipulation benchmark with 16 tasks, and demonstrate a superior success rate over strong baselines in both simulation and real-world robot experiments.",
+      "authors": [
+        "Peng Yun",
+        "Shouwang Huang",
+        "Hao Li",
+        "Jinxi Li",
+        "Jianan Wang",
+        "Bo Yang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CL",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-07-02T09:32:39+00:00",
+      "link": "https://arxiv.org/pdf/2607.01938v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "physics-principled world model for predicting future dynamics of moving objects",
+      "llm_evidence_cn": "面向动态物体的物理原理世界模型，预测未来运动",
+      "llm_evidence": "面向动态物体的物理原理世界模型，预测未来运动",
+      "canonical_evidence": "面向动态物体的物理原理世界模型，预测未来运动",
+      "llm_tldr_en": "PhysMani couples a physics-principled 3D Gaussian world model with a future-aware policy for dynamic object manipulation, learning divergence-free velocity fields via online optimization to predict physically grounded future dynamics, outperforming baselines on 16 tasks.",
+      "llm_tldr_cn": "现有世界模型在动态目标操作中缺乏准确的3D几何和物理预测。本文提出PhysMani，将物理原理的三维高斯世界模型与未来感知策略结合，通过在线优化学习无散速度场预测未来动态。在16任务基准上验证了其优越性，为机器人操作提供了物理可信的预测框架。",
+      "llm_tldr": "现有世界模型在动态目标操作中缺乏准确的3D几何和物理预测。本文提出PhysMani，将物理原理的三维高斯世界模型与未来感知策略结合，通过在线优化学习无散速度场预测未来动态。在16任务基准上验证了其优越性，为机器人操作提供了物理可信的预测框架。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

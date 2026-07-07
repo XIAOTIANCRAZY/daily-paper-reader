@@ -1,0 +1,69 @@
+{
+  "label": "2026-07-07",
+  "date": "2026-07-07",
+  "generated_at": "2026-07-07T21:56:58",
+  "count": 4,
+  "papers": [
+    {
+      "paper_id": "202607/07/2606.31388v1-one-video-one-world-turning-monocular-video-into-physical-4d-scenes",
+      "section": "deep",
+      "title_en": "One Video, One World: Turning Monocular Video into Physical 4D Scenes",
+      "authors": "Junhao Chen, Boran Zhang, Mingjin Chen, Henghaofan Zhang, Saining Zhang, Congcong Zhu, Hao Zhao, Ruqi Huang, Zhihao Li, Yufei Wang",
+      "date": "2026-06-30",
+      "pdf": "https://arxiv.org/pdf/2606.31388v1",
+      "score": "9.0",
+      "evidence": "从单目视频重建仿真就绪的4D网格，包含运动分类和度量恢复，适用于刚体和变形物体，可理解铰接运动",
+      "tldr": "现有单目视频4D重建缺乏实例分离、水密拓扑和物理接口，无法用于仿真。OVOW系统无需训练，通过VLM发现实例、类别感知重建网格、迭代优化度量位姿和物理组装，从单目视频生成仿真就绪的4D网格场景。在合成基准上取得最佳几何和布局精度，速度比基线快1-2个数量级，物理仿真稳定。该工作首次建立结构化视频到4D评估基准，并可合成数据加速具身AI。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "We introduce \\textbf{OVOW}, the first training-free system that reconstructs \\emph{instance-level, simulation-ready} 4D mesh scenes from a single monocular video. Recent 4D reconstruction achieves impressive rendering quality, but its outputs (\\eg, implicit fields, Gaussian primitives, or point clouds) lack the watertight topology, instance separation, and standardized physical interfaces required by physics simulators and embodied AI. OVOW closes this gap with a four-stage pipeline: a vision-language model discovers, labels, and motion-classifies all instances; category-aware reconstruction yields per-instance meshes for rigid objects and topology-consistent mesh sequences for deformable ones; an iterative render-match-optimize procedure recovers metric scale and 6-DoF pose trajectories; and physics-grounded assembly enforces ground contact and inter-object support. Crucially, we model all motion, rigid and non-rigid, through direct vertex deformation without category-specific priors or skeleton rigging, producing watertight mesh scenes ready for downstream physics simulation and editing. We further establish the first benchmark for \\emph{structured Video-to-4D} evaluation, with metrics for geometric correctness, instance separation, and physical plausibility beyond visual fidelity; the same pipeline doubles as a scalable engine for \\emph{synthesizing} paired video-to-4D simulation data for future 4D world models and embodied AI. Across two synthetic benchmarks (static and 4D), OVOW attains the best overall layout and geometry accuracy and the lowest photometric and semantic error among all baselines, and on monocular video runs one to two orders of magnitude faster than the baselines, while downstream physics simulation confirms its physical stability.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/07/2607.03891v1-bat3r-bootstrapping-articulated-3d-reconstruction-from-2d-image-collections",
+      "section": "deep",
+      "title_en": "BAT3R: Bootstrapping Articulated 3D Reconstruction from 2D Image Collections",
+      "authors": "Jakub Zadrozny, Oisin Mac Aodha, Hakan Bilen",
+      "date": "2026-07-04",
+      "pdf": "https://arxiv.org/pdf/2607.03891v1",
+      "score": "9.0",
+      "evidence": "从2D图像引导式铰接3D重建，学习铰接参数",
+      "tldr": "单张图像铰接物体3D重建面临训练数据匮乏的难题，现有方法依赖人工创建的3D资产和精心设计的姿态分布。本文提出BAT3R框架，仅利用无标注2D图像和每类一个规范网格，通过自举迭代优化合成训练数据，逐步提升预测器性能。该方法在减少3D监督依赖的同时，达到了与需人工策展数据的方法相当的效果。该工作为铰接物体重建提供了一种低成本的弱监督方案。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "3D reconstruction of articulated objects from a single image is challenging because large training datasets with paired image and 3D supervision are difficult to obtain. Recent point map-based methods achieve strong performance but rely on synthetic datasets rendered from manually created articulated 3D assets with carefully curated pose distributions. While camera viewpoints can be easily sampled, generating realistic object articulations remains costly and labor-intensive. We propose a training framework that reduces this requirement by leveraging unannotated 2D images collections with only a single rigged canonical mesh per category. Starting from a weak 3D shape predictor trained on canonical-pose renders, we iteratively estimate object articulation and camera pose by fitting the mesh to predicted point maps. The recovered articulations and viewpoints are then used to render updated synthetic training data, progressively improving the predictor. Despite using substantially weaker 3D supervision, our models achieve performance comparable with DualPM, which requires manually curated articulated training datasets.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/07/2607.00534v1-learning-from-demonstration-via-spatiotemporal-tubes-for-unknown-euler-lagrange-systems",
+      "section": "quick",
+      "title_en": "Learning from Demonstration via Spatiotemporal Tubes for Unknown Euler-Lagrange Systems",
+      "authors": "Ratnangshu Das, Puneeth Shankar, Varuni Buereddy, Ravi Prakash, Pushpak Jagtap",
+      "date": "2026-07-01",
+      "pdf": "https://arxiv.org/pdf/2607.00534v1",
+      "score": "6.0",
+      "evidence": "从示范学习欧拉-拉格朗日系统运动，适用于铰接物体",
+      "tldr": "针对未知Euler-Lagrange系统的模仿学习，传统解耦方法忽略了演示的时序精度且依赖系统辨识。本文提出STT-LfD框架，利用异方差高斯过程从演示中学习时空管作为意图包络，并设计闭环反馈控制器强制执行约束，无需系统辨识。硬件实验在移动机器人和七自由度机械臂上验证，该方法在鲁棒性和计算速度上优于基线，统一了学习与控制。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "We present STT-LfD, a unified Learning from Demonstration (LfD) framework that integrates motion learning with control for unknown Euler-Lagrange systems. Unlike traditional decoupled approaches that track a fixed reference, the proposed method treats demonstrations as a data-driven safety specification. Using heteroscedastic Gaussian Processes, STT-LfD learns Spatiotemporal Tubes (STTs) as an intent envelope that capture time-varying precision requirements of a task. A closed-form feedback controller then enforces these learned constraints while respecting actuator limits, without requiring explicit system identification. The approach preserves the temporal structure of demonstrations, remains computationally efficient, and avoids explicit system identification. Hardware experiments on a mobile robot and a 7-DOF manipulator show that it outperforms baselines in robustness to disturbances and computational speed.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/07/2607.01938v1-physmani-physics-principled-3d-world-model-for-dynamic-object-manipulation",
+      "section": "quick",
+      "title_en": "PhysMani: Physics-principled 3D World Model for Dynamic Object Manipulation",
+      "authors": "Peng Yun, Shouwang Huang, Hao Li, Jinxi Li, Jianan Wang, Bo Yang",
+      "date": "2026-07-02",
+      "pdf": "https://arxiv.org/pdf/2607.01938v1",
+      "score": "6.0",
+      "evidence": "面向动态物体的物理原理世界模型，预测未来运动",
+      "tldr": "在非结构化3D环境中操控快速动态目标仍是具身AI的挑战。现有模型缺乏精准的3D几何和物理预测。本文提出PhysMani框架，结合物理原理的3D高斯世界模型与未来感知动作策略。世界模型通过在线优化学习无散度高斯速度场，实现快速物理动态预测；策略模型通过可学习令牌跨注意力模块整合预测的未来动态。在包含16个任务的PhysMani-Bench基准上，仿真和真实机器人实验均取得优于强基线方法的成功率。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "Manipulating fast and dynamically moving targets in unstructured 3D environments remains challenging for embodied AI. Existing visual-language-action models and world models struggle with accurate 3D geometry and physically meaningful forecasting. We propose PhysMani, a framework that couples a physics-principled 3D Gaussian world model with a future-aware action policy model. The world model learns a divergence-free Gaussian velocity field via online optimization for fast and physically grounded future dynamics prediction. The policy model integrates the predicted 3D scene future dynamics through a learnable token based cross-attention module. We introduce PhysMani-Bench, a dynamic manipulation benchmark with 16 tasks, and demonstrate a superior success rate over strong baselines in both simulation and real-world robot experiments.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
