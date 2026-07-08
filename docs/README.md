@@ -6,32 +6,40 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-07
-- 运行时间：2026-07-07 21:56:51 UTC
+- 最新运行日期：2026-07-08
+- 运行时间：2026-07-08 21:38:31 UTC
 - 运行状态：成功
-- 本次总论文数：4
-- 精读区：2
-- 速读区：2
+- 本次总论文数：6
+- 精读区：3
+- 速读区：3
 
 ### 今日简报（AI）
-今天精读2篇高分论文，探索将单目视频转化为4D物理场景及从2D图像构建可动3D模型。最值得关注的是《One Video》实现视频到4D场景的物理化，《BAT3R》自动生成关节3D物体。对AI视觉感兴趣的读者可优先精读这两篇9.0分论文。
-- 详情：[/202607/07/README](/202607/07/README)
+今日推荐6篇论文，聚焦可扩展手部运动补全与物理原理驱动的3D世界模型。
+最值得关注的方向：手部运动补全（9.0分）和动态物体操作的物理世界模型（8.0分）。
+建议优先精读这两篇高评分论文，深入理解其可控性与可扩展性设计。
+- 详情：[/202607/08/README](/202607/08/README)
 
 ### 精读区论文标签
-1. [One Video, One World: Turning Monocular Video into Physical 4D Scenes](/202607/07/2606.31388v1-one-video-one-world-turning-monocular-video-into-physical-4d-scenes)  
+1. [Prior-First, Condition-Second: Scalable and Controllable Hand Motion Completion](/202607/08/2607.05938v1-prior-first-condition-second-scalable-and-controllable-hand-motion-completion)  
    标签：评分：9.0/10、query:d-artic-kin
-   evidence：从单目视频重建仿真就绪的4D网格，包含运动分类和度量恢复，适用于刚体和变形物体，可理解铰接运动
-2. [BAT3R: Bootstrapping Articulated 3D Reconstruction from 2D Image Collections](/202607/07/2607.03891v1-bat3r-bootstrapping-articulated-3d-reconstruction-from-2d-image-collections)  
-   标签：评分：9.0/10、query:d-artic-kin
-   evidence：从2D图像引导式铰接3D重建，学习铰接参数
+   evidence：学习身体-手部运动学先验用于手部运动补全，生成真实手部关节运动
+2. [PhysMani: Physics-principled 3D World Model for Dynamic Object Manipulation](/202607/08/2607.01938v1-physmani-physics-principled-3d-world-model-for-dynamic-object-manipulation)  
+   标签：评分：8.0/10、query:d-artic-kin
+   evidence：基于物理原理的3D世界模型，预测物理合理的目标未来动态，可用于铰接物体物理属性预测
+3. [How to Build Digital Humans? From Priors to Photorealistic Avatars](/202607/08/2607.04341v1-how-to-build-digital-humans-from-priors-to-photorealistic-avatars)  
+   标签：评分：8.0/10、query:d-artic-kin
+   evidence：关于创建可控3D人体虚拟人的综述，涉及人体运动学和运动先验
 
 ### 速读区论文标签
-1. [Learning from Demonstration via Spatiotemporal Tubes for Unknown Euler-Lagrange Systems](/202607/07/2607.00534v1-learning-from-demonstration-via-spatiotemporal-tubes-for-unknown-euler-lagrange-systems)  
+1. [Cross-Embodiment Robot Manipulation via a Unified Hand Action Space](/202607/08/2607.03570v1-cross-embodiment-robot-manipulation-via-a-unified-hand-action-space)  
+   标签：评分：7.0/10、query:d-artic-kin
+   evidence：提出统一手部动作空间和级联逆运动学，用于生成特有关节配置
+2. [KAM-WM: Kinematic Affordance Maps from Latent World Models for Robot Manipulation](/202607/08/2607.04652v1-kam-wm-kinematic-affordance-maps-from-latent-world-models-for-robot-manipulation)  
    标签：评分：6.0/10、query:d-artic-kin
-   evidence：从示范学习欧拉-拉格朗日系统运动，适用于铰接物体
-2. [PhysMani: Physics-principled 3D World Model for Dynamic Object Manipulation](/202607/07/2607.01938v1-physmani-physics-principled-3d-world-model-for-dynamic-object-manipulation)  
+   evidence：从潜在世界模型中提取运动学启发图以获取粗略运动结构
+3. [Geometry-Aware Motion Latents for Learning Robust Manipulation Policies](/202607/08/2607.04714v1-geometry-aware-motion-latents-for-learning-robust-manipulation-policies)  
    标签：评分：6.0/10、query:d-artic-kin
-   evidence：面向动态物体的物理原理世界模型，预测未来运动
+   evidence：从点云演化学习运动潜变量，捕捉几何变换
 
 
 <div class="dpr-home-promo-card">

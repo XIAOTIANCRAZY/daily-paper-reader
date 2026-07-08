@@ -1,0 +1,266 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-08T21:33:54.052519+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 3,
+    "deep_cap": 6,
+    "deep_selected": 3,
+    "quick_candidates": 3,
+    "quick_skim_target": 11,
+    "quick_selected": 3
+  },
+  "deep_dive": [
+    {
+      "id": "2607.05938v1",
+      "source": "arxiv",
+      "title": "Prior-First, Condition-Second: Scalable and Controllable Hand Motion Completion",
+      "abstract": "Synthesizing hand motion that matches the full body motion and the semantic labels is a difficult task due to their high degrees of freedom and the lack of semantic labels. To cope with this issue, we propose a prior-first, condition-second framework for body-conditioned hand motion completion. Our framework first learns a generic body-hand kinematic prior from large-scale unstructured and unlabeled motion data, capturing the intrinsic coordination between global body dynamics and hand articulation. Semantic control is then introduced through lightweight adaptation on top of the frozen prior, avoiding the need to relearn kinematic structure for each control interface. Our framework centers on a streaming, autoregressive body-hand prior that generates coherent, kinematically consistent hand motion from body dynamics in real time, using structured kinematic modeling to maintain mechanical body-hand coupling. To enable practical controllability under limited supervision, we introduce semantically-layered adapters that inject conditioning signals at appropriate kinematic levels, supporting both self-supervised attribute control and weakly supervised text-driven control with only a few hours of labeled data. Extensive evaluations demonstrate that our framework improves kinematic plausibility, robustness, and controllability compared to end-to-end conditioned baselines, particularly in low-resource and cross-dataset settings. We further showcase real-time inference and an interactive authoring workflow, highlighting the applicability to production animation pipelines. Homepage: https://AIGAnimation.github.io/HandPrior/",
+      "authors": [
+        "Mingyi Shi",
+        "Xuelin Chen",
+        "Taku Komura"
+      ],
+      "primary_category": "cs.GR",
+      "categories": [
+        "cs.GR",
+        "cs.RO"
+      ],
+      "published": "2026-07-07T07:40:13+00:00",
+      "link": "https://arxiv.org/pdf/2607.05938v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "learning body-hand kinematic prior for hand motion completion, generating realistic hand articulation",
+      "llm_evidence_cn": "学习身体-手部运动学先验用于手部运动补全，生成真实手部关节运动",
+      "llm_evidence": "学习身体-手部运动学先验用于手部运动补全，生成真实手部关节运动",
+      "canonical_evidence": "学习身体-手部运动学先验用于手部运动补全，生成真实手部关节运动",
+      "llm_tldr_en": "A prior-first, condition-second framework learns a generic body-hand kinematic prior from unlabeled motion data, then adapts for controlled hand motion completion, achieving scalable and controllable synthesis.",
+      "llm_tldr_cn": "手部运动合成因自由度大且缺乏语义标签而困难。本文提出先验优先、条件其次的框架，先从未标注的大规模运动数据中学习通用的身体-手部运动学先验，捕捉全局身体动力学与手部关节的固有协调；再通过轻量适配引入语义控制。在流式自回归先验基础上，该方法可生成与全身运动匹配且符合语义标签的手部运动，无需为每种控制接口重新学习运动学结构，实现了可扩展可控的手部运动补全。",
+      "llm_tldr": "手部运动合成因自由度大且缺乏语义标签而困难。本文提出先验优先、条件其次的框架，先从未标注的大规模运动数据中学习通用的身体-手部运动学先验，捕捉全局身体动力学与手部关节的固有协调；再通过轻量适配引入语义控制。在流式自回归先验基础上，该方法可生成与全身运动匹配且符合语义标签的手部运动，无需为每种控制接口重新学习运动学结构，实现了可扩展可控的手部运动补全。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.01938v1",
+      "source": "arxiv",
+      "title": "PhysMani: Physics-principled 3D World Model for Dynamic Object Manipulation",
+      "abstract": "Manipulating fast and dynamically moving targets in unstructured 3D environments remains challenging for embodied AI. Existing visual-language-action models and world models struggle with accurate 3D geometry and physically meaningful forecasting. We propose PhysMani, a framework that couples a physics-principled 3D Gaussian world model with a future-aware action policy model. The world model learns a divergence-free Gaussian velocity field via online optimization for fast and physically grounded future dynamics prediction. The policy model integrates the predicted 3D scene future dynamics through a learnable token based cross-attention module. We introduce PhysMani-Bench, a dynamic manipulation benchmark with 16 tasks, and demonstrate a superior success rate over strong baselines in both simulation and real-world robot experiments.",
+      "authors": [
+        "Peng Yun",
+        "Shouwang Huang",
+        "Hao Li",
+        "Jinxi Li",
+        "Jianan Wang",
+        "Bo Yang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CL",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-07-02T09:32:39+00:00",
+      "link": "https://arxiv.org/pdf/2607.01938v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "physics-principled 3D world model for dynamic object manipulation, predicts physically grounded future dynamics",
+      "llm_evidence_cn": "基于物理原理的3D世界模型，预测物理合理的目标未来动态，可用于铰接物体物理属性预测",
+      "llm_evidence": "基于物理原理的3D世界模型，预测物理合理的目标未来动态，可用于铰接物体物理属性预测",
+      "canonical_evidence": "基于物理原理的3D世界模型，预测物理合理的目标未来动态，可用于铰接物体物理属性预测",
+      "llm_tldr_en": "PhysMani couples a physics-principled 3D Gaussian world model with an action policy to predict physically grounded future dynamics for fast-moving objects, outperforming baselines on a dynamic manipulation benchmark.",
+      "llm_tldr_cn": "针对动态目标操纵中3D几何和物理预测不准确的问题，PhysMani提出将物理原理融入3D高斯世界模型，通过在线优化学习散度自由的速度场，实现快速且物理合理的未来动力学预测。在包含16个任务的动态操纵基准上，该方法显著优于现有方法。该框架为铰接物体的物理属性推断和运动预测提供了可借鉴的物理嵌入方案。",
+      "llm_tldr": "针对动态目标操纵中3D几何和物理预测不准确的问题，PhysMani提出将物理原理融入3D高斯世界模型，通过在线优化学习散度自由的速度场，实现快速且物理合理的未来动力学预测。在包含16个任务的动态操纵基准上，该方法显著优于现有方法。该框架为铰接物体的物理属性推断和运动预测提供了可借鉴的物理嵌入方案。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "predicting physical properties of 3D articulated objects",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.04341v1",
+      "source": "arxiv",
+      "title": "How to Build Digital Humans? From Priors to Photorealistic Avatars",
+      "abstract": "This state-of-the-art report provides an overview of controllable 3D human avatar creation. We describe current 3D avatar systems, which typically consist of three stages: (i) learning priors of human appearance and motion, (ii) creating a personalized avatar, and (iii) animating the avatar. To limit the scope, we focus on the prior learning and avatar creation stages. We define current avatar representations and introduce a taxonomy that categorizes existing work along multiple axes, including body regions and employed priors. We review methods for full-body and head avatars, as well as layered representations that decompose the body into components such as hands, hair, and garments. Finally, we outline common underlying principles, reference key literature for newcomers, and discuss open challenges and future research directions.",
+      "authors": [
+        "Wojciech Zielonka",
+        "Tobias Kirschstein",
+        "Timo Bolkart",
+        "Simon Giebenhain",
+        "Vanessa Sklyarova",
+        "Xiang Deng",
+        "Donglai Xiang",
+        "Shunsuke Saito",
+        "Yebin Liu",
+        "Matthias Niessner",
+        "Justus Thies"
+      ],
+      "primary_category": "cs.GR",
+      "categories": [
+        "cs.GR",
+        "cs.CL",
+        "cs.CV",
+        "eess.IV"
+      ],
+      "published": "2026-07-05T14:51:43+00:00",
+      "link": "https://arxiv.org/pdf/2607.04341v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "comprehensive survey on creating controllable 3D human avatars, involving human kinematics and motion priors",
+      "llm_evidence_cn": "关于创建可控3D人体虚拟人的综述，涉及人体运动学和运动先验",
+      "llm_evidence": "关于创建可控3D人体虚拟人的综述，涉及人体运动学和运动先验",
+      "canonical_evidence": "关于创建可控3D人体虚拟人的综述，涉及人体运动学和运动先验",
+      "llm_tldr_en": "This survey reviews methods for building digital humans, covering priors for appearance and motion, avatar creation, and animation, with a taxonomy of representations.",
+      "llm_tldr_cn": "数字人创建涉及从先验学习到个性化虚拟人构建及动画的流程。本文系统综述了当前3D虚拟人系统，包括全身和头部虚拟人以及分层表示（如手、头发、衣物）。重点讨论了先验学习和虚拟人创建阶段，对表示方法进行了分类，并提炼了共同原理。",
+      "llm_tldr": "数字人创建涉及从先验学习到个性化虚拟人构建及动画的流程。本文系统综述了当前3D虚拟人系统，包括全身和头部虚拟人以及分层表示（如手、头发、衣物）。重点讨论了先验学习和虚拟人创建阶段，对表示方法进行了分类，并提炼了共同原理。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.03570v1",
+      "source": "arxiv",
+      "title": "Cross-Embodiment Robot Manipulation via a Unified Hand Action Space",
+      "abstract": "Robot manipulation policies are typically tied to specific robotic hand embodiments, limiting the transfer of learned behaviors across platforms with different kinematic structures. In this work, we propose the Unified Hand Action Space (UHAS), a sphere-based unified action representation for cross-embodiment dexterous manipulation. UHAS represents robotic hand actions as geometric deformations of a canonical sphere and uses a Cascade Inverse Kinematics (CIK) algorithm to map the shared representation to embodiment-specific joint configurations. Using reinforcement learning, we train dexterous manipulation policies directly in the proposed action space for in-hand cube reorientation tasks. We evaluate our method in both simulation and real-world experiments across multiple robotic hands, including the Allegro Hand, LEAP Hand, Shadow Hand, and MANO Human Hand. Experimental results demonstrate effective dexterous manipulation, zero-shot transfer to unseen hands, rapid finetuning across embodiments, and successful real-world deployment. Our experiments show that the proposed UHAS representation enables stable dexterous control and cross-embodiment policy transfer across robotic hands.",
+      "authors": [
+        "Luis Felipe Casas",
+        "Robert Teal",
+        "Keval Shah",
+        "Abhijit Tadepalli",
+        "Wanxin Jin",
+        "Yu Xiang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-03T19:19:20+00:00",
+      "link": "https://arxiv.org/pdf/2607.03570v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "proposes a unified hand action space and Cascade Inverse Kinematics for generating embodiment-specific joint configurations",
+      "llm_evidence_cn": "提出统一手部动作空间和级联逆运动学，用于生成特有关节配置",
+      "llm_evidence": "提出统一手部动作空间和级联逆运动学，用于生成特有关节配置",
+      "canonical_evidence": "提出统一手部动作空间和级联逆运动学，用于生成特有关节配置",
+      "llm_tldr_en": "Cross-Embodiment Robot Manipulation via a Unified Hand Action Space proposes a sphere-based action representation and Cascade Inverse Kinematics to generate joint configurations for different robotic hands, enabling policy transfer across embodiments.",
+      "llm_tldr_cn": "该论文提出一种统一手部动作空间（UHAS），将机器人手部动作表示为规范球体的几何变形，并通过级联逆运动学（CIK）算法将共享表示映射到不同机器人手的特有关节配置。在强化学习框架下，训练操作策略直接在该动作空间中执行，并在模拟和真实实验中验证了跨体现迁移的有效性。该方法为生成具有真实运动参数的铰接手部动作提供了可行方案。",
+      "llm_tldr": "该论文提出一种统一手部动作空间（UHAS），将机器人手部动作表示为规范球体的几何变形，并通过级联逆运动学（CIK）算法将共享表示映射到不同机器人手的特有关节配置。在强化学习框架下，训练操作策略直接在该动作空间中执行，并在模拟和真实实验中验证了跨体现迁移的有效性。该方法为生成具有真实运动参数的铰接手部动作提供了可行方案。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.04652v1",
+      "source": "arxiv",
+      "title": "KAM-WM: Kinematic Affordance Maps from Latent World Models for Robot Manipulation",
+      "abstract": "Learning manipulation from few demonstrations requires visual priors that capture not only where to interact, but also how the interaction should begin; static priors such as segmentation masks encode only the former. We present KAM-WM, a framework that extracts a coarse directional interaction cue from a frozen latent video world model without rollout or world-model fine-tuning. KAM-WM queries a Flow Matching image-to-video backbone once and interprets its single-step latent velocity as a Kinematic Affordance Map (KAM), which provides task-conditioned interaction regions and coarse motion structure. A lightweight Perceiver compresses KAM into tokens that condition a diffusion policy together with RGB observations and proprioception. Across LIBERO and RoboTwin2.0, KAM-WM reaches 90.6% average success on LIBERO and achieves 65.7% and 22.4% success rates in the Easy and Hard settings on RoboTwin2.0, respectively. Controlled comparisons against a zero-order mask prior suggest that part of the gains comes from directional information beyond spatial localization alone. These results indicate that, in the evaluated settings, a frozen video model can provide a useful first-order visual prior for control without the test-time cost of future rollout.",
+      "authors": [
+        "Xinyu Shao",
+        "Keru Zhou",
+        "Guowei Huang",
+        "Yajun Gao",
+        "Tongtong Cao",
+        "Xiu Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-06T04:17:15+00:00",
+      "link": "https://arxiv.org/pdf/2607.04652v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "extracts kinematic affordance maps from latent world models for coarse motion structure",
+      "llm_evidence_cn": "从潜在世界模型中提取运动学启发图以获取粗略运动结构",
+      "llm_evidence": "从潜在世界模型中提取运动学启发图以获取粗略运动结构",
+      "canonical_evidence": "从潜在世界模型中提取运动学启发图以获取粗略运动结构",
+      "llm_tldr_en": "KAM-WM extracts a Kinematic Affordance Map from a frozen video world model, providing coarse motion cues for robot manipulation without fine-tuning.",
+      "llm_tldr_cn": "针对机器人操作从少量演示学习需要有效的视觉先验。本文提出KAM-WM框架，从冻结的潜在视频世界模型中通过一次查询提取粗略运动结构（运动学启发图），并用轻量级感知器压缩为条件令牌，以引导扩散策略。实验表明该方法在多种操作任务上有效，尤其适用于需要运动先验的场景。",
+      "llm_tldr": "针对机器人操作从少量演示学习需要有效的视觉先验。本文提出KAM-WM框架，从冻结的潜在视频世界模型中通过一次查询提取粗略运动结构（运动学启发图），并用轻量级感知器压缩为条件令牌，以引导扩散策略。实验表明该方法在多种操作任务上有效，尤其适用于需要运动先验的场景。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.04714v1",
+      "source": "arxiv",
+      "title": "Geometry-Aware Motion Latents for Learning Robust Manipulation Policies",
+      "abstract": "Learning motion latents for robotic manipulation heavily relies on extracting motion patterns from visual sequences, yet effective action abstractions require understanding three-dimensional geometric transformations. Here, we introduce GeoMoLa (Geometry-Aware Motion Latents), which learns discrete motion latent codes by predicting how point clouds evolve during manipulation rather than reconstructing visual observations. This four-dimensional objective -- spatial geometry changing through time -- forces latent representations to encode actual physical motion rather than appearance patterns. GeoMoLa achieves state-of-the-art performance using only single-view RGB-D input, while existing methods require multi-view reconstruction, succeeding across diverse manipulation benchmarks. Our ablations reveal that geometric prediction is the key to driving performance, quantitatively validating that manipulation depends on spatial understanding. Furthermore, the learned codes exhibit effective motion abstraction: applying them to novel scenes produces physically consistent transformations regardless of visual context. Our real-world experiments also confirm this robustness capability, achieving robust manipulation with minimal demonstrations in cluttered environments where geometric reasoning determines success. Thus, we demonstrate that effective motion latents for robot control can better emerge from understanding motion through its three-dimensional effects rather than pixel-level patterns.",
+      "authors": [
+        "Yunchao Zhang",
+        "Yijia Weng",
+        "Ruizhe Liu",
+        "Ming Hu",
+        "Leonidas Guibas",
+        "Yanchao Yang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-07-06T06:34:14+00:00",
+      "link": "https://arxiv.org/pdf/2607.04714v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "learning motion latents from point cloud evolution, capturing geometric transformations",
+      "llm_evidence_cn": "从点云演化学习运动潜变量，捕捉几何变换",
+      "llm_evidence": "从点云演化学习运动潜变量，捕捉几何变换",
+      "canonical_evidence": "从点云演化学习运动潜变量，捕捉几何变换",
+      "llm_tldr_en": "GeoMoLa learns discrete motion latent codes by predicting how point clouds evolve, enabling policy learning from single-view RGB-D, achieving SOTA without multi-view input.",
+      "llm_tldr_cn": "针对机器人操作中从视觉序列提取运动模式的需求，GeoMoLa提出通过预测点云在操作过程中的演化来学习离散运动潜变量，而非重建视觉外观。该四维目标迫使潜变量编码实际物理运动。实验表明，仅需单视角RGB-D输入，GeoMoLa即达到多视角方法相当的SOTA性能，显著降低了对硬件的要求。",
+      "llm_tldr": "针对机器人操作中从视觉序列提取运动模式的需求，GeoMoLa提出通过预测点云在操作过程中的演化来学习离散运动潜变量，而非重建视觉外观。该四维目标迫使潜变量编码实际物理运动。实验表明，仅需单视角RGB-D输入，GeoMoLa即达到多视角方法相当的SOTA性能，显著降低了对硬件的要求。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
