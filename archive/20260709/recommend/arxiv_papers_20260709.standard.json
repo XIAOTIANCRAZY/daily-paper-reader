@@ -1,0 +1,175 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-09T20:47:48.376152+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 3,
+    "quick_skim_target": 11,
+    "quick_selected": 3
+  },
+  "deep_dive": [
+    {
+      "id": "2607.07001v1",
+      "source": "arxiv",
+      "title": "Ego-Human Motion Prediction with 3D-Aware LLM",
+      "abstract": "Anticipating human motion from an egocentric perspective is fundamental for proactive assistance in AR/VR, human-robot collaboration, and embodied AI. While recent works incorporate language as a semantic prior to reduce the ill-posed nature of egocentric forecasting, they largely neglect the 3D spatial and semantic context that governs how motion unfolds, and treat pose and language prediction as separate inference streams. We introduce Ego3DLM, built on two core principles: accurate motion forecasting requires explicit spatial and semantic understanding of the 3D environment, and pose and language must be predicted holistically in a single pass, since motion is inherently tied to the semantic interpretation of actions being performed. Given three-point tracking, 3D scene features, and egocentric video, Ego3DLM simultaneously decodes past pose, future pose, past narration, and future narration in a single autoregressive pass, grounding predicted poses and descriptions in one another to enforce cross-modal and temporal consistency. We adopt a three-stage training scheme: (1) spatial-semantic scene awareness pretraining; (2) holistic instruction tuning over all four outputs in a single pass; and (3) GRPO-based reinforcement finetuning with intra- and inter-modal rewards that directly optimize pose-language fidelity. Experiments on the Nymeria benchmark demonstrate that Ego3DLM achieves state-of-the-art performance across future motion prediction, past motion tracking, and motion description, showing that 3D scene grounding and holistic cross-modal prediction yield physically plausible and semantically coherent motion forecasts. The project page is available at https://jaewoo97.github.io/Ego3DLM/.",
+      "authors": [
+        "Yujin Bae",
+        "Jaewoo Jeong",
+        "Hyeonseong Kim",
+        "Kuk-Jin Yoon"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-08T04:51:24+00:00",
+      "link": "https://arxiv.org/pdf/2607.07001v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "egocentric human motion prediction integrating 3D spatial and semantic context",
+      "llm_evidence_cn": "融合3D空间和语义上下文的自我中心人体运动预测",
+      "llm_evidence": "融合3D空间和语义上下文的自我中心人体运动预测",
+      "canonical_evidence": "融合3D空间和语义上下文的自我中心人体运动预测",
+      "llm_tldr_en": "Ego3DLM predicts human motion from egocentric view using a 3D-aware LLM, jointly forecasting pose and language by integrating 3D scene features, enabling understanding of articulated human motion.",
+      "llm_tldr_cn": "现有自我中心运动预测忽略3D空间和语义上下文，且分别处理姿态和语言。本文提出Ego3DLM，利用3D感知大语言模型，在单次前向中同时预测姿态和语言，并显式编码3D场景特征。实验表明其在人体运动预测任务上优于现有方法，为理解铰接人体运动提供了新范式。",
+      "llm_tldr": "现有自我中心运动预测忽略3D空间和语义上下文，且分别处理姿态和语言。本文提出Ego3DLM，利用3D感知大语言模型，在单次前向中同时预测姿态和语言，并显式编码3D场景特征。实验表明其在人体运动预测任务上优于现有方法，为理解铰接人体运动提供了新范式。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.03000v1",
+      "source": "arxiv",
+      "title": "Physics-Informed Neural State-Space Modeling of Battery-Electric Vehicle Dynamics for Closed-Loop Automated Parking Simulation",
+      "abstract": "This paper contributes to vehicle dynamics modeling by introducing a physics-informed neural state-space model tailored for the parking regime of a production battery-electric sedan, identified entirely from field-test maneuvers. At parking speeds the model captures what the kinematic idealization omits, including actuator lag, drivetrain creep, brake-hold transitions through standstill, and frequent reversals of the motion direction. A gear-conditioned velocity constraint is imposed during training, and the yaw rate is read out as a learned residual on a kinematic-bicycle prior, so that the network devotes its capacity to the deviation from physics rather than to its reproduction. These training-time physics make the customary inference-time state limiter redundant. The commanded-to-actual behavior of the drive, brake, and steering actuators is reproduced by dedicated submodels, for which signal fidelity proves an unreliable proxy for closed-loop value; tuning the brake on its velocity consequence rather than on its own signal reverses the verdict reached at the signal level. The model generalizes to held-out maneuvers in fully open-loop simulation, and, despite being identified from only 16 field tests, the assembled command-to-vehicle chain earns Good ratings on the vehicle states under the ISO/TS 18571 objective rating metric. Embedded as the real-time plant of an interactive simulator, it enables a production-representative planning stack to park the vehicle through the learned dynamics. This makes the model suitable for pre-calibrating an automated-parking planning and control stack in the virtual development phase without the manufacturer's proprietary chassis and actuator parameters.",
+      "authors": [
+        "Sirong Pan",
+        "Guannan Tian",
+        "Pan Song"
+      ],
+      "primary_category": "eess.SY",
+      "categories": [
+        "eess.SY"
+      ],
+      "published": "2026-07-03T06:35:38+00:00",
+      "link": "https://arxiv.org/pdf/2607.03000v1",
+      "tags": [
+        "keyword:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "physics-informed modeling of vehicle kinematics with learned residuals, relevant to articulated systems",
+      "llm_evidence_cn": "物理学启发车辆运动学建模含学习残差，与铰接系统相关",
+      "llm_evidence": "物理学启发车辆运动学建模含学习残差，与铰接系统相关",
+      "canonical_evidence": "物理学启发车辆运动学建模含学习残差，与铰接系统相关",
+      "llm_tldr_en": "A physics-informed neural state-space model captures parking regime dynamics by learning residuals over a kinematic bicycle prior.",
+      "llm_tldr_cn": "车辆在低速停车场景中存在理想运动学模型未捕获的物理效应。本文提出物理启发神经网络状态空间模型，在运动学自行车模型先验上学习残差，包括执行器延迟、蠕变、制动保持等。该架构使网络专注于物理偏差而非重现已知运动学，为铰接系统运动学参数学习提供了有效框架。",
+      "llm_tldr": "车辆在低速停车场景中存在理想运动学模型未捕获的物理效应。本文提出物理启发神经网络状态空间模型，在运动学自行车模型先验上学习残差，包括执行器延迟、蠕变、制动保持等。该架构使网络专注于物理偏差而非重现已知运动学，为铰接系统运动学参数学习提供了有效框架。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.05243v1",
+      "source": "arxiv",
+      "title": "GUSH3R: Everyone Everywhere All at Once as Gaussians",
+      "abstract": "Reconstructing dynamic human-scene environments from monocular videos is a challenging problem that requires jointly modeling scene geometry, camera motion, and non-rigid human dynamics while enabling photorealistic rendering. Recent feed-forward methods can efficiently predict geometry, but they are often limited to non-photorealistic representations such as point clouds and meshes, or they fail to handle non-rigid objects, particularly dynamic humans. To fill this gap, we present GUSH3R (Gaussian-Unified Scene Human 3D Reconstruction), a feed-forward framework for online dynamic human-scene reconstruction. From a monocular human-scene video, our method reconstructs dynamic humans (everyone) and static scenes (everywhere) in a single forward pass (all at once) as 3D Gaussian Splatting (3DGS) primitives (as gaussians), which are geometrically consistent and capable of novel view synthesis. Experiments on monocular human-scene datasets demonstrate that our approach achieves competitive novel view synthesis quality while significantly improving inference efficiency compared to optimization-based methods.",
+      "authors": [
+        "Keito Abe",
+        "Kaede Shiohara",
+        "Takashi Otonari",
+        "Toshihiko Yamasaki"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-06T15:53:09+00:00",
+      "link": "https://arxiv.org/pdf/2607.05243v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "reconstructs dynamic humans from video, understanding articulated motion",
+      "llm_evidence_cn": "从视频重建动态人体，理解关节运动",
+      "llm_evidence": "从视频重建动态人体，理解关节运动",
+      "canonical_evidence": "从视频重建动态人体，理解关节运动",
+      "llm_tldr_en": "GUSH3R reconstructs dynamic human-scene environments from monocular video, handling non-rigid articulated human motion in a feed-forward manner.",
+      "llm_tldr_cn": "从单目视频重建动态人体-场景环境是一个挑战，现有前馈方法无法处理非刚性人体动态。本文提出GUSH3R，一种前馈框架，通过单个前向传播从单目视频同时重建动态人体和静态场景为3D高斯表示。该方法能有效处理人体关节运动，实现实时重建和新视图渲染。对于理解三维铰接物体（如人体）的运动有直接贡献。",
+      "llm_tldr": "从单目视频重建动态人体-场景环境是一个挑战，现有前馈方法无法处理非刚性人体动态。本文提出GUSH3R，一种前馈框架，通过单个前向传播从单目视频同时重建动态人体和静态场景为3D高斯表示。该方法能有效处理人体关节运动，实现实时重建和新视图渲染。对于理解三维铰接物体（如人体）的运动有直接贡献。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.06564v1",
+      "source": "arxiv",
+      "title": "Lift3D-VLA: Lifting VLA Models to 3D Geometry and Dynamics-Aware Manipulation",
+      "abstract": "Recently, Vision-Language-Action (VLA) models have demonstrated strong generalization across diverse tasks. However, effective robotic manipulation in physical environments fundamentally requires geometric understanding and spatial reasoning. While some VLA approaches attempt to incorporate 3D information, they are constrained by limited data availability and geometric information loss in current 3D encoding pipelines, and fail to jointly capture 3D geometry and temporally structured actions in dynamic environments. To address these limitations, we introduce Lift3D-VLA, a unified VLA framework that equips models with explicit 3D point cloud reasoning and enables temporally coherent action generation. First, building upon our previous work Lift3D, an enhanced 2D model-lifting strategy is proposed to geometrically align 3D points with pretrained 2D positional embeddings. This design enables direct point-cloud encoding within the VLA vision encoder while minimizing spatial information loss. Based on explicit 3D inputs, we propose Geometry-Centric Masked Autoencoding (GC-MAE), a dual-objective self-supervised framework that reconstructs the current point cloud while predicting its future geometric evolution. This formulation allows the 2D vision encoder to internalize both 3D structure and physical dynamics. To fully exploit 3D representations, we further design layer-wise temporal action modeling, which leverages multiple layers of the LLM to collaboratively predict action chunks, enabling temporally consistent predictions. Across 22 simulated tasks and 8 real-world manipulation tasks, Lift3D-VLA achieves 10.8% and 11.1% higher mean success rates on MetaWorld and RLBench than the best-performing prior VLA methods, and outperforms the strongest real-world baseline by 4 percentage points, while exhibiting stronger generalization to out-of-distribution perturbations.",
+      "authors": [
+        "Jiaming Liu",
+        "Qingpo Wuwu",
+        "Nuowei Han",
+        "Hao Chen",
+        "Zhuoyang Liu",
+        "Fan Fei",
+        "Yueru Jia",
+        "Chenyang Gu",
+        "Yandong Guo",
+        "Boxin Shi",
+        "Shanghang Zhang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-07-07T17:59:47+00:00",
+      "link": "https://arxiv.org/pdf/2607.06564v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "3D point cloud reasoning and dynamics-aware manipulation for understanding articulated objects",
+      "llm_evidence_cn": "3D点云推理与动力学感知操作，有助于理解铰接物体",
+      "llm_evidence": "3D点云推理与动力学感知操作，有助于理解铰接物体",
+      "canonical_evidence": "3D点云推理与动力学感知操作，有助于理解铰接物体",
+      "llm_tldr_en": "Lift3D-VLA integrates explicit 3D point cloud reasoning with temporally coherent action generation for dynamics-aware manipulation.",
+      "llm_tldr_cn": "现有视觉-语言-动作（VLA）模型缺乏3D几何与时间动态的联合建模，本文提出Lift3D-VLA框架，通过3D点云显式推理和稳定动作生成来解决该问题。该框架使模型能够理解3D空间结构并生成时间上一致的动作序列，为从观测理解3D物体动态提供了统一方案。",
+      "llm_tldr": "现有视觉-语言-动作（VLA）模型缺乏3D几何与时间动态的联合建模，本文提出Lift3D-VLA框架，通过3D点云显式推理和稳定动作生成来解决该问题。该框架使模型能够理解3D空间结构并生成时间上一致的动作序列，为从观测理解3D物体动态提供了统一方案。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

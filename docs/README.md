@@ -6,40 +6,34 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-08
-- 运行时间：2026-07-08 21:38:31 UTC
+- 最新运行日期：2026-07-09
+- 运行时间：2026-07-09 20:51:09 UTC
 - 运行状态：成功
-- 本次总论文数：6
-- 精读区：3
+- 本次总论文数：4
+- 精读区：1
 - 速读区：3
 
 ### 今日简报（AI）
-今日推荐6篇论文，聚焦可扩展手部运动补全与物理原理驱动的3D世界模型。
-最值得关注的方向：手部运动补全（9.0分）和动态物体操作的物理世界模型（8.0分）。
-建议优先精读这两篇高评分论文，深入理解其可控性与可扩展性设计。
-- 详情：[/202607/08/README](/202607/08/README)
+今日精读一篇关于3D感知大语言模型实现自我人体运动预测的高分论文，速读三篇覆盖电动车泊车仿真、场景重建和3D几何操控的研究。  
+最值得关注的是将3D感知与LLM结合用于人体运动预测的突破，以及利用高斯基元进行大规模场景建模的新方法。  
+建议读者持续跟踪多模态大模型在具身智能和自动驾驶中的落地应用，尤其是融合3D几何与动力学推理的模型进展。
+- 详情：[/202607/09/README](/202607/09/README)
 
 ### 精读区论文标签
-1. [Prior-First, Condition-Second: Scalable and Controllable Hand Motion Completion](/202607/08/2607.05938v1-prior-first-condition-second-scalable-and-controllable-hand-motion-completion)  
-   标签：评分：9.0/10、query:d-artic-kin
-   evidence：学习身体-手部运动学先验用于手部运动补全，生成真实手部关节运动
-2. [PhysMani: Physics-principled 3D World Model for Dynamic Object Manipulation](/202607/08/2607.01938v1-physmani-physics-principled-3d-world-model-for-dynamic-object-manipulation)  
+1. [Ego-Human Motion Prediction with 3D-Aware LLM](/202607/09/2607.07001v1-ego-human-motion-prediction-with-3d-aware-llm)  
    标签：评分：8.0/10、query:d-artic-kin
-   evidence：基于物理原理的3D世界模型，预测物理合理的目标未来动态，可用于铰接物体物理属性预测
-3. [How to Build Digital Humans? From Priors to Photorealistic Avatars](/202607/08/2607.04341v1-how-to-build-digital-humans-from-priors-to-photorealistic-avatars)  
-   标签：评分：8.0/10、query:d-artic-kin
-   evidence：关于创建可控3D人体虚拟人的综述，涉及人体运动学和运动先验
+   evidence：融合3D空间和语义上下文的自我中心人体运动预测
 
 ### 速读区论文标签
-1. [Cross-Embodiment Robot Manipulation via a Unified Hand Action Space](/202607/08/2607.03570v1-cross-embodiment-robot-manipulation-via-a-unified-hand-action-space)  
-   标签：评分：7.0/10、query:d-artic-kin
-   evidence：提出统一手部动作空间和级联逆运动学，用于生成特有关节配置
-2. [KAM-WM: Kinematic Affordance Maps from Latent World Models for Robot Manipulation](/202607/08/2607.04652v1-kam-wm-kinematic-affordance-maps-from-latent-world-models-for-robot-manipulation)  
+1. [Physics-Informed Neural State-Space Modeling of Battery-Electric Vehicle Dynamics for Closed-Loop Automated Parking Simulation](/202607/09/2607.03000v1-physics-informed-neural-state-space-modeling-of-battery-electric-vehicle-dynamics-for-closed-loop-automated-parking-simulation)  
    标签：评分：6.0/10、query:d-artic-kin
-   evidence：从潜在世界模型中提取运动学启发图以获取粗略运动结构
-3. [Geometry-Aware Motion Latents for Learning Robust Manipulation Policies](/202607/08/2607.04714v1-geometry-aware-motion-latents-for-learning-robust-manipulation-policies)  
+   evidence：物理学启发车辆运动学建模含学习残差，与铰接系统相关
+2. [GUSH3R: Everyone Everywhere All at Once as Gaussians](/202607/09/2607.05243v1-gush3r-everyone-everywhere-all-at-once-as-gaussians)  
    标签：评分：6.0/10、query:d-artic-kin
-   evidence：从点云演化学习运动潜变量，捕捉几何变换
+   evidence：从视频重建动态人体，理解关节运动
+3. [Lift3D-VLA: Lifting VLA Models to 3D Geometry and Dynamics-Aware Manipulation](/202607/09/2607.06564v1-lift3d-vla-lifting-vla-models-to-3d-geometry-and-dynamics-aware-manipulation)  
+   标签：评分：6.0/10、query:d-artic-kin
+   evidence：3D点云推理与动力学感知操作，有助于理解铰接物体
 
 
 <div class="dpr-home-promo-card">
