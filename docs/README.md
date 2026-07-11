@@ -6,43 +6,29 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-10
-- 运行时间：2026-07-10 20:43:55 UTC
+- 最新运行日期：2026-07-11
+- 运行时间：2026-07-11 21:15:55 UTC
 - 运行状态：成功
-- 本次总论文数：7
+- 本次总论文数：3
 - 精读区：1
-- 速读区：6
+- 速读区：2
 
 ### 今日简报（AI）
-今日聚焦人机物体交互与机器人操作前沿，重点推荐一篇高影响力论文。  
-精读论文《GIRAF》提出通用化人与可变形物体交互框架（9分），速读中《Harness VLA》展示冻结视觉-语言-动作模型转化为可靠操作原语的记忆引导方法。  
-建议关注机器人物体交互与基础模型融合方向，可深入阅读精读论文。
-- 详情：[/202607/10/README](/202607/10/README)
+今日精读1篇、速读2篇，聚焦人类与关节物体交互、3D姿态估计与灵巧操作。最值得看的是《GIRAF》（8.0分），提出通用化人类与关节物体交互方法。建议读者优先关注该篇，并对比《DexVerse》中多任务灵巧操作的模块化设计。
+- 详情：[/202607/11/README](/202607/11/README)
 
 ### 精读区论文标签
-1. [GIRAF: Towards Generalizable Human Interactions with Articulated Objects](/202607/10/2607.07880v1-giraf-towards-generalizable-human-interactions-with-articulated-objects)  
-   标签：评分：9.0/10、query:d-artic-kin
-   evidence：生成与铰接物体的全身交互
+1. [GIRAF: Towards Generalizable Human Interactions with Articulated Objects](/202607/11/2607.07880v1-giraf-towards-generalizable-human-interactions-with-articulated-objects)  
+   标签：评分：8.0/10、query:d-artic-kin
+   evidence：全身与铰接物体交互，生成逼真运动
 
 ### 速读区论文标签
-1. [Harness VLA: Steering Frozen VLAs into Reliable Manipulation Primitives via Memory-Guided Agents](/202607/10/2607.08448v1-harness-vla-steering-frozen-vlas-into-reliable-manipulation-primitives-via-memory-guided-agents)  
-   标签：评分：7.0/10、query:d-artic-kin
-   evidence：处理铰接物体交互，从观测中理解铰接物体
-2. [HandsOnWorld: Unconstrained Egocentric Video Generation with Camera-Disentangled Hand Control](/202607/10/2607.02075v1-handsonworld-unconstrained-egocentric-video-generation-with-camera-disentangled-hand-control)  
+1. [Pose-to-Biomechanics: Bridging 3D Human Pose Estimation and Biomechanical Attribute Prediction](/202607/11/2607.08725v1-pose-to-biomechanics-bridging-3d-human-pose-estimation-and-biomechanical-attribute-prediction)  
    标签：评分：6.0/10、query:d-artic-kin
-   evidence：生成手部控制的第一人称视频，涉及手部关节运动生成
-3. [ADP: Adversarial Dynamics Priors for Physically Grounded Humanoid Locomotion](/202607/10/2607.03454v1-adp-adversarial-dynamics-priors-for-physically-grounded-humanoid-locomotion)  
+   evidence：从3D姿态预测生物力学属性，即铰接人体的物理属性
+2. [DexVerse: A Modular Benchmark for Multi-Task, Multi-Embodiment Dexterous Manipulation](/202607/11/2607.08751v1-dexverse-a-modular-benchmark-for-multi-task-multi-embodiment-dexterous-manipulation)  
    标签：评分：6.0/10、query:d-artic-kin
-   evidence：学习铰接系统（人形）的动力学特征（质心、接触力），直接相关于物理属性推断
-4. [SkelGen4D: Weakly-Supervised Skeleton-Based 4D Generation for Text-Driven Mesh Animation](/202607/10/2607.08246v1-skelgen4d-weakly-supervised-skeleton-based-4d-generation-for-text-driven-mesh-animation)  
-   标签：评分：6.0/10、query:d-artic-kin
-   evidence：生成显式骨架运动用于文本驱动动画，与运动参数生成相关
-5. [ARDY: Autoregressive Diffusion with Hybrid Representation for Interactive Human Motion Generation](/202607/10/2607.08741v1-ardy-autoregressive-diffusion-with-hybrid-representation-for-interactive-human-motion-generation)  
-   标签：评分：6.0/10、query:d-artic-kin
-   evidence：生成具有运动学约束的人体运动
-6. [DexVerse: A Modular Benchmark for Multi-Task, Multi-Embodiment Dexterous Manipulation](/202607/10/2607.08751v1-dexverse-a-modular-benchmark-for-multi-task-multi-embodiment-dexterous-manipulation)  
-   标签：评分：6.0/10、query:d-artic-kin
-   evidence：包含铰接物体交互任务的基准
+   evidence：包含铰接物体交互任务
 
 
 <div class="dpr-home-promo-card">

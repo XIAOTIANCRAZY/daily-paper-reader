@@ -1,0 +1,144 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-11T21:14:16.977436+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2607.07880v1",
+      "source": "arxiv",
+      "title": "GIRAF: Towards Generalizable Human Interactions with Articulated Objects",
+      "abstract": "Synthesizing realistic full-body human interactions with articulated objects is a fundamental challenge for embodied AI and graphics, with applications in robotics training and virtual agents. Existing models remain limited: some focus on simple activities with static objects, while others restrict attention to hand-only manipulation. This leaves open the problem of generating coordinated full-body motion that approaches, manipulates, and moves articulated objects in a realistic and generalizable way. The key difficulty lies in reasoning jointly about locomotion, fine-grained contact, and object articulation. Models must capture subtle hand-object correspondences that transfer across object geometries, while also producing seamless transitions from navigation to manipulation. At the same time, the scarcity of large-scale paired motion-scene data makes it difficult to generalize across diverse object positions and shapes. We introduce a text-conditioned diffusion model that addresses these challenges through three core ideas: an object-centric representation that unifies hand-object contact with object surfaces, a mixed-domain training strategy that balances locomotion and interaction, and a contact-based augmentation scheme that expands training diversity. Through experiments, our method demonstrated strong generalization to unseen object configurations, surpassing current state-of-the-art methods.",
+      "authors": [
+        "Xiaohan Zhang",
+        "Sebastian Starke",
+        "Alexander Winkler",
+        "Federica Bogo",
+        "Samir Aroudj",
+        "Yuting Ye"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-08T19:30:44+00:00",
+      "link": "https://arxiv.org/pdf/2607.07880v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "full-body human interaction with articulated objects, generating realistic motion",
+      "llm_evidence_cn": "全身与铰接物体交互，生成逼真运动",
+      "llm_evidence": "全身与铰接物体交互，生成逼真运动",
+      "canonical_evidence": "全身与铰接物体交互，生成逼真运动",
+      "llm_tldr_en": "Proposes GIRAF for synthesizing realistic full-body human interactions with articulated objects, jointly reasoning about locomotion, contact, and object articulation.",
+      "llm_tldr_cn": "该工作提出GIRAF框架，旨在合成与铰接物体逼真的全身人机交互。现有方法多限于静态物体或手部操作，GIRAF联合推理移动、接触和物体铰接，生成协调的身体运动。实验表明，该方法能泛化到不同铰接物体，生成自然的交互序列，对具身智能和虚拟角色有重要意义。",
+      "llm_tldr": "该工作提出GIRAF框架，旨在合成与铰接物体逼真的全身人机交互。现有方法多限于静态物体或手部操作，GIRAF联合推理移动、接触和物体铰接，生成协调的身体运动。实验表明，该方法能泛化到不同铰接物体，生成自然的交互序列，对具身智能和虚拟角色有重要意义。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.08725v1",
+      "source": "arxiv",
+      "title": "Pose-to-Biomechanics: Bridging 3D Human Pose Estimation and Biomechanical Attribute Prediction",
+      "abstract": "Recent progress in 3D human pose estimation has made markerless recovery of skeletal motion increasingly accurate and scalable. However, most pose estimators remain optimized for geometric keypoint accuracy, while many real-world applications in rehabilitation, sports science, ergonomics, and clinical movement analysis require biomechanical quantities that describe how the body moves, loads, and activates. In this work, we propose BioModule, a lightweight plug-in temporal transformer that attaches downstream of any 3D pose estimator and predicts biomechanical attributes from standard 17-joint 3D skeletons. BioModule is estimator-agnostic and requires no modification of the upstream pose model, enabling existing pose estimators to be extended toward physically interpretable motion analysis.   To train and evaluate BioModule, we construct a large-scale aligned dataset pairing Human3.6M video and 3D keypoints with the biomechanical label space of Human3.6Mplus. We establish and verify anatomical correspondence between coordinate systems of the two datasets, enabling frame-accurate cross-modal supervision. Using this aligned supervision, BioModule predicts biomechanical quantities. We further benchmark BioModule across seven state-of-the-art 3D pose estimators, providing the first systematic analysis of how upstream pose estimation quality propagates to downstream biomechanical prediction fidelity. The results position BioModule as a compact, modular bridge between vision-based pose estimation and biomechanically meaningful human motion analysis.",
+      "authors": [
+        "Ayda Eghbalian",
+        "Kevin Desai"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-07-09T17:31:16+00:00",
+      "link": "https://arxiv.org/pdf/2607.08725v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "predicts biomechanical attributes from 3D pose, a physical property of articulated humans",
+      "llm_evidence_cn": "从3D姿态预测生物力学属性，即铰接人体的物理属性",
+      "llm_evidence": "从3D姿态预测生物力学属性，即铰接人体的物理属性",
+      "canonical_evidence": "从3D姿态预测生物力学属性，即铰接人体的物理属性",
+      "llm_tldr_en": "BioModule is a plug-in transformer that predicts biomechanical attributes (forces, moments) from 3D skeletons, bridging pose estimation and physical understanding.",
+      "llm_tldr_cn": "BioModule是一种轻量级插件式时序Transformer，可附加在任何3D姿态估计器后，从标准17关节点骨架预测生物力学属性（如关节力矩、地面反作用力等），实现了从几何姿态到物理属性的映射，为理解铰接系统物理属性提供了可迁移方法。",
+      "llm_tldr": "BioModule是一种轻量级插件式时序Transformer，可附加在任何3D姿态估计器后，从标准17关节点骨架预测生物力学属性（如关节力矩、地面反作用力等），实现了从几何姿态到物理属性的映射，为理解铰接系统物理属性提供了可迁移方法。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Methods for understanding physical properties of articulated objects.",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.08751v1",
+      "source": "arxiv",
+      "title": "DexVerse: A Modular Benchmark for Multi-Task, Multi-Embodiment Dexterous Manipulation",
+      "abstract": "Building general-purpose dexterous manipulation policies requires benchmarks that go beyond isolated tasks to systematically evaluate policies across diverse interaction modes, sensory conditions, and robot embodiments. However, existing benchmarks remain limited in task and data diversity, embodiment coverage, or controllable visual variation, hindering studies of cross-task and cross-embodiment generalization. We present DexVerse, a large-scale and modular benchmark for dexterous manipulation. DexVerse includes 100 tasks spanning a broad range of manipulation skills, including object grasping and relocation, articulated-object interaction, functional tool use, bimanual coordination, non-prehensile control, contact-rich behaviors, multi-goal execution, and long-horizon multi-stage task completion. It supports 3 robot arms and 6 dexterous hands, and is extensible to new tasks, assets, and embodiments. To evaluate visuomotor generalization, DexVerse provides configurable visual variations in textures, background, lighting, and camera viewpoints. We further provide a VR-based teleoperation interface and 3,180 demonstrations with synchronized proprioceptive, RGB, depth, point-cloud, and state observations. We benchmark representative methods, including Diffusion Policy, DP3, OpenVLA, and $π_{0.5}$, across 19 tasks. Results reveal substantial challenges in task generalization and visuomotor robustness, establishing DexVerse as a promising testbed for general-purpose dexterous manipulation. Project page: https://ycyao216.github.io/DexVerse.site",
+      "authors": [
+        "Yunchao Yao",
+        "Zhuxiu Xu",
+        "Tianqi Zhang",
+        "Zixian Liu",
+        "Sikai Li",
+        "Zhenyu Wei",
+        "Feng Chen",
+        "Dihong Huang",
+        "Kechang Wan",
+        "Chenyang Ma",
+        "Shuqi Zhao",
+        "Shenghua Gao",
+        "Masayoshi Tomizuka",
+        "Yi Ma",
+        "Mingyu Ding"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-09T17:50:47+00:00",
+      "link": "https://arxiv.org/pdf/2607.08751v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "includes articulated object interaction tasks",
+      "llm_evidence_cn": "包含铰接物体交互任务",
+      "llm_evidence": "包含铰接物体交互任务",
+      "canonical_evidence": "包含铰接物体交互任务",
+      "llm_tldr_en": "DexVerse is a large-scale benchmark with 100 tasks including articulated-object interaction, enabling evaluation of manipulation policies on kinematic parameters estimation.",
+      "llm_tldr_cn": "DexVerse是一个包含100个任务的模块化基准测试，涵盖了铰接物体交互、工具使用等多种操作技能，为评估灵巧操作策略在运动学参数估计等方面的表现提供了标准化平台。",
+      "llm_tldr": "DexVerse是一个包含100个任务的模块化基准测试，涵盖了铰接物体交互、工具使用等多种操作技能，为评估灵巧操作策略在运动学参数估计等方面的表现提供了标准化平台。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

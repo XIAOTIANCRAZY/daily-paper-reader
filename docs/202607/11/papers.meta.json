@@ -1,0 +1,54 @@
+{
+  "label": "2026-07-11",
+  "date": "2026-07-11",
+  "generated_at": "2026-07-11T21:16:02",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202607/11/2607.07880v1-giraf-towards-generalizable-human-interactions-with-articulated-objects",
+      "section": "deep",
+      "title_en": "GIRAF: Towards Generalizable Human Interactions with Articulated Objects",
+      "authors": "Xiaohan Zhang, Sebastian Starke, Alexander Winkler, Federica Bogo, Samir Aroudj, Yuting Ye",
+      "date": "2026-07-08",
+      "pdf": "https://arxiv.org/pdf/2607.07880v1",
+      "score": "8.0",
+      "evidence": "全身与铰接物体交互，生成逼真运动",
+      "tldr": "合成逼真的全身人体与铰接物体交互是具身AI和图形学的关键挑战。现有方法局限于静态物体或手部操作，难以协调导航与精细操作。本文提出文本条件扩散模型GIRAF，采用物体中心表示统一手-物接触、混合域训练平衡运动与交互、接触增强扩大多样性。实验表明，该方法在未见物体配置上显著超越现有方法，具有良好的泛化能力。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "Synthesizing realistic full-body human interactions with articulated objects is a fundamental challenge for embodied AI and graphics, with applications in robotics training and virtual agents. Existing models remain limited: some focus on simple activities with static objects, while others restrict attention to hand-only manipulation. This leaves open the problem of generating coordinated full-body motion that approaches, manipulates, and moves articulated objects in a realistic and generalizable way. The key difficulty lies in reasoning jointly about locomotion, fine-grained contact, and object articulation. Models must capture subtle hand-object correspondences that transfer across object geometries, while also producing seamless transitions from navigation to manipulation. At the same time, the scarcity of large-scale paired motion-scene data makes it difficult to generalize across diverse object positions and shapes. We introduce a text-conditioned diffusion model that addresses these challenges through three core ideas: an object-centric representation that unifies hand-object contact with object surfaces, a mixed-domain training strategy that balances locomotion and interaction, and a contact-based augmentation scheme that expands training diversity. Through experiments, our method demonstrated strong generalization to unseen object configurations, surpassing current state-of-the-art methods.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/11/2607.08725v1-pose-to-biomechanics-bridging-3d-human-pose-estimation-and-biomechanical-attribute-prediction",
+      "section": "quick",
+      "title_en": "Pose-to-Biomechanics: Bridging 3D Human Pose Estimation and Biomechanical Attribute Prediction",
+      "authors": "Ayda Eghbalian, Kevin Desai",
+      "date": "2026-07-09",
+      "pdf": "https://arxiv.org/pdf/2607.08725v1",
+      "score": "6.0",
+      "evidence": "从3D姿态预测生物力学属性，即铰接人体的物理属性",
+      "tldr": "3D人体姿态估计虽在几何精度上取得进展，但缺乏生物力学属性的预测能力。本文提出BioModule，一个轻量级即插即用时间transformer，可附加于任意姿态估计器，从标准17关节骨架预测生物力学量。通过构建Human3.6M与Human3.6Mplus的对齐数据集实现帧级监督，并在7个先进姿态估计器上验证了模块的通用性，系统分析了上游姿态质量对下游预测保真度的影响。BioModule作为紧凑桥梁，将视觉姿态估计扩展到有物理意义的生物力学分析。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "Recent progress in 3D human pose estimation has made markerless recovery of skeletal motion increasingly accurate and scalable. However, most pose estimators remain optimized for geometric keypoint accuracy, while many real-world applications in rehabilitation, sports science, ergonomics, and clinical movement analysis require biomechanical quantities that describe how the body moves, loads, and activates. In this work, we propose BioModule, a lightweight plug-in temporal transformer that attaches downstream of any 3D pose estimator and predicts biomechanical attributes from standard 17-joint 3D skeletons. BioModule is estimator-agnostic and requires no modification of the upstream pose model, enabling existing pose estimators to be extended toward physically interpretable motion analysis.   To train and evaluate BioModule, we construct a large-scale aligned dataset pairing Human3.6M video and 3D keypoints with the biomechanical label space of Human3.6Mplus. We establish and verify anatomical correspondence between coordinate systems of the two datasets, enabling frame-accurate cross-modal supervision. Using this aligned supervision, BioModule predicts biomechanical quantities. We further benchmark BioModule across seven state-of-the-art 3D pose estimators, providing the first systematic analysis of how upstream pose estimation quality propagates to downstream biomechanical prediction fidelity. The results position BioModule as a compact, modular bridge between vision-based pose estimation and biomechanically meaningful human motion analysis.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/11/2607.08751v1-dexverse-a-modular-benchmark-for-multi-task-multi-embodiment-dexterous-manipulation",
+      "section": "quick",
+      "title_en": "DexVerse: A Modular Benchmark for Multi-Task, Multi-Embodiment Dexterous Manipulation",
+      "authors": "Yunchao Yao, Zhuxiu Xu, Tianqi Zhang, Zixian Liu, Sikai Li, Zhenyu Wei, Feng Chen, Dihong Huang, Kechang Wan, Chenyang Ma, Shuqi Zhao, Shenghua Gao, Masayoshi Tomizuka, Yi Ma, Mingyu Ding",
+      "date": "2026-07-09",
+      "pdf": "https://arxiv.org/pdf/2607.08751v1",
+      "score": "6.0",
+      "evidence": "包含铰接物体交互任务",
+      "tldr": "现有灵巧操作基准在任务多样性和具身覆盖上不足，且缺乏可控视觉变化。DexVerse提出了包含100个多样化任务的模块化基准，支持3种机械臂和6种灵巧手，提供VR遥操作与3180个同步观测演示。在19个任务上对多种策略的测试显示，任务泛化与视觉鲁棒性仍是重大挑战。该基准为通用灵巧操作研究提供了系统化测试平台。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "Building general-purpose dexterous manipulation policies requires benchmarks that go beyond isolated tasks to systematically evaluate policies across diverse interaction modes, sensory conditions, and robot embodiments. However, existing benchmarks remain limited in task and data diversity, embodiment coverage, or controllable visual variation, hindering studies of cross-task and cross-embodiment generalization. We present DexVerse, a large-scale and modular benchmark for dexterous manipulation. DexVerse includes 100 tasks spanning a broad range of manipulation skills, including object grasping and relocation, articulated-object interaction, functional tool use, bimanual coordination, non-prehensile control, contact-rich behaviors, multi-goal execution, and long-horizon multi-stage task completion. It supports 3 robot arms and 6 dexterous hands, and is extensible to new tasks, assets, and embodiments. To evaluate visuomotor generalization, DexVerse provides configurable visual variations in textures, background, lighting, and camera viewpoints. We further provide a VR-based teleoperation interface and 3,180 demonstrations with synchronized proprioceptive, RGB, depth, point-cloud, and state observations. We benchmark representative methods, including Diffusion Policy, DP3, OpenVLA, and $π_{0.5}$, across 19 tasks. Results reveal substantial challenges in task generalization and visuomotor robustness, establishing DexVerse as a promising testbed for general-purpose dexterous manipulation. Project page: https://ycyao216.github.io/DexVerse.site",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
