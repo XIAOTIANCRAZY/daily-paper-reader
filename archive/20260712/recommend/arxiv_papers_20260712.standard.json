@@ -1,0 +1,140 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-12T21:07:45.299288+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2607.06559v1",
+      "source": "arxiv",
+      "title": "RynnWorld-4D: 4D Embodied World Models for Robotic Manipulation",
+      "abstract": "Robotic manipulation in the open world requires not only recognizing what a scene looks like, but also anticipating how its 3D structure moves under interaction. We argue that synchronized RGB, depth, and optical flow, namely RGB-DF, provide a physically grounded representation that captures the underlying 4D dynamics of a scene. Compared to 2D pixel videos, this multi-modal synergy aligns visual appearance with geometric structure and temporal motion, creating a representation space significantly closer to the low-level end-effector actions demanded by robotic systems, thereby narrowing the gap between world prediction and policy learning. Building on this insight, we introduce RynnWorld-4D, a generative model that co-produces future RGB frames, depth maps, and optical flow from a single RGB-D image and a language instruction within one unified diffusion process. This 4D world model features a tri-branch architecture that integrates cross-modal attention with frame-wise 3D RoPE, ensuring that appearance, geometry, and motion evolve consistently. To supply training data at scale, we curate Rynn4DDataset 1.0, a massive dataset of over 254.4 million frames across egocentric human and robotic manipulation videos with high-quality pseudo-labels for depth and optical flow. We further propose RynnWorld-4D-Policy, an inverse dynamics head that consumes the internal 4D representations of RynnWorld-4D in a single forward pass, bypassing expensive multi-step denoising, to output robot actions in a closed-loop manner. Experiments show that RynnWorld-4D produces temporally and spatially coherent 4D predictions, and that RynnWorld-4D-Policy achieves state-of-the-art performance on real-world dexterous bimanual manipulation tasks, particularly excelling in tasks demanding spatial precision and temporal coordination.",
+      "authors": [
+        "Haoyu Zhao",
+        "Xingyue Zhao",
+        "Siteng Huang",
+        "Xin Li",
+        "Deli Zhao",
+        "Zhongyu Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-07T17:58:15+00:00",
+      "link": "https://arxiv.org/pdf/2607.06559v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "anticipates how 3D structure moves under interaction using synchronized RGB, depth, and optical flow",
+      "llm_evidence_cn": "利用同步RGB、深度和光流预测3D结构如何随交互运动",
+      "llm_evidence": "利用同步RGB、深度和光流预测3D结构如何随交互运动",
+      "canonical_evidence": "利用同步RGB、深度和光流预测3D结构如何随交互运动",
+      "llm_tldr_en": "RynnWorld-4D introduces a generative model that co-produces future RGB, depth, and optical flow from current observations, capturing 4D dynamics for robotic manipulation and directly addressing understanding of articulated 3D objects.",
+      "llm_tldr_cn": "RynnWorld-4D指出同步RGB、深度和光流（RGB-DF）提供了物理扎根的表示，能捕捉场景的4D动态。该模型联合生成未来的RGB帧、深度图和光流场，比纯2D视频更贴近机器人所需的底层动作表示。通过直接预测3D结构运动，该方法有效支持了对铰接物体在交互下运动的理解，缩小了世界预测与策略学习之间的差距。其核心贡献在于提出了一种面向操作任务的4D动态预测框架。",
+      "llm_tldr": "RynnWorld-4D指出同步RGB、深度和光流（RGB-DF）提供了物理扎根的表示，能捕捉场景的4D动态。该模型联合生成未来的RGB帧、深度图和光流场，比纯2D视频更贴近机器人所需的底层动作表示。通过直接预测3D结构运动，该方法有效支持了对铰接物体在交互下运动的理解，缩小了世界预测与策略学习之间的差距。其核心贡献在于提出了一种面向操作任务的4D动态预测框架。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.04546v1",
+      "source": "arxiv",
+      "title": "Mask2Real-WM: Segmentation Masks as a Sim-to-Real Bridge for Controllable Dexterous World Models",
+      "abstract": "Action-conditioned world models allow robots to predict the future consequences of candidate actions without additional physical interaction, supporting policy evaluation, planning, and data augmentation. We present Mask2Real-WM, a two-stage action-conditioned world model for dexterous manipulation that decouples pixel prediction into a dynamics model and a rendering model. The dynamics model predicts future segmentation masks from past masks and 23-DoF action sequences. The rendering model maps the predicted masks to photorealistic RGB using a ControlNet-augmented Stable Video Diffusion backbone. The smaller sim-to-real gap in segmentation space enables the dynamics model to benefit from large-scale pretraining on over 50 h of synthetic simulation data, followed by fine-tuning on fewer than 2.5 h of real demonstrations. Experiments on a dexterous pick-and-place benchmark show that mask conditioning and simulation pretraining are both required for per-DoF action controllability across all 23 degrees of freedom. In contrast, monolithic baselines capture broad hand and end-effector trajectories but do not reliably reflect fine-grained, per-joint action effects.",
+      "authors": [
+        "Riccardo O. Feingold",
+        "Davide Liconti",
+        "Chenyu Yang",
+        "Robert K. Katzschmann"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-07-05T23:29:23+00:00",
+      "link": "https://arxiv.org/pdf/2607.04546v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "predicts future segmentation masks from past masks and 23-DoF actions for dexterous manipulation, enabling understanding of articulated hand dynamics",
+      "llm_evidence_cn": "通过预测未来分割掩码来理解灵巧手等铰接系统的动态",
+      "llm_evidence": "通过预测未来分割掩码来理解灵巧手等铰接系统的动态",
+      "canonical_evidence": "通过预测未来分割掩码来理解灵巧手等铰接系统的动态",
+      "llm_tldr_en": "Mask2Real-WM uses a two-stage world model to predict future segmentation masks from past masks and 23-DoF actions, enabling controllable dexterous manipulation with a reduced sim-to-real gap.",
+      "llm_tldr_cn": "Mask2Real-WM面向灵巧操作提出了一种两阶段动作条件世界模型。其动态模型从过去掩码和23自由度动作序列预测未来分割掩码，渲染模型则利用ControlNet增强的稳定视频扩散将掩码转换为逼真RGB图像。通过在分割空间减小仿真到现实的差距，该模型可从大量仿真数据中预训练。虽然直接关注灵巧手而非一般铰接物体，但其预测动态的能力可迁移至铰接物体的运动理解。",
+      "llm_tldr": "Mask2Real-WM面向灵巧操作提出了一种两阶段动作条件世界模型。其动态模型从过去掩码和23自由度动作序列预测未来分割掩码，渲染模型则利用ControlNet增强的稳定视频扩散将掩码转换为逼真RGB图像。通过在分割空间减小仿真到现实的差距，该模型可从大量仿真数据中预训练。虽然直接关注灵巧手而非一般铰接物体，但其预测动态的能力可迁移至铰接物体的运动理解。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.05468v1",
+      "source": "arxiv",
+      "title": "Learning 4D Geometric Priors for Inference-Efficient World Action Models",
+      "abstract": "World Action Models (WAMs) have shown strong potential for robotic manipulation by jointly modeling visual future dynamics and executable action sequences. However, existing video-action co-training methods primarily optimize appearance-oriented video latents, which may insufficiently capture the temporally evolving geometry required for precise manipulation. We propose MECo-WAM, a Multi-Expert Co-Training World Action Model that injects action-relevant 4D geometric priors into video-action representations while preserving the original lightweight inference graph. During training, MECo-WAM combines video and action experts with a lightweight 4D expert supervised by relational targets from a frozen VGGT encoder. Asymmetric expert visibility prevents non-causal shortcuts from auxiliary geometry to action generation. To transfer geometric knowledge into the deployed video-action pathway, we introduce decayed 4D read-mask attention, which provides restricted current-frame geometric guidance early in training and progressively removes this dependency. We further propose action-aware temporal geometric distillation, which aligns within-frame geometric relations and their temporal evolution while emphasizing visual regions most relevant to robot actions. At deployment, all auxiliary 4D components are removed. Experiments on LIBERO (98.2%), RoboTwin 2.0 (92.6%), and challenging real-world manipulation tasks show that MECo-WAM improves manipulation performance without increasing inference cost.",
+      "authors": [
+        "Jianjun Zhang",
+        "Jian Zhu",
+        "Taiyi Su",
+        "Chong Ma",
+        "Zitai Huang",
+        "Yi Xu",
+        "Hanli Wang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-07-06T07:10:22+00:00",
+      "link": "https://arxiv.org/pdf/2607.05468v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "4D geometric priors for predicting motion dynamics",
+      "llm_evidence_cn": "4D几何先验用于预测运动动态",
+      "llm_evidence": "4D几何先验用于预测运动动态",
+      "canonical_evidence": "4D几何先验用于预测运动动态",
+      "llm_tldr_en": "MECo-WAM injects action-relevant 4D geometric priors into video-action representations for efficient world action models.",
+      "llm_tldr_cn": "该论文提出MECo-WAM，通过多专家联合训练将动作相关的4D几何先验注入视频-动作表征，同时保持轻量推理。方法利用冻结的VGGT编码器提供关系监督，使模型更好地捕捉随时间演化的几何信息，从而提升操作精度。这为从视觉数据学习运动参数（包括铰接物体的运动）提供了有价值的先验学习技术。",
+      "llm_tldr": "该论文提出MECo-WAM，通过多专家联合训练将动作相关的4D几何先验注入视频-动作表征，同时保持轻量推理。方法利用冻结的VGGT编码器提供关系监督，使模型更好地捕捉随时间演化的几何信息，从而提升操作精度。这为从视觉数据学习运动参数（包括铰接物体的运动）提供了有价值的先验学习技术。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

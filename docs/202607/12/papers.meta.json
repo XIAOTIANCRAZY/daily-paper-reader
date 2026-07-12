@@ -1,0 +1,54 @@
+{
+  "label": "2026-07-12",
+  "date": "2026-07-12",
+  "generated_at": "2026-07-12T21:10:41",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202607/12/2607.06559v1-rynnworld-4d-4d-embodied-world-models-for-robotic-manipulation",
+      "section": "deep",
+      "title_en": "RynnWorld-4D: 4D Embodied World Models for Robotic Manipulation",
+      "authors": "Haoyu Zhao, Xingyue Zhao, Siteng Huang, Xin Li, Deli Zhao, Zhongyu Li",
+      "date": "2026-07-07",
+      "pdf": "https://arxiv.org/pdf/2607.06559v1",
+      "score": "8.0",
+      "evidence": "利用同步RGB、深度和光流预测3D结构如何随交互运动",
+      "tldr": "机器人操作需要理解场景的4D动态（3D结构随时间变化）。现有方法依赖2D视频，与底层动作存在鸿沟。本文提出RGB-DF（RGB、深度、光流）多模态表示，更贴近物理动态。RynnWorld-4D模型从单张RGB-D图和语言指令联合生成未来RGB、深度和光流，采用三分支跨模态架构与3D RoPE。基于2.54亿帧的大规模数据集训练。额外提出的逆动力学头RynnWorld-4D-Policy可单次前向传播输出动作。在真实双手操作任务上达到SOTA，特别是需要空间精度和时间协调的任务。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "Robotic manipulation in the open world requires not only recognizing what a scene looks like, but also anticipating how its 3D structure moves under interaction. We argue that synchronized RGB, depth, and optical flow, namely RGB-DF, provide a physically grounded representation that captures the underlying 4D dynamics of a scene. Compared to 2D pixel videos, this multi-modal synergy aligns visual appearance with geometric structure and temporal motion, creating a representation space significantly closer to the low-level end-effector actions demanded by robotic systems, thereby narrowing the gap between world prediction and policy learning. Building on this insight, we introduce RynnWorld-4D, a generative model that co-produces future RGB frames, depth maps, and optical flow from a single RGB-D image and a language instruction within one unified diffusion process. This 4D world model features a tri-branch architecture that integrates cross-modal attention with frame-wise 3D RoPE, ensuring that appearance, geometry, and motion evolve consistently. To supply training data at scale, we curate Rynn4DDataset 1.0, a massive dataset of over 254.4 million frames across egocentric human and robotic manipulation videos with high-quality pseudo-labels for depth and optical flow. We further propose RynnWorld-4D-Policy, an inverse dynamics head that consumes the internal 4D representations of RynnWorld-4D in a single forward pass, bypassing expensive multi-step denoising, to output robot actions in a closed-loop manner. Experiments show that RynnWorld-4D produces temporally and spatially coherent 4D predictions, and that RynnWorld-4D-Policy achieves state-of-the-art performance on real-world dexterous bimanual manipulation tasks, particularly excelling in tasks demanding spatial precision and temporal coordination.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/12/2607.04546v1-mask2real-wm-segmentation-masks-as-a-sim-to-real-bridge-for-controllable-dexterous-world-models",
+      "section": "quick",
+      "title_en": "Mask2Real-WM: Segmentation Masks as a Sim-to-Real Bridge for Controllable Dexterous World Models",
+      "authors": "Riccardo O. Feingold, Davide Liconti, Chenyu Yang, Robert K. Katzschmann",
+      "date": "2026-07-05",
+      "pdf": "https://arxiv.org/pdf/2607.04546v1",
+      "score": "6.0",
+      "evidence": "通过预测未来分割掩码来理解灵巧手等铰接系统的动态",
+      "tldr": "机器人动作条件世界模型面临灵巧操作中细粒度动作可控性差的挑战。本文提出Mask2Real-WM，将像素预测解耦为分割掩码动力学模型和RGB渲染模型，利用分割空间较小的模拟到真实差距，在50+小时合成数据上预训练后，仅需2.5小时真实演示微调即可实现23自由度每关节可控。实验证明掩码条件和模拟预训练对于细粒度控制不可或缺，贡献了一种高效可控的灵巧操作世界模型范式。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "Action-conditioned world models allow robots to predict the future consequences of candidate actions without additional physical interaction, supporting policy evaluation, planning, and data augmentation. We present Mask2Real-WM, a two-stage action-conditioned world model for dexterous manipulation that decouples pixel prediction into a dynamics model and a rendering model. The dynamics model predicts future segmentation masks from past masks and 23-DoF action sequences. The rendering model maps the predicted masks to photorealistic RGB using a ControlNet-augmented Stable Video Diffusion backbone. The smaller sim-to-real gap in segmentation space enables the dynamics model to benefit from large-scale pretraining on over 50 h of synthetic simulation data, followed by fine-tuning on fewer than 2.5 h of real demonstrations. Experiments on a dexterous pick-and-place benchmark show that mask conditioning and simulation pretraining are both required for per-DoF action controllability across all 23 degrees of freedom. In contrast, monolithic baselines capture broad hand and end-effector trajectories but do not reliably reflect fine-grained, per-joint action effects.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/12/2607.05468v1-learning-4d-geometric-priors-for-inference-efficient-world-action-models",
+      "section": "quick",
+      "title_en": "Learning 4D Geometric Priors for Inference-Efficient World Action Models",
+      "authors": "Jianjun Zhang, Jian Zhu, Taiyi Su, Chong Ma, Zitai Huang, Yi Xu, Hanli Wang",
+      "date": "2026-07-06",
+      "pdf": "https://arxiv.org/pdf/2607.05468v1",
+      "score": "6.0",
+      "evidence": "4D几何先验用于预测运动动态",
+      "tldr": "针对现有世界动作模型缺乏动态几何先验导致操作精度不足的问题，提出MECo-WAM多专家协同训练框架。引入冻结VGGT监督的轻量4D专家，通过衰减注意力与动作感知时间几何蒸馏注入几何知识，部署时移除所有4D模块。在LIBERO和RoboTwin上分别达到98.2%和92.6%的成功率，且推理成本零增加。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "World Action Models (WAMs) have shown strong potential for robotic manipulation by jointly modeling visual future dynamics and executable action sequences. However, existing video-action co-training methods primarily optimize appearance-oriented video latents, which may insufficiently capture the temporally evolving geometry required for precise manipulation. We propose MECo-WAM, a Multi-Expert Co-Training World Action Model that injects action-relevant 4D geometric priors into video-action representations while preserving the original lightweight inference graph. During training, MECo-WAM combines video and action experts with a lightweight 4D expert supervised by relational targets from a frozen VGGT encoder. Asymmetric expert visibility prevents non-causal shortcuts from auxiliary geometry to action generation. To transfer geometric knowledge into the deployed video-action pathway, we introduce decayed 4D read-mask attention, which provides restricted current-frame geometric guidance early in training and progressively removes this dependency. We further propose action-aware temporal geometric distillation, which aligns within-frame geometric relations and their temporal evolution while emphasizing visual regions most relevant to robot actions. At deployment, all auxiliary 4D components are removed. Experiments on LIBERO (98.2%), RoboTwin 2.0 (92.6%), and challenging real-world manipulation tasks show that MECo-WAM improves manipulation performance without increasing inference cost.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
