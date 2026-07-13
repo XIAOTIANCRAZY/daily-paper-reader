@@ -1,0 +1,54 @@
+{
+  "label": "2026-07-13",
+  "date": "2026-07-13",
+  "generated_at": "2026-07-13T20:40:14",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202607/13/2607.09650v1-revisiting-euler-angle-regression-with-kolmogorov-arnold-networks",
+      "section": "deep",
+      "title_en": "Revisiting Euler-Angle Regression with Kolmogorov-Arnold Networks",
+      "authors": "Yangting Sun, Zijun Cui, Yufei Zhang",
+      "date": "2026-07-10",
+      "pdf": "https://arxiv.org/pdf/2607.09650v1",
+      "score": "9.0",
+      "evidence": "针对铰接机器人和生物力学模型的欧拉角回归",
+      "tldr": "欧拉角在机器人、生物力学等领域广泛应用，但其回归因不连续性和奇异性而困难。本文提出结合KAN网络的新框架，利用KAN的可学习一元函数充分建模欧拉角的有界范围。理论分析表明有界欧拉范围促使回归函数近似可加结构，适合KAN。实验在受控旋转回归、物体姿态估计及逆运动学任务上均取得精度和收敛速度的显著提升。该工作揭示了旋转表示、回归架构与领域约束的协同效应。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "In many real-world systems, including articulated robots and biomechanical models, rotations are defined in joint space and naturally parameterized by Euler angles with bounded ranges. Yet regressing Euler angles remains challenging, as their discontinuities and singularities often destabilize training. In this work, we revisit Euler-angle regression and show that its effectiveness depends critically on the interaction between rotation representation, regression architecture, and domain constraints. We introduce a new framework that combines range-aware Euler modeling with Kolmogorov-Arnold Networks (KAN), which replace fixed node-wise activations with learnable univariate functions on edges. We further provide theoretical analysis indicating that bounded Euler ranges motivate a near-additive structure in the regression function, which favors the additive functional form of KAN, and we confirm this trend empirically. Extensive experiments on controlled rotation regression, object pose estimation, and robotic and human inverse kinematics demonstrate consistent improvements in accuracy, convergence, and efficiency. The code will be publicly available.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/13/2607.08341v1-anydexrt-calibration-free-dexterous-hand-retargeting-with-few-shot-human-guidance",
+      "section": "quick",
+      "title_en": "AnyDexRT: Calibration-Free Dexterous Hand Retargeting with Few-Shot Human Guidance",
+      "authors": "Chenxi Wang, Ying Feng, Hongjie Fang, Shangning Xia, Lixin Yang, Chuan Wen, Cewu Lu",
+      "date": "2026-07-09",
+      "pdf": "https://arxiv.org/pdf/2607.08341v1",
+      "score": "7.0",
+      "evidence": "灵巧手运动学重定向；利用运动学参数将人手运动映射到机器人手",
+      "tldr": "灵巧手遥操作映射通常需要手动校准或全局形状匹配，难以适应不同手型。本文提出AnyDexRT，通过自监督指尖对应学习与少样本人类引导锚定关键区域映射，并利用接触分类器优化捏合姿态。在多种灵巧手和真实遥操作任务中，AnyDexRT提升了映射质量，减少了手工调整。该方法无需校准即可实现直观高效的灵巧手遥操作控制，具有良好泛化性。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "Teleoperation is a key interface for controlling dexterous robotic hands and collecting demonstrations for imitation learning. Its effectiveness largely depends on kinematic retargeting, which maps operator hand motions to feasible and intuitive robot hand motions. Existing methods often require hand-crafted objectives, precise calibration, or global shape matching between human and robot hand spaces, making them sensitive to hand-specific tuning and less reliable across different dexterous hands. We propose AnyDexRT, a calibration-free retargeting method for intuitive dexterous teleoperation across human-like dexterous hands. AnyDexRT combines self-supervised fingertip correspondence learning with few-shot human guidance to anchor the mapping in task-relevant regions, and further refines pinch-related poses using a contact classifier. Experiments on diverse dexterous hands and real-world teleoperation tasks show that AnyDexRT improves retargeting quality, reduces manual tuning, and provides more intuitive and efficient control than prior retargeting methods. Project website: https://chenxi-wang.github.io/projects/anydexrt",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202607/13/2607.06843v1-retrieving-and-refining-winning-noise-tickets-for-diffusion-based-motion-generation",
+      "section": "quick",
+      "title_en": "Retrieving and Refining Winning Noise Tickets for Diffusion-Based Motion Generation",
+      "authors": "Sakuya Ota, Qing Yu, Kent Fujiwara, Satoshi Ikehata, Ikuro Sato",
+      "date": "2026-07-07",
+      "pdf": "https://arxiv.org/pdf/2607.06843v1",
+      "score": "6.0",
+      "evidence": "生成带运动学参数的人体运动；运动合成方法",
+      "tldr": "扩散文本到运动模型在组合长时间序列中存在语义漂移问题。本文提出WINRO框架，通过检索和优化初始噪声中的“获胜噪声票”来增强文本-运动对齐，无需重新训练。该方法将随机噪声映射到空提示下的运动特征，选取最佳匹配噪声并施加KL正则化以减少语义差距。在HumanML3D和MTT基准上显著提升保真度与鲁棒性，并泛化至运动风格化等应用。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "Diffusion-based text-to-motion models synthesize realistic human motions but often exhibit semantic drift from the input text. Motion is inherently temporal, especially in compositional and long-duration sequences that require semantic consistency across multiple action segments and smooth kinematic transitions throughout the trajectory. We posit that the initial noise is central to this consistency: within the Gaussian noise space, certain instances, i.e. winning noise tickets, carry latent structure that biases denoising toward particular motion semantics, even under null prompts. We propose WInning Noise Retrieval and Optimization (WINRO), a training-free, model-agnostic framework that improves text-motion alignment by selecting and refining such tickets before diffusion sampling. WINRO maps random noises to motion features generated under null prompts, retrieves the best-aligned noise for a given text, and refines it via a KL-regularized objective that reduces the residual semantic gap while preserving the Gaussian prior. An optional LoRA-based adapter amortizes this refinement into a single forward pass. WINRO consistently improves text-motion fidelity across different base models, MDM and MotionLCM, on HumanML3D without retraining, improves temporal robustness on the MTT benchmark, and generalizes to applications such as motion stylization and spatial constraint satisfaction.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

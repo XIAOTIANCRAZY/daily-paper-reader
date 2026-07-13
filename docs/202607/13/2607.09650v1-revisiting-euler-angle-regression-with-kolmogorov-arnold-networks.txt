@@ -1,0 +1,837 @@
+Title: Revisiting Euler-Angle Regression with Kolmogorov-Arnold Networks
+
+URL Source: https://arxiv.org/pdf/2607.09650v1
+
+Published Time: Mon, 13 Jul 2026 01:20:40 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+# Revisiting Euler-Angle Regression with Kolmogorov-Arnold Networks 
+
+Yangting Sun sunyt1230@gmail.com Independent Researcher 
+
+Zijun Cui cuizijun@msu.edu Michigan State University 
+
+Yufei Zhang yufeizhang96@outlook.com Independent Researcher 
+
+# Abstract 
+
+In many real-world systems, including articulated robots and biomechanical models, rota-tions are defined in joint space and naturally parameterized by Euler angles with bounded ranges. Yet regressing Euler angles remains challenging, as their discontinuities and singu-larities often destabilize training. In this work, we revisit Euler-angle regression and show that its effectiveness depends critically on the interaction between rotation representation, regression architecture, and domain constraints. We introduce a new framework that com-bines range-aware Euler modeling with Kolmogorov-Arnold Networks (KAN), which replace fixed node-wise activations with learnable univariate functions on edges. We further provide theoretical analysis indicating that bounded Euler ranges motivate a near-additive structure in the regression function, which favors the additive functional form of KAN, and we confirm this trend empirically. Extensive experiments on controlled rotation regression, object pose estimation, and robotic and human inverse kinematics demonstrate consistent improvements in accuracy, convergence, and efficiency. The code will be publicly available. 
+
+# 1 Introduction 
+
+Rotation describes the orientation of rigid bodies, cameras, and articulated parts. Estimating rotations from sensor data is fundamental across computer vision, graphics, robotics, and biomechanics, with appli-cations in camera localization Zhang et al. (2024a), human kinematics and dynamics estimation Le et al. (2026); Xia et al. (2025); Zhang et al. (2025; 2024b); Ismayilzada et al. (2026); Delp et al. (2007), and robotic manipulation Spong & Vidyasagar (2008). With the rise of end-to-end deep learning, rotation esti-mation is now commonly approached by training neural networks to directly regress rotations from sensor measurements Levinson et al. (2020); Peretroukhin et al. (2020); Gu et al. (2023); Okorn et al. (2023). 3D rotation regression is fundamentally challenging because rotations lie on SO(3) , a curved, non-Euclidean manifold that aligns poorly with conventional deep learning frameworks Bronstein et al. (2017). Specifically, classical rotation representations use minimal parameterizations that map R3 to SO(3) . While these classical parameterizations offer clear interpretability in task-space Schuck et al. (2025); Sfikas et al. (2025) or respect the Lie group structure of SO(3) Grassia (1998), they are subject to discontinuities and singularities that challenge the standard learning process. For example, Euler angles capture sequential rotations about three Euclidean axes, but exhibit discontinuities from angular periodicity and singular configurations (commonly known as gimbal lock) where the mapping loses local invertibility. Rather than adopting minimal parameterizations as in classical approaches, recent works propose overparam-eterized representations of SO(3) for rotation regression outputs Brégier (2021); Peretroukhin et al. (2020). Notably, the 6D representation Zhou et al. (2019) parameterizes a 3D rotation using two unconstrained 3D vectors. While this strategy incurs representational redundancy and an additional post-orthogonalization 1arXiv:2607.09650v1 [cs.CV] 10 Jul 2026 step, it yields a continuous embedding and mitigates singularities. As a result, the 6D representation has become widely adopted in various pipelines, with empirical results reported in tasks such as monocular 3D human body and hand reconstruction Xia et al. (2025); Yu et al. (2025) and humanoid control Luo et al. (2023). Despite the widespread usage of the 6D representation, two aspects remain insufficiently examined in ex-isting methods. First, prior work has largely focused on representation design while keeping the regression architecture fixed, most commonly using multilayer perceptrons (MLP) Zhou et al. (2019). The interplay between rotation parameterization and network architecture is underexplored. Second, in real-world sys-tems, rotations are often modeled using Euler angles with application-specific range constraints that can be particularly tight. For example, the human body and hand exhibit anatomically meaningful joint rotations with constrained degrees of freedom and strict range limits Zhang et al. (2023; 2024d); Lin et al. (2026). Similarly, robotic systems such as the Franka arm Bensadoun et al. (2022) and Allegro hand Chen et al. (2024) are controlled directly in joint space, where actuation, torque, and safety constraints are defined over bounded rotational coordinates. How to faithfully integrate such range-constrained Euler angles in a learning-based framework has received limited study. In this work, we revisit Euler-angle regression by addressing these two gaps. We target the bounded-range, application-native regime, rather than generic SO(3) prediction. Instead of relying on redundant parame-terizations and post-orthogonalization steps to enforce SO(3) constraints, we operate directly in Euler-angle space. Recognizing the intrinsic angular structure of Euler angles, we introduce Kolmogorov-Arnold Net-works (KAN) Liu et al. (2024) as a functionally adaptive regression backbone. Unlike conventional MLP, KAN replaces fixed node-wise activations with learnable univariate functions defined on edges, letting each channel adapt its nonlinearity to the structure of bounded Euler-angle targets. Furthermore, we exploit the practical range constraints of Euler angles to mitigate discontinuities and singular behavior. We present theoretical analysis showing how these design choices collectively establish an improved regression frame-work. Through extensive evaluation in controlled settings and real-world applications, including object pose estimation, a robotic manipulator, and biomechanical hand and full-body models, we validate our proposed framework. In summary, our primary contributions are as follows: 
+
+• To the best of our knowledge, this is the first work that introduces KAN for 3D rotation regression, while leveraging the intrinsic bounded and angular structure of the Euler-angle coordinates. 
+
+• We incorporate practical Euler-angle range limits and a constraint-aware axis ordering to mitigate discontinuities and singularities, accompanied by a theoretical analysis of their coupling with KAN. 
+
+• Through extensive experiments spanning controlled rotation regression, object pose estimation, and robotic and human inverse kinematics, we show that the proposed framework improves accuracy, efficiency, and optimization stability over baseline methods. 
+
+# 2 Related Work 
+
+Learning-Based Rotation Regression. When learning over the non-Euclidean manifold SO(3) , a dom-inant line of work attributes optimization instability to the topological limitations of minimal parameter-izations. Zhou et al. (2019) discussed the discontinuity and singularity issues in minimal representations and proposed the 6D rotation representation constructed from two rotation-matrix columns followed by orthonormalization. Subsequent studies further explored how to project overparameterized network out-puts onto valid rotations, including SVD-based orthogonalization Brégier (2021); Levinson et al. (2020), and approaches that regress full rotation matrices without explicit orthogonalization to improve training efficiency Gu et al. (2023). More recent analyses also examine how representation choice affects optimization and learning behavior Geist et al. (2024); Schuck et al. (2025). Current work on rotation regression primarily focuses on formulating various output spaces, while ignoring the valuable joint-angle constraints inherent in real-world articulated systems, as discussed below. 2Euler Angles in Practical Articulated Systems. Euler angles explicitly parameterize degrees of free-dom and encode joint range constraints in real-world articulated systems. Early learning-based methods incorporate this structure by directly regressing Euler angles in tasks such as video-based head pose and body pose estimation Borghi et al. (2018); Habermann et al. (2020). The model performance of this direct formulation is suboptimal due to discontinuities and singularities. Other methods instead introduce struc-tured rotation decompositions derived from kinematic priors, such as swing-twist formulations for human body and hand modeling Villegas et al. (2018); Li et al. (2021). Recent works predict 6D rotations and subsequently convert them to Euler angles, either during training Zhang et al. (2024d; 2023) or via offline labeling Xia et al. (2025), to enforce joint-angle constraints. These practices underscore the reliance on Euler angles. However, they do not leverage the structural constraints of Euler angles as a valuable inductive bias for rotation regression directly during learning. 
+
+Neural Networks with Inductive Bias. Incorporating structural inductive biases into neural networks has been shown to improve model performance and optimization stability Cui et al. (2023). For example, geometric equivariant networks encode symmetries directly into the architecture Deng et al. (2021); Melnyk et al. (2026), leading to improved sample efficiency, generalization, and robustness to geometric variations. Similarly, physical principles have inspired architectures such as Hamiltonian neural networks Greydanus et al. (2019) and physics-guided transformer world models Liu et al. (2026). Such structural priors benefit a range of tasks, including human motion prediction Zhang et al. (2024c). Particularly, Kolmogorov-Arnold Networks (KAN) Liu et al. (2024) introduce a distinct architectural paradigm inspired by the Kolmogorov-Arnold representation theorem. KAN has shown promise in function approximation and symbolic regression, yet its advantages for 3D rotation regression have not been established. To our knowledge, we are the first to demonstrate its benefits for this setting. Moreover, our approach differs from prior work by explicitly lever-aging the highly restricted joint-angle ranges in practical systems to mitigate discontinuities and singularities during the prediction of Euler angles. 
+
+# 3 Methodology 
+
+We focus on Euler-angle regression under practical range constraints. We introduce a new framework that effectively leverages KAN while incorporating the constrained, angular structure. We first review rotation representations and Euler-angle parameterizations in Section 3.1. We then formalize the 3D rotation regres-sion problem in Section 3.2. Next, we introduce KAN and its adaptation to Euler-based rotation regression in Section 3.3. Finally, we present practical strategies to mitigate discontinuities and singularities in Euler-angle regression in Section 3.4, and provide theoretical analysis in Section 3.5 to explain why the proposed design improves regression behavior. 
+
+3.1 Preliminaries 
+
+A 3D rotation is an element of the special orthogonal group 
+
+SO(3) = {R ∈ R3×3 | R⊤R = I, det( R) = 1 }. (1) Different parameterizations of R provide different coordinate charts of SO(3) . We review the studied Euler-angle parameterization below. 
+
+Euler Angles. Euler angles describe a rotation as a sequence of three elemental rotations about coordinate axes, and the resulting parameterization is order dependent. For example, under a ZXY convention with Euler angles θ = [ α, β, γ ]⊤, the rotation matrix is 
+
+R(α, β, γ ) = Rz (α) Rx(β) Ry (γ), (2) where we denote cα = cos α, cβ = cos β, cγ = cos γ, and sα = sin α, sβ = sin β, sγ = sin γ. The elemental rotations are 
+
+Rz (α) = 
+
+
+
+cα −sα 0
+
+sα cα 00 0 1
+
+ , Rx(β) = 
+
+
+
+1 0 00 cβ −sβ
+
+0 sβ cβ
+
+ , Ry (γ) = 
+
+
+
+cγ 0 sγ
+
+0 1 0
+
+−sγ 0 cγ
+
+ . (3) 3Figure 1: Illustration of Kolmogorov-Arnold Networks (KAN) and their advantages over MLPs. 
+
+We show a two-input, one-hidden-layer example (green nodes), although practical models are typically deeper and wider. Euler angles are highly interpretable, as each parameter represents a rotation about a fixed axis and the rotation matrix has an explicit trigonometric structure in (α, β, γ ). However, singularities occur at β = ± π 
+
+> 2
+
+.For instance, when β = π 
+
+> 2
+
+, the rotation matrix depends only on α + γ, so (α, π 
+
+> 2
+
+, γ ) and (α + δ, π 
+
+> 2
+
+, γ − δ) yield the same rotation. Near this configuration, small perturbations in R can induce large variations in α and γ.
+
+3.2 Problem Formulation 
+
+Different rotation representations have been studied across various downstream tasks. Here we consider real-world systems that often operate directly in Euler angles. Let x ∈ X denote the observational input associated with a rotation, such as kinematic descriptors. Our objective is therefore to effectively learn a regression function fW , parameterized by network weights W , that maps observational inputs x to estimated Euler angles ˆθ = fW (x). (4) Moreover, each joint i operates within a finite interval 
+
+θi ∈ Ii := [ θmin  
+
+> i
+
+, θ max  
+
+> i
+
+]. (5) Reflecting inherent anatomical or mechanical constraints, these range limits lie within a 2π period and are often substantially restricted. To solve Equation 4, existing approaches most commonly adopt standard MLP with the 6D representa-tion Zhou et al. (2019). The predicted rotations are subsequently converted to Euler angles under a fixed convention, either to enforce angular range constraints during training Zhang et al. (2023; 2024d) or for direct use in downstream tasks Xia et al. (2025). Such pipelines treat Euler angles primarily as post-hoc coordinates, disregarding their intrinsic angular structure and practical range constraints during learning. We instead argue for architectures with stronger functional adaptability to these coordinate properties, a capability fundamentally supported by the Kolmogorov-Arnold Network (KAN), as introduced below. 
+
+3.3 Kolmogorov-Arnold Networks for Euler-Angle Regression 
+
+We illustrate the architecture of KAN and highlight its key structural difference from standard MLP in Figure 1. 
+
+Model Architecture. KAN retains a layered feedforward topology but moves the nonlinearity from nodes to edges by assigning a learnable univariate function to each directed connection. For each layer and output 4channel, KAN computes 
+
+h(ℓ+1)  
+
+> j
+
+=
+
+> dℓ
+
+∑
+
+> i=1
+
+ϕ(ℓ)
+
+> ij
+
+(
+
+h(ℓ)
+
+> i
+
+)
+
+, (6) where ϕ(ℓ) 
+
+> ij
+
+: R → R is a learnable scalar function associated with the edge from input channel i in layer ℓ to output channel j in layer ℓ + 1 . The final output is again ˆθ = h(L) ∈ R3.In practice, each edge function ϕ(ℓ) 
+
+> ij
+
+is parameterized on a bounded interval [aℓ, b ℓ] using a spline basis. Concretely, we adopt a degree-p B-spline expansion 
+
+ϕ(ℓ) 
+
+> ij
+
+(t) = 
+
+> Kℓ
+
+∑
+
+> k=1
+
+c(ℓ) 
+
+> ij,k
+
+B(ℓ) 
+
+> k
+
+(t), t ∈ [aℓ, b ℓ], (7) where {B(ℓ) 
+
+> k
+
+}Kℓ 
+
+> k=1
+
+are fixed B-spline basis functions defined by a knot sequence on [aℓ, b ℓ], and {c(ℓ)
+
+> ij,k
+
+} are learnable coefficients. The integer Kℓ determines the number of basis functions and thus controls the ex-pressive capacity of edge nonlinearities in layer ℓ. This parameterization makes the nonlinearity explicitly learnable and channel-specific, in contrast to MLP where a fixed activation function, such as ReLU, is shared across all units. 
+
+Alignment with the Trigonometric Structure of Euler Angles. The entries of a rotation matrix are polynomial combinations of sin( ·) and cos( ·) applied to individual Euler angles. For example, under a fixed 
+
+ZXY convention, 
+
+R11 = cos α cos γ − sin α sin β sin γ, R12 = − sin α cos β, (8) and similarly for the remaining components. Thus, each matrix entry is a product of smooth trigonometric functions of the individual angles. Standard MLPs employ a shared fixed activation across all units, requiring greater depth and repeated compositions to approximate diverse nonlinear patterns. In contrast, KAN represents nonlinearities as learnable univariate functions defined on edges, allowing each channel to adapt its functional form to the specific angular behaviors. Since these nonlinearities are smooth functions defined on bounded intervals, they admit accurate approximation by spline bases. We provide a formal approximation error bound in Section 3.5. 
+
+Training Loss. During training, we supervise the predicted Euler angles ˆθ with the corresponding ground-truth angles θ. Specifically, KAN is optimized using a standard regression objective 
+
+LEuler = ρ
+
+( ˆθ − θ
+
+)
+
+, (9) where ρ(·) denotes a pointwise penalty function, e.g., the mean squared error. The intrinsic discontinuities and singularities of Euler angles typically hinder the training loss optimization. In the following, we introduce how explicit range constraints that naturally arise in practical systems mitigate these issues, thereby enabling stable training with the standard regression loss. 
+
+3.4 Mitigating Euler-Angle Discontinuities and Singularities through Range Constraints 
+
+Euler angles are periodic coordinates satisfying θi ≡ θi + 2 πm , where m ∈ Z. Their mapping to a rotation matrix is also rotation-order dependent, which jointly leads to representation discontinuities and singular configurations. However, when each admissible interval satisfies |Ii| < 2π, periodic ambiguity is excluded within the operational domain, eliminating the discontinuities induced by equivalent 2π shifts of the angular coordinates. We further choose the Euler rotation order to place the most constrained axis at the middle position to mitigate the gimbal-lock singularity. The choice is dictated by where the singularity lies: for the intrinsic 
+
+ZXY convention with angles θ = ( θ1, θ 2, θ 3) (the same triple denoted [α, β, γ ] above), gimbal lock arises only 
+
+5when the middle angle reaches θ2 = ± π 
+
+> 2
+
+; the middle slot is therefore the sole singular one. Let k ∈ { 1, 2, 3}
+
+index the most constrained axis, whose admissible interval satisfies 
+
+Ik ⊂ (− π 
+
+> 2
+
+, π
+
+> 2
+
+) . (10) We then adopt the Euler convention that assigns axis k to the middle position. This choice leaves the represented orientation unchanged and only confines the singularity-prone middle angle to a singularity-free interval, satisfying θ2 ∈ Ik ⊂ (− π 
+
+> 2
+
+, π 
+
+> 2
+
+). For example, in human hand articulation, finger twist (longitudinal rotation) is limited and often neglected; we assign this axis to the middle angle. The resulting Euler chart is smooth and locally well-conditioned over the compact domain 
+
+Θ = I1 × I2 × I3 ⊂ R3. (11) Consequently, Euler regression reduces to learning a mapping f : X → Θ, where Θ is compact and free of singularities and periodic ambiguity. In practice, joints often exhibit only one or two rotational degrees of freedom Bensadoun et al. (2022); Zhang et al. (2024d). In these cases, the regression problem reduces to learning a low-dimensional mapping over bounded intervals, which is considerably simpler. We illustrate this for the hand and body models by providing the per-joint range specifications and axis assignments in Appendix A. 
+
+3.5 Theoretical Analysis of Euler-Angle Regression with KAN 
+
+This section explains why Euler-angle regression is well-suited to KAN in the range-constrained regime studied here. On the bounded chart, the target function decomposes into an additive component plus a residual interaction term, and KAN attains an approximation bound comprising a univariate spline term and a bounded interaction residual. Proofs are provided in Appendix B. 
+
+Setup. We analyze the regression regime induced by the bounded, well-conditioned Euler chart Θ of Equation 11, on which the Euler-to-rotation map Θ → SO(3) is smooth and everywhere nonsingular. 
+
+Lemma 1 (Interaction control under bounded Euler variation) . Let f : X → Θ denote the Euler-angle regression map, where Θ is the bounded Euler chart in Equation 11. Assume each component fi ∈ Cp(X )
+
+(p ≥ 3) admits an ANOVA decomposition 
+
+fi(x) = fi, 0 +
+
+> d
+
+∑
+
+> j=1
+
+fi,j (xj ) + ∑
+
+> |S|>1
+
+fi,S (xS ). (12) 
+
+For such Cp functions on a bounded domain, the higher-order interaction mass is controlled by mixed partial derivatives: ∑
+
+> |S|>1
+
+∥fi,S ∥∞ ≤ CX max   
+
+> j̸=k
+
+∥∂2
+
+> jk
+
+fi∥∞, (13) 
+
+where CX depends only on the domain X .In the bounded Euler regime, the Euler-to-rotation map is a composition of elemental rotations. Locally, angular displacements can be expanded through the Baker–Campbell–Hausdorff formula: 
+
+∏
+
+> i
+
+exp( uiGi) = exp 
+
+∑
+
+> i
+
+uiGi + 12
+
+∑
+
+> j<k
+
+uj uk[Gj , G k] + O(∥u∥3)
+
+ , (14) 
+
+where ui denotes the local angular displacement from a reference and Gi are the corresponding rotation generators. The first-order term is additive across Euler coordinates, while the leading cross-coordinate coupling enters through the second-order commutator terms 12
+
+∑ 
+
+> j<k
+
+uj uk[Gj , G k], which are O(δ2) in the chart half-width δ := 12 max k |Ik|, with Ik the admissible intervals of Equation 11. This structure of the Euler-to-rotation map motivates modeling the regression target as additive-plus-residual; we denote its higher-order interaction residual by 
+
+ϵint := max 
+
+> i
+
+∑
+
+> |S|>1
+
+∥fi,S ∥∞. (15) 6As the admissible Euler ranges tighten ( δ small), the second-order coupling diminishes, so we expect ϵint to decrease accordingly—a trend we confirm empirically in the range sweep of Appendix C. 
+
+Lemma 1 shows an additive-plus-residual structure, where the dominant term is additive and the interaction residual ϵint stays small. This near-additivity is a bounded-domain effect, available here because Euler angles admit such bounded, singularity-free charts via the axis ordering of Section 3.4. We now analyze the approximation behavior of KAN under this regime. 
+
+Theorem 1 (Euler-aware approximation bound of KAN) . Assume Lemma 1. Suppose further that X ⊂ 
+
+∏dj=1 [aj , b j ] and the univariate ANOVA components satisfy 
+
+fi,j ∈ Cp([ aj , b j ]) , ∥f (p) 
+
+> i,j
+
+∥∞ ≤ M, (16) 
+
+for all i ∈ { 1, 2, 3} and j ∈ { 1, . . . , d }. Let FKAN (K, p ) be the additive spline subclass of KAN with degree-p
+
+splines and K basis functions per coordinate. Then for each i ∈ { 1, 2, 3} there exists ˜fi ∈ F KAN (K, p ) such that 
+
+∥fi − ˜fi∥∞ ≤ d C p M K −p + ϵint , (17) 
+
+where Cp depends only on p and the interval lengths {bj − aj }dj=1 .
+
+In Equation 17, the first term is the spline approximation error on the additive univariate components. The second term is the residual interaction error induced by remaining cross-coordinate coupling. Thus, when 
+
+ϵint is small, which occurs as the Euler ranges tighten, the target is well approximated by the additive spline form of the KAN architecture. 
+
+Proposition 1 (Contextual comparison to generic MLP approximation guarantees) . Let fi ∈ Cp(X ), p ≥ 3,where X ⊂ Rd is bounded. Consider the class FMLP (W ) of fully coupled ReLU MLPs with W trainable parameters. A standard worst-case approximation guarantee for Cp(X ) functions yields 
+
+inf   
+
+> g∈F MLP (W)
+
+∥fi − g∥∞ ≤ CMLP W −p/d , (18) 
+
+where CMLP depends only on X and derivative bounds. In the bounded Euler regime of Theorem 1, spline-KAN achieves 
+
+∥fi − ˜fi∥∞ ≤ d C p M K −p + ϵint . (19) 
+
+This comparison indicates that generic MLP guarantees apply to fully coupled d-variate functions, whereas the KAN bound exploits the additive-plus-residual structure arising in bounded Euler-angle regression. When 
+
+ϵint is small, KAN can therefore achieve a more parameter-efficient approximation of the dominant univariate components of the target. 
+
+This analysis explains why KAN+Euler is effective in the practical setting targeted by this work. Bounded Euler ranges remove periodic ambiguity, branch-consistent axis selection avoids singularities, and the re-maining regression problem often exhibits a low-interaction structure over compact intervals. KAN matches this structure through learnable univariate spline functions on edges, while standard MLPs must learn the corresponding nonlinearities through repeated compositions of fixed activations. 
+
+# 4 Experiments 
+
+To validate the proposed framework, we evaluate on a range of real-world rotation-regression tasks. We first characterize accuracy, efficiency, and convergence under controlled rotation ranges, using object rotation estimation in Section 4.1, and complement this analysis with Appendix C, which removes the downstream task by regressing rotations directly from rotation matrices. We then apply the framework to articulated systems: robotic-arm inverse kinematics in Section 4.2 and human-hand inverse kinematics in Section 4.3, with a full-body articulation study in Appendix D that extends these gains to a high-DoF model. In each section, we first present the experimental setup and then discuss the results. Additional implementation details are reported in Appendix E. 7Table 1: Object pose estimation. “Rep.” refers to the employed rotation representation, and “Params.” to the number of model parameters.  
+
+> (a) Accuracy comparison at div=1 .3
+
+Model Rep. MAE ↓ GE ↓
+
+MLP 6D 4.02 ±.11 7.01 
+
+MLP Euler 4.08 ±.06 7.94 
+
+MLP AA 4.37 ±.11 8.02 
+
+KAN 6D 3.03 ±.22 5.33 
+
+KAN AA 2.57 ±.16 4.78 
+
+KAN Euler 2.40 ±.20 4.60 
+
+> (b) Efficiency comparison
+
+Model Params. FLOPs MAE ↓
+
+MLP+6D 0.42M 0.56M 7.18 
+
+MLP+6D 0.73M 1.18M 5.56 
+
+MLP+6D 1.46M 2.63M 4.02 
+
+MLP+6D 3.29M 6.30M 3.67 
+
+KAN+Euler 0.45M 0.51M 2.98 
+
+Evaluation Metrics. Our primary metric is the Mean Angle Error ( MAE ), the average absolute difference between predicted and ground-truth Euler angles in degrees, with each angular difference wrapped to (−π, π ].For models trained with alternative parameterizations such as axis-angle ( AA ), quaternion, or the 6D representation, we follow common practice Xia et al. (2025) and convert the predicted rotations to Euler angles under the same convention before computing the MAE. We further report the geodesic error ( GE ), the angle of the relative rotation between prediction and ground truth on SO(3) , in degrees. For the inverse-kinematics tasks, we additionally report the forward-kinematics position error ( FKE ) in cm and the success rate under a 1 cm threshold ( SR@1cm ). 
+
+4.1 Object Rotation 
+
+Setup. We estimate an object’s 3D orientation from its point cloud, using the chair category of Model-Net10 Wu et al. (2015) with 889 training and 100 test shapes. A shared PointNet-style encoder Qi et al. (2017) maps a canonical cloud and a rotated copy to global features, which are decoded to the relative rotation under the chosen representation and trained with a geodesic loss on SO(3) . A division factor div 
+
+scales each Euler-angle range by 1/div , bounding the gimbal-prone middle axis to [−π/ (2 div) , π/ (2 div)] .The accuracy comparison matches all models at ∼1.44 M parameters, while the efficiency study varies model size; all reported results are averaged over 3 random seeds. 
+
+Accuracy. Table 1(a) reports accuracy across representations. KAN lowers GE under every representation relative to its MLP counterpart: Euler from 7.94 to 4.60 , 6D from 7.01 to 5.33 , and AA from 8.02 to 4.78 ,so learnable univariate activations benefit rotation regression regardless of the output space. The gain is largest for the proposed KAN+Euler, which attains the best accuracy on both metrics ( 2.40 MAE, 4.60 GE), 
+
+40% and 34% below the widely adopted MLP+6D baseline ( 4.02 , 7.01 ), and ahead of KAN+AA ( 2.57 , 4.78 )and KAN+6D ( 3.03 , 5.33 ): under bounded ranges, the native Euler coordinates expose the near-additive structure of Section 3.5 that KAN’s splines are suited to fit, a structure the overparameterized 6D output leaves implicit. Conversely, MLP+Euler ( 7.94 GE) is worse than MLP+6D ( 7.01 ): with fixed activations, the angular nonlinearity of Euler coordinates becomes a liability rather than an inductive bias. Accuracy is thus governed by the pairing of representation and architecture, not by either choice alone. 
+
+Efficiency. Table 1(b) scales the MLP+6D baseline by widening its hidden layers, reporting the FLOPs of the representation head, since the shared PointNet encoder is common to all models. A compact KAN+Euler, at 0.45 M parameters and 0.51 M head FLOPs, uses fewer FLOPs than even the smallest MLP+6D, yet attains 
+
+2.98 MAE, lower than MLP+6D at every budget, including the 7.3× larger 3.29 M model that reaches only 
+
+3.67 at 6.30 M FLOPs. The gain therefore stems from the representation–architecture match rather than model capacity, further demonstrating the efficiency of our framework. 
+
+Convergence and Effect of Range. Figure 2(a) shows that KAN+Euler converges faster and to a lower error than the matched MLP+6D, while MLP+Euler remains the slowest and least accurate throughout, consistent with the accuracy analysis: a fixed-activation MLP cannot exploit the angular structure of the Euler targets. Figure 2(b) identifies when the advantage holds: at the full range ( div=1 ) KAN+Euler 8(a) Optimization convergence (b) Effect of range 
+
+Figure 2: Object pose estimation. (a) GE vs. training iteration for KAN+Euler, MLP+6D, and MLP+Euler at div=1 .3. (b) GE vs. div . Axes are log-scaled. performs poorly because sampled rotations reach the ±π/ 2 gimbal set, where the Euler chart itself is ill-behaved; once the range excludes this singularity, KAN+Euler crosses below MLP+6D near div=1 .1, and the margin widens to 1.6× by div=2 as tighter ranges make the target increasingly near-additive. The gains therefore track the bounded-range mechanism of Section 3.5 rather than any task-specific tuning. 
+
+4.2 Robotic Arm Articulation 
+
+Setup. We evaluate on the Franka Panda robotic arm, a 7-revolute-joint manipulator widely used in manipulation research. Each revolute joint angle qi is a bounded 1D Euler rotation about its fixed joint axis, so the regression target (the vector of joint angles) is itself a product of range-constrained Euler coordinates, and the end-effector rotation (given to the network in the compared representation) is their forward-kinematic composition. Given the end-effector pose (3D position and rotation matrix), networks are trained to predict the active joint angles on 1M sampled pose–configuration pairs. To evaluate our approach across task difficulty, we vary the number of active degrees of freedom (DoFs) from 3 to 5; higher DoFs are not evaluated because the inverse problem becomes increasingly ambiguous under a fixed end-effector observation Bensadoun et al. (2022). To ensure a fair comparison, all models are matched to ∼100K parameters, trained under identical settings, and averaged over 3 random seeds. 
+
+Comparison Across Active DoFs. As shown in Table 2(a), the proposed KAN+Euler attains the lowest FKE at every DoF count. With 3 active DoFs it achieves 0.16 cm at 100.0% SR@1cm, a 5.2× lower error than Table 2: Franka Panda IK results.                                                   
+
+> (a) Comparison across active DoFs
+> DoF Model Rep. FKE ↓SR@1cm ↑
+> 3MLP Euler 1.16 52.5 MLP 6D 0.83 71.6
+> KAN Euler 0.16 100.0
+> 4MLP Euler 1.94 20.2 MLP 6D 1.15 50.0
+> KAN Euler 0.44 96.8
+> 5MLP Euler 11.65 0.3 MLP 6D 7.94 1.0
+> KAN Euler 6.07 1.5
+> (b) Workspace constraints (3 DoFs)
+> Method Box FKE ↓SR@1cm ↑
+> MLP+6D Full 0.788 74.0
+> 0.7×0.307 99.8
+> 0.5×0.239 99.9
+> KAN+Euler
+> Full 0.168 100.0
+> 0.7×0.140 100.0
+> 0.5×0.082 100.0
+
+9MLP+6D (0.83 cm, 71.6%); with 4 DoFs it reaches 0.44 cm at 96.8%, against 1.15 cm at 50.0%. At 5 DoFs the inverse problem is near-degenerate Bensadoun et al. (2022): KAN+Euler remains the most accurate (6.07 cm vs. 7.94 cm for MLP+6D and 11.65 cm for MLP+Euler), yet SR@1cm is low for all methods (at most 1.5%) at this threshold. The relative advantage thus grows monotonically as fewer joints are active (1.3× at 5 DoFs, 2.6× at 4, 5.2× at 3), matching our analysis: bounded joint ranges keep Euler regression away from singularities, and KAN’s additive spline form best fits the resulting near-additive structure of the joint angles. 
+
+Advantage Under Workspace Constraints. Real deployments rarely use the full reachable workspace, which further tightens the effective joint ranges. We therefore test robustness to workspace size, re-running the 3-DoF setting at the default box and at boxes shrunk to 0.7× and 0.5× its extent, at the same 1M-sample budget. As Table 2(b) shows, KAN+Euler is the most accurate at every workspace, with 100% SR@1cm and a consistent 2.2–4.7× lower FKE than MLP+6D, whereas MLP+6D becomes reliable only as the box tightens, its SR@1cm falling to 74% at the default box. A tighter workspace, as in real robotic deployments, shrinks the effective joint ranges into precisely the bounded regime that our method is designed to exploit. 
+
+4.3 Biomechanical Hand Articulation 
+
+Setup. Following established protocols in biomechanical inverse kinematics analysis Xia et al. (2025), we train neural networks to estimate joint rotation angles from sparse observations, namely 3D hand joint positions. Specifically, we employ the FreiHand dataset Zimmermann et al. (2019), which features a diverse collection of hand poses from multiple subjects. The dataset is annotated using the widely adopted MANO hand model Romero et al. (2017), which captures 21 3D hand joint positions and 15 articulated joints (45 rotation angles). It contains 33K training and 4K testing samples. To ensure a fair comparison, we evaluate MLP and KAN under matched capacity (approximately 34K parameters), averaging over 3 seeds. We compare rotation representations and isolate the effect of the range-constraint guidelines of Section 3.4, which the Constraint column of Table 3(a) toggles. 
+
+Effect of Range Constraints. Table 3(a) shows that regressing Euler angles without mitigating dis-continuities and singularities degrades accuracy: unconstrained MLP+Euler reaches an MAE of 3.72, well behind MLP+6D at 2.72. Applying our proposed range constraints and constraint-aware axis ordering from Section 3.4 lowers this to 3.15, recovering most of the gap to MLP+6D with no change to the architecture. The weakness of unconstrained Euler regression therefore comes from these discontinuities and singularities, which our range constraints avoid by keeping the angles within their bounded operating ranges, a standalone, architecture-agnostic gain from which even a plain MLP benefits. Table 3: Biomechanical inverse kinematics on the human hand. “Constr.” indicates whether the practical guidelines introduced in Section 3.4 are applied to mitigate singularities and discontinuities. “Data” denotes the percentage of the training set used in the data-efficiency study. 
+
+> (a) Accuracy comparison
+
+Model Rep. Constr. MAE ↓ GE ↓
+
+MLP 6D - 2.72 ±.03 4.90 
+
+MLP Euler ✗ 3.72 ±.02 6.28 
+
+MLP Euler ✓ 3.15 ±.02 5.64 
+
+MLP AA - 2.68 ±.05 4.89 
+
+KAN 6D - 2.86 ±.07 5.22 
+
+KAN Euler ✗ 3.10 ±.03 5.14 
+
+KAN AA - 2.69 ±.03 4.90 
+
+KAN Euler ✓ 2.53 ±.03 4.61 
+
+> (b) Training data-efficiency analysis
+
+Method Data MAE ↓
+
+MLP+6D 10 2.94 ±.05 
+
+MLP+6D 50 2.81 ±.06 
+
+MLP+6D 100 2.72 ±.03 
+
+KAN+Euler 10 2.73 ±.07 
+
+KAN+Euler 50 2.58 ±.03 
+
+KAN+Euler 100 2.53 ±.03 
+
+10 Effectiveness of KAN for Euler Regression. KAN is markedly more effective than MLP at regressing Euler angles. Even without constraints, KAN+Euler reaches 3.10, improving on MLP+Euler by 16.7% because its learnable univariate activations fit the bounded, near-additive structure of the joint-angle targets that a fixed-activation MLP cannot exploit. Combined with the range constraints, KAN+Euler attains the best accuracy of 2.53, ahead of KAN+6D (2.86) by 11.5% and of the strongest MLP baseline, MLP+AA (2.68), by 5.6%. The two contributions are complementary: the constraints make the Euler target well-behaved, and the KAN architecture exploits the resulting structure. 
+
+Training Data Efficiency. Table 3(b) compares KAN+Euler against MLP+6D as the training set shrinks. KAN+Euler is more accurate at every budget, and at only 10% of the data it attains 2.73, better than MLP+6D at the same fraction (2.94) and on par with MLP+6D trained on the full set (2.72). The representation–architecture match thus improves sample efficiency: because the additive spline hypothe-sis space already matches the target structure, fewer examples are needed to fit it, a valuable property in biomechanical settings where labeled data are typically scarce. 
+
+# 5 Conclusion 
+
+We revisited Euler-angle regression and showed that the common preference for redundant, continuous pa-rameterizations is unnecessary in the bounded-range regime of real articulated systems. The difficulty of regressing Euler angles arises not from the coordinates themselves but from a mismatch between fixed-activation networks and their angular structure. We resolved this mismatch on three fronts: introducing Kolmogorov-Arnold Networks (KAN) as a functionally adaptive backbone that exploits the near-additive structure of bounded Euler targets; leveraging practical range constraints with a constraint-aware axis order-ing to remove discontinuities and singularities; and providing a theoretical analysis characterizing when the resulting target favors KAN’s additive spline form. Across controlled rotation regression, object pose estima-tion, and robotic and human inverse kinematics, the framework consistently improves accuracy, convergence, and efficiency over the widely adopted MLP+6D baseline, while operating directly in the interpretable na-tive coordinates of each system. Our analysis assumes range constraints on individual joints; extending it to richer structure, such as inter-joint synergies and coupled kinematic constraints, is a promising direction for integrating structural priors into rotation regression. 
+
+# References 
+
+Raphael Bensadoun, Shir Gur, Nitsan Blau, and Lior Wolf. Neural inverse kinematic. In International Conference on Machine Learning , pp. 1787–1797. PMLR, 2022. Guido Borghi, Matteo Fabbri, Roberto Vezzani, Simone Calderara, and Rita Cucchiara. Face-from-depth for head pose estimation on depth images. IEEE transactions on pattern analysis and machine intelligence ,42(3):596–609, 2018. Romain Brégier. Deep regression on manifolds: a 3d rotation case study. In 2021 International Conference on 3D Vision (3DV) , pp. 166–174. IEEE, 2021. Michael M Bronstein, Joan Bruna, Yann LeCun, Arthur Szlam, and Pierre Vandergheynst. Geometric deep learning: going beyond euclidean data. IEEE Signal Processing Magazine , 34(4):18–42, 2017. Yuanpei Chen, Chen Wang, Yaodong Yang, and C Karen Liu. Object-centric dexterous manipulation from human motion data. arXiv preprint arXiv:2411.04005 , 2024. Zijun Cui, Tian Gao, Kartik Talamadupula, and Qiang Ji. Knowledge-augmented deep learning and its applications: A survey. IEEE Transactions on Neural Networks and Learning Systems , 36(2):2133–2153, 2023. Carl de Boor. A Practical Guide to Splines . Springer, 2001. Scott L Delp, Frank C Anderson, Allison S Arnold, Peter Loan, Ayman Habib, Chand T John, Eran Guendelman, and Darryl G Thelen. Opensim: open-source software to create and analyze dynamic simulations of movement. IEEE transactions on biomedical engineering , 54(11):1940–1950, 2007. 11 Congyue Deng, Or Litany, Yueqi Duan, Adrien Poulenard, Andrea Tagliasacchi, and Leonidas J Guibas. Vector neurons: A general framework for so (3)-equivariant networks. In Proceedings of the IEEE/CVF international conference on computer vision , pp. 12200–12209, 2021. A René Geist, Jonas Frey, Mikel Zhobro, Anna Levina, and Georg Martius. Learning with 3d rotations, a hitchhiker’s guide to so (3). arXiv preprint arXiv:2404.11735 , 2024. F. Sebastian Grassia. Practical parameterization of rotations using the exponential map. Journal of Graphics Tools , 1998. Samuel Greydanus, Misko Dzamba, and Jason Yosinski. Hamiltonian neural networks. Advances in neural information processing systems , 32, 2019. Kerui Gu, Zhihao Li, Shiyong Liu, Jianzhuang Liu, Songcen Xu, Youliang Yan, Michael Bi Mi, Kenji Kawaguchi, and Angela Yao. Learning unorthogonalized matrices for rotation estimation. arXiv preprint arXiv:2312.00462 , 2023. Marc Habermann, Weipeng Xu, Michael Zollhofer, Gerard Pons-Moll, and Christian Theobalt. Deepcap: Monocular human performance capture using weak supervision. In Proceedings of the IEEE/CVF confer-ence on computer vision and pattern recognition , pp. 5052–5063, 2020. Giles Hooker. Generalized functional anova diagnostics for high dimensional functions of dependent variables. 
+
+Journal of Computational and Graphical Statistics , 16(3):709–732, 2007. Elkhan Ismayilzada, Yufei Zhang, and Zijun Cui. Pad-hand: Physics-aware diffusion for hand motion recovery. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 28358–28368, 2026. Marilyn Keller, Keenon Werling, Soyong Shin, Scott Delp, Sergi Pujades, C. Karen Liu, and Michael J. Black. From skin to skeleton: Towards biomechanically accurate 3D digital humans. In ACM Transactions on Graphics (TOG), Proc. SIGGRAPH Asia , volume 42, 2023. Cuong Le, Pavlo Melnyk, Urs Waldmann, Mårten Wadenbäck, and Bastian Wandt. Quamo: Quaternion motions for vision-based 3d human kinematics capture. In The Fourteenth International Conference on Learning Representations , 2026. Jake Levinson, Carlos Esteves, Kefan Chen, Noah Snavely, Angjoo Kanazawa, Afshin Rostamizadeh, and Ameesh Makadia. An analysis of svd for deep rotation estimation. Advances in Neural Information Processing Systems , 33:22554–22565, 2020. Jiefeng Li, Chao Xu, Zhicun Chen, Siyuan Bian, Lixin Yang, and Cewu Lu. Hybrik: A hybrid analytical-neural inverse kinematics solution for 3d human pose and shape estimation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pp. 3383–3393, 2021. Jianchu Lin, Du Guangxiao, FuSong, Xiaobing Chen, Shangbing Gao, Yan Yunyang, Yongtao Yu, and Xin Ning. Monocular 3d human pose estimation via euler angles, 2026. URL https://openreview.net/ forum?id=fVCRBAXJ21 .Ziming Liu, Yixuan Wang, Sachin Vaidya, Fabian Ruehle, James Halverson, Marin Soljačić, Thomas Y Hou, and Max Tegmark. KAN: Kolmogorov-Arnold networks. arXiv preprint arXiv:2404.19756 , 2024. Ziming Liu, Sophia Sanborn, Surya Ganguli, and Andreas Tolias. From kepler to newton: Inductive biases guide learned world models in transformers. arXiv preprint arXiv:2602.06923 , 2026. Zhengyi Luo, Jinkun Cao, AlexanderWinkler, Kris Kitani, and Weipeng Xu. Perpetual humanoid control for real-time simulated avatars. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , pp. 10895–10904, October 2023. 12 Naureen Mahmood, Nima Ghorbani, Nikolaus F. Troje, Gerard Pons-Moll, and Michael J. Black. AMASS: Archive of motion capture as surface shapes. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , 2019. Pavlo Melnyk, Cuong Le, Urs Waldmann, Per-Erik Forssén, and Bastian Wandt. On the role of rotation equivariance in monocular 3d human pose estimation. arXiv preprint arXiv:2601.13913 , 2026. Brian Okorn, Chuer Pan, Martial Hebert, and David Held. Deep projective rotation estimation through relative supervision. In Conference on Robot Learning , pp. 1575–1585. PMLR, 2023. Valentin Peretroukhin, Matthew Giamou, David M Rosen, W Nicholas Greene, Nicholas Roy, and Jonathan Kelly. A smooth representation of belief over so (3) for deep rotation learning with uncertainty. arXiv preprint arXiv:2006.01031 , 2020. Charles R. Qi, Hao Su, Kaichun Mo, and Leonidas J. Guibas. PointNet: Deep learning on point sets for 3D classification and segmentation. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2017. Herschel Rabitz and Ömer F Aliş. General foundations of high-dimensional model representations. Journal of Mathematical Chemistry , 25(2):197–233, 1999. Javier Romero, Dimitrios Tzionas, and Michael J Black. Embodied hands: Modeling and capturing hands and bodies together. ACM Trans. Graph. , 36(6):1–17, November 2017. Martin Schuck, Sherif Samy, and Angela P Schoellig. A primer on so (3) action representations in deep reinforcement learning. arXiv preprint arXiv:2510.11103 , 2025. Giorgos Sfikas, Konstantina Nikolaidou, Foteini Papadopoulou, George Retsinas, and Anastasios L Kesidis. Are euler angles a useful rotation parameterisation for pose estimation with normalizing flows? arXiv preprint arXiv:2511.02277 , 2025. Mark W Spong and Mathukumalli Vidyasagar. Robot dynamics and control . John Wiley & Sons, 2008. Ruben Villegas, Jimei Yang, Duygu Ceylan, and Honglak Lee. Neural kinematic networks for unsupervised motion retargetting. In Proceedings of the IEEE conference on computer vision and pattern recognition ,pp. 8639–8648, 2018. Zhirong Wu, Shuran Song, Aditya Khosla, Fisher Yu, Linguang Zhang, Xiaoou Tang, and Jianxiong Xiao. 3D ShapeNets: A deep representation for volumetric shapes. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2015. Yan Xia, Xiaowei Zhou, Etienne Vouga, Qixing Huang, and Georgios Pavlakos. Reconstructing humans with a biomechanically accurate skeleton. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 5355–5365, 2025. Zhengdi Yu, Stefanos Zafeiriou, and Tolga Birdal. Dyn-hamr: Recovering 4d interacting hand motion from a dynamic camera. In Proceedings of the Computer Vision and Pattern Recognition Conference , pp. 27716–27726, 2025. Jason Y Zhang, Amy Lin, Moneish Kumar, Tzu-Hsuan Yang, Deva Ramanan, and Shubham Tulsiani. Cameras as rays: Pose estimation via ray diffusion. arXiv preprint arXiv:2402.14817 , 2024a. Yufei Zhang, Hanjing Wang, Jeffrey O Kephart, and Qiang Ji. Body knowledge and uncertainty modeling for monocular 3d human body reconstruction. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pp. 9020–9032, 2023. Yufei Zhang, Jeffrey O. Kephart, Zijun Cui, and Qiang Ji. Physpt: Physics-aware pretrained transformer for estimating human dynamics from monocular videos. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pp. 2305–2317, June 2024b. 13 Yufei Zhang, Jeffrey O Kephart, and Qiang Ji. Incorporating physics principles for precise human motion prediction. In Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision , pp. 6164–6174, 2024c. Yufei Zhang, Jeffrey O Kephart, and Qiang Ji. Weakly-supervised 3d hand reconstruction with knowledge prior and uncertainty guidance. In European Conference on Computer Vision , pp. 106–125. Springer, 2024d. Yufei Zhang, Zijun Cui, Jeffrey O Kephart, and Qiang Ji. Diffusion-based 3d hand motion recovery with intuitive physics. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pp. 7306–7317, 2025. Yi Zhou, Connelly Barnes, Jingwan Lu, Jimei Yang, and Hao Li. On the continuity of rotation represen-tations in neural networks. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pp. 5745–5753, 2019. Christian Zimmermann, Duygu Ceylan, Jimei Yang, Bryan Russell, Max Argus, and Thomas Brox. Freihand: A dataset for markerless capture of hand pose and shape from single rgb images. In Proceedings of the IEEE/CVF international conference on computer vision , pp. 813–822, 2019. 14 Revisiting Euler-Angle Regression with Kolmogorov-Arnold Networks 
+
+# Supplementary Material 
+
+In this supplementary material, we first provide additional analysis and specifications underlying our method: 
+
+• Appendix A : Per-Joint Range Specifications and Singularity Handling. 
+
+• Appendix B : Theoretical Analysis of Euler-Angle Regression with KAN. We then report additional experiments: 
+
+• Appendix C : Controlled Rotation Regression. 
+
+• Appendix D : Biomechanical Body Articulation. Finally, we detail the experimental setup: 
+
+• Appendix E : Additional Implementation Details. 
+
+# A Per-Joint Range Specifications and Singularity Handling 
+
+This appendix specifies the admissible per-joint rotation ranges of the human hand and body, drawn from biomechanical literature, and details how the axis-assignment strategy of Section 3.4 renders the Euler chart free of gimbal lock for every joint whose most-constrained axis lies strictly within (− π 
+
+> 2
+
+, π 
+
+> 2
+
+)—every joint we model except the shoulder, whose axial-rotation axis reaches the ± π 
+
+> 2
+
+boundary (discussed below). For each joint we report its rotational degrees of freedom (DoF) together with the admissible interval of each axis, highlighting the axis assigned to the gimbal-prone middle position. 
+
+A.1 Hand 
+
+The MANO hand model Romero et al. (2017) represents the hand as a kinematic tree of 16 joints rooted at the wrist: five fingers, each articulated by three joints. The four fingers (index, middle, ring, and little) each comprise a metacarpophalangeal (MCP), a proximal interphalangeal (PIP), and a distal interphalangeal (DIP) joint, while the thumb comprises the carpometacarpal, metacarpophalangeal, and interphalangeal joints. The DIP and PIP joints are predominantly single-DoF flexion joints, whereas the MCP joints addi-tionally admit abduction; in all cases the longitudinal twist is tightly constrained about zero Zhang et al. (2024d). We adopt the intrinsic ZXY convention, which places this twist axis at the middle position. As Table 4 shows, the middle-axis interval remains well inside (− π 
+
+> 2
+
+, π 
+
+> 2
+
+) for every finger-joint family, while the larger flexion ranges occupy the outer first and third positions where no discontinuity or singularity can arise. 
+
+A.2 Body 
+
+The SKEL model Keller et al. (2023) represents the body as a kinematic tree of 24 joints rooted at the pelvis. We focus on the major articulated joints: the legs (hip, knee, ankle), the spine (lumbar, thoracic, and cervical), and the arms (scapula, shoulder, elbow, forearm, and wrist). These joints span three DoF classes: single-DoF hinges (knee, ankle, elbow, and forearm pronation/supination), the two-DoF wrist, and three-DoF spinal and ball joints (hip, lumbar, thoracic, cervical, scapula, and shoulder). Under the anatomical joint limits established in the biomechanical literature Zhang et al. (2023); Delp et al. (2007), every multi-DoF joint has a most-constrained axis that we place at the middle position: ab/adduction for the hip, axial rotation for the spinal segments, and elevation for the scapula, each lying within (− π 
+
+> 2
+
+, π 
+
+> 2
+
+). The shoulder is the sole exception: its most-constrained axis, axial rotation, reaches ± π 
+
+> 2
+
+, making it the most singularity-prone joint we model. The single-DoF hinges are singularity-free under any axis assignment. 15 Table 4: Per-joint DoF and admissible Euler-axis ranges (degrees), compiled from biomechanical literature Zhang et al. (2023; 2024d); Delp et al. (2007) for the hand and body. The middle axis is the most-constrained axis of each joint; it lies within (−90 ◦, 90 ◦) for all joints except the shoulder, whose axial-rotation axis reaches the ±90 ◦ boundary. “–” marks axes that are inactive for the given joint.                                                                
+
+> Joint (DoF) First axis Middle axis Third axis
+> Hand
+> MCP (2) [−45 ,90] [−10 ,10 ][−20 ,20]
+> PIP (1) [−5,110] ––DIP (1) [−10 ,80] ––
+> Body
+> Knee (1) [0 ,140] ––Elbow (1) [0 ,146] ––Forearm (1) [−80 ,90] ––Ankle (1) [−20 ,50] ––Wrist (2) [−70 ,80] [−25 ,35 ]–Hip (3) [−30 ,120] [−45 ,30 ][−45 ,45]
+> Spine ∗(3) [−35 ,70] [−20 ,20 ][−30 ,30]
+> Scapula (3) [−30 ,30] [−10 ,40 ][0 ,60]
+> Shoulder (3) [0 ,180] [−70 ,90 ][−60 ,180]
+> ∗Lumbar segment (middle axis = axial rotation); the thoracic and cervical segments are analogous.
+
+Notably, for both the hand and the body these anatomical limits are far more restrictive than the crossover range at which KAN+Euler overtakes the 6D representation in our controlled study (near div=1 .3; at div=2 ,i.e. a bounded axis within (− π 
+
+> 4
+
+, π 
+
+> 4
+
+) and the remaining axes within (− π 
+
+> 2
+
+, π 
+
+> 2
+
+), the advantage already reaches 
+
+3.9×): most middle axes are confined to a small fraction of (− π 
+
+> 2
+
+, π 
+
+> 2
+
+), and the flexion ranges of the hinge joints (elbow 146 ◦, knee 140 ◦) stay below a half-turn. Real articulated systems therefore operate firmly inside the regime where the proposed parameterization is most advantageous. 
+
+# B Theoretical Analysis of Euler-Angle Regression with KAN 
+
+Proof of Lemma 1. Since fi ∈ Cp(X ) (p ≥ 3, hence fi ∈ C2) and X ⊂ Rd is bounded, the functional ANOVA decomposition exists and can be written as 
+
+fi(x) = fi, 0 +
+
+> d
+
+∑
+
+> j=1
+
+fi,j (xj ) + ∑
+
+> |S|>1
+
+fi,S (xS ),
+
+where the terms {fi,S } are orthogonal interaction components defined with respect to the product measure on X (see, e.g., Rabitz & Aliş (1999); Hooker (2007)). For twice continuously differentiable functions on a bounded domain, the magnitude of higher-order interaction components can be controlled by mixed second derivatives. In particular, standard ANOVA–Sobolev bounds imply 
+
+∑
+
+> |S|>1
+
+∥fi,S ∥∞ ≤ CX max   
+
+> j̸=k
+
+∥∂2
+
+> jk
+
+fi∥∞, (20) where CX depends only on the geometry of the domain X (see, e.g., Rabitz & Aliş (1999); Hooker (2007)). We then relate this interaction view to the bounded Euler chart considered in the paper. In a fixed Euler convention, the Euler-to-rotation map is a product of elemental rotations. For a local displacement u from a reference Euler angle, the Baker–Campbell–Hausdorff expansion gives 
+
+∏
+
+> i
+
+exp( uiGi) = exp 
+
+∑
+
+> i
+
+uiGi + 12
+
+∑
+
+> j<k
+
+uj uk[Gj , G k] + O(∥u∥3)
+
+ . (21) The first-order term is additive across the Euler coordinates, while cross-coordinate coupling enters only through the second-order commutator terms, which are O(∥u∥2) in the chart half-width. This near-additive 16 structure of the Euler-to-rotation map motivates modeling the regression target as an additive component plus a residual interaction term, whose interaction mass is controlled by the bound above. We denote this residual interaction mass by 
+
+ϵint := max 
+
+> i
+
+∑
+
+> |S|>1
+
+∥fi,S ∥∞. (22) This completes the interaction-control characterization used in the main text. 
+
+Proof of Theorem 1. Decompose 
+
+fi(x) = Gi(x) + ri(x), Gi(x) := 
+
+> d
+
+∑
+
+> j=1
+
+fi,j (xj ), ri(x) := ∑
+
+> |S|>1
+
+fi,S (xS ).
+
+By Lemma 1, 
+
+∥ri∥∞ =
+
+∥∥∥ ∑
+
+> |S|>1
+
+fi,S 
+
+∥∥∥∞
+
+≤ ∑
+
+> |S|>1
+
+∥fi,S ∥∞ ≤ ϵint .
+
+For each coordinate j, classical spline approximation theory implies that for any fi,j ∈ Cp([ aj , b j ]) there exists a degree-p spline si,j with K basis functions such that 
+
+∥fi,j − si,j ∥∞ ≤ Cp M K −p,
+
+where Cp depends only on p and the interval length bj − aj (see, e.g., de Boor (2001)). Define the additive spline approximation 
+
+˜fi(x) := 
+
+> d
+
+∑
+
+> j=1
+
+si,j (xj ),
+
+which belongs to FKAN (K, p ) by construction. Then 
+
+∥Gi − ˜fi∥∞ =
+
+∥∥∥
+
+> d
+
+∑
+
+> j=1
+
+(fi,j − si,j )
+
+∥∥∥∞
+
+≤
+
+> d
+
+∑
+
+> j=1
+
+∥fi,j − si,j ∥∞ ≤ d C p M K −p.
+
+Finally, 
+
+∥fi − ˜fi∥∞ = ∥Gi + ri − ˜fi∥∞ ≤ ∥ Gi − ˜fi∥∞ + ∥ri∥∞ ≤ d C p M K −p + ϵint ,
+
+which proves the bound in Equation 17. 
+
+# C Controlled Rotation Regression 
+
+Setup. Following Zhou et al. (2019), we study rotation regression in a controlled setting while isolating complexity from downstream tasks. Given a 3 × 3 rotation matrix R ∈ SO(3) as input, we train neural networks to recover the corresponding ZXY Euler angles. Following the axis-assignment guideline of Sec-tion 3.4, the gimbal-prone middle axis is sampled from [−π/ 2, π/ 2] and the two outer axes from [−π, π ]; at 
+
+div = 1 the middle axis spans the full [−π/ 2, π/ 2] and thus touches the ±π/ 2 singularity, while larger div 
+
+confines it strictly inside. We generate 500K samples for training and 50K independent samples for testing. We evaluate KAN and MLP under two rotation parameterizations: Euler angles and the 6D representation. Since MLP with the 6D representation is widely adopted and achieves strong empirical performance for rotation regression, we treat MLP+6D as our primary baseline. We first compare accuracy across represen-tations together with parameter and computation efficiency. Then, we analyze optimization stability and the effect of restricting Euler-angle ranges. A division factor div that scales each Euler-angle range by 1/div 
+
+(e.g., div = 2 corresponds to half the range) is used to examine how bounded Euler ranges affect results. Unless otherwise stated, results use div = 2 and are averaged over 3 seeds. 
+
+Accuracy. We report the accuracy comparison across representations in Table 5(a). Regressing Euler angles with an MLP yields a large MAE of 0.546, reflecting the discontinuities and non-smooth regions of 17 Table 5: Rotation regression accuracy and efficiency. “Rep.” refers to the employed rotation repre-sentation, and “Params.” to the number of model parameters. Bold marks our proposed KAN+Euler; on this synthetic matrix-input task KAN+AA is numerically lowest (see text). 
+
+> (a) Accuracy comparison
+
+Model Rep. MAE ↓ GE ↓
+
+MLP 6D 0.277 ±.008 0.170 
+
+MLP Euler 0.546 ±.038 0.356 
+
+MLP AA 0.363 ±.004 0.224 
+
+KAN 6D 0.072 ±.008 0.043 
+
+KAN AA 0.033 ±.002 0.021 
+
+KAN Euler 0.063 ±.010 0.041 
+
+> (b) Efficiency comparison
+
+Model Rep. Params. FLOPs MAE ↓
+
+MLP 6D 5,331 10,368 0.277 MLP 6D 21,806 43,000 0.147 MLP 6D 100,766 200,200 0.081 MLP 6D 185,406 369,000 0.066 
+
+KAN Euler 5,859 5,824 0.063 
+
+the Euler parameterization. KAN+Euler reduces this to 0.063, a 4.4× improvement over the MLP+6D baseline (0.277). The gain from KAN holds across representations: it also lowers the error to 0.072 for 6D and 0.033 for AA. AA is the lowest in this synthetic setting, which is expected: the network is given the rotation matrix directly, and AA relates to it almost linearly through the matrix logarithm, making it the easiest target to regress. This edge is specific to direct rotation-matrix input and does not transfer to realistic observations. On tasks where the input is task observations rather than the rotation matrix itself, KAN+Euler is the strongest representation: it matches or exceeds AA on the point-cloud (MAE 2.40 
+
+vs. 2.57 ) and hand ( 2.53 vs. 2.69 ) benchmarks, and is the best representation on the body task, as shown in Sections 4.1 and 4.3 and Appendix D. We therefore adopt Euler angles as the primary representation: they are the native, interpretable coordinates of the target articulated systems and match or exceed every evaluated alternative on the realistic benchmarks. 
+
+Efficiency. We compare parameter count and computational cost in Table 5(b). KAN+Euler reaches an MAE of 0.063 with only 5,859 parameters and 5,824 FLOPs, whereas MLP+6D at a comparable size yields 0.277; even scaled to 185K parameters and 369K FLOPs, a 32 × larger budget, MLP+6D remains at 0.066. The gain is therefore not a capacity effect but stems from the representation–architecture match, consistent with Section 4.1. We also report inference cost: a KAN forward pass is slower than the matched MLP+6D ( 905 μs vs. 36 μs), a gap that reflects unfused B-spline kernels in the implementation rather than the parameter count. 
+
+Optimization Stability. We next verify the convergence advantage of our framework. Training both models under a common angle-space MSE loss, Figure 3 shows that KAN+Euler reaches a lower training loss and a lower Euler-angle error and decreases smoothly throughout, whereas MLP+6D plateaus at a higher level. This is exactly what the bounded-range analysis of Section 3.5 predicts: the singularity-free, near-additive Euler target yields a well-conditioned landscape that KAN’s additive spline form fits smoothly. These results support the improved optimization stability of our proposed framework. 
+
+Effect of Angle Ranges. Finally, we investigate how the Euler-angle range affects regression difficulty by varying div in Figure 4. 
+
+Figure 4: Effect of Euler-angle range. GE vs. div ; axes are log-scaled. When the full range is used (div = 1), both Euler variants perform poorly: KAN+Euler (3.99 GE) and MLP+Euler (6.01) trail MLP+6D (0.28), because sam-ples near the range boundaries still suffer from discontinu-ities and singularities. As the range tightens, KAN+Euler improves sharply, crossing below MLP+6D near div=1 .3
+
+and reaching 3.9× lower error by div=2 (0.044 vs. 0.171 in this single-seed sweep, consistent with Table 5(a)). The advantage peaks at 6.7× (div=4 ) and compresses to 3.5× at div=8 as both errors approach the evaluation floor. MLP+Euler improves monotonically but remains 18 Figure 3: Optimization on controlled rotation regression. Both models are trained with the same angle-space MSE loss. Left: training loss (log scale); right: Euler-angle error (MAE, degrees). Table 6: Body articulation on the SKEL model. 
+
+Method MAE ↓ GE ↓
+
+MLP+6D 3.06 ±.03 4.40 ±.03 
+
+KAN+6D 3.11 ±.06 4.42 ±.07 
+
+KAN+Euler 2.88 ±.06 4.22 ±.09 
+
+the weakest, showing that both the bounded range and the KAN architecture are needed. This supports the anal-ysis in Section 3.5: restricting the Euler ranges reduces discontinuities and improves local smoothness, so KAN’s additive structure better fits the resulting well-behaved bounded regime. 
+
+# D Biomechanical Body Articulation 
+
+Setup. We finally evaluate on the full-body SKEL model Keller et al. (2023), the most demanding articulated system we consider: 23 articulated joints along a deep kinematic chain, including 3-DoF ball joints (shoulder, hip, lumbar) whose broad coupled ranges sit near the boundary of the bounded-Euler regime. From AMASS-derived poses Mahmood et al. (2019) we regress each joint’s rotation from 3D joint positions. We operate in the model’s native anatomical coordinates : the bounded joint parameters defined by the biomechanical model, with their per-axis range limits and axis assignments detailed in Appendix A, rather than a generic Euler decomposition that would place an unconstrained axis at the gimbal-prone middle position for ball joints. Because the chain is deep, we predict each joint from its local kinematic neighborhood (incoming bone, parent context, and child-bone directions) with a shared per-joint network; this decouples the chain so that each output depends on a local, near-additive feature set. KAN+Euler and MLP+6D are matched at ∼96 K parameters and trained over 3 seeds. 
+
+Gains Extend to High DoFs. KAN+Euler attains the lowest error on both metrics (Table 6), and the GE gain over MLP+6D is consistent across every seed. KAN+6D matches MLP+6D ( 4.42 vs. 4.40 ), so the improvement is attributable to the bounded native-Euler representation, not the KAN backbone alone, mirroring the hand study in Section 4.3. The advantage also grows as the joint ranges are further bounded: scaling each joint’s range by 1/div increases the GE improvement monotonically from 4.1% (div=1 ) to 
+
+5.2% (div=3 ). The effect is gentler than in the synthetic setting because the native coordinates are already 19 singularity-free. A per-joint analysis shows the net gain is driven by the axial forearm-rotation degrees of freedom, which are weakly determined by joint positions and on which the unconstrained 6D baseline incurs large errors; the bounded native angle regularizes these, while on the well-determined joints the two methods are comparable. The bounded-Euler/KAN design extends from synthetic rotations and point clouds to this high-DoF biomechanical model, provided rotations are expressed in their native bounded coordinates. 
+
+# E Additional Implementation Details 
+
+E.1 Object Rotation 
+
+We use the chair category of ModelNet10 Wu et al. (2015), with 889 training and 100 test shapes; each shape is sampled to 512 points, centered, and scaled to unit maximum extent. Following a Siamese design, a reference cloud and a rotated copy are each encoded by a shared PointNet-style network: a per-point MLP with widths 3, 64 , 128 , 1024 and ReLU activations, max-pooled to a 1024-dimensional global feature. The two features are concatenated and decoded to the relative rotation under the chosen representation. MLP models use a two-hidden-layer head, while KAN models apply a linear projection, layer normalization, and a KAN with degree-3 splines and 10 control points. Target rotations are sampled within the bounded Euler ranges, scaled by a division factor div . The accuracy comparison in Table 1(a) matches all models at ∼1.44 Mparameters at div = 1 .3, whereas the efficiency study in Table 1(b) scales the MLP+6D hidden width against a compact 0.45 M KAN+Euler; the FLOPs reported there count the representation head, since the shared PointNet encoder, at roughly 286 M FLOPs, is common to all models. All models are trained with a geodesic loss on SO(3) using Adam with an initial learning rate of 10 −3 and cosine annealing to 10 −5, batch size 128, for 40,000 iterations, and are evaluated every 2,000 iterations on 5,000 held-out pose pairs over 3 seeds. 
+
+E.2 Robotic Arm Articulation 
+
+We use the Franka Emika Panda 7-DoF robotic arm, loaded from its URDF specification via the ikpy library for forward kinematics (FK). The number of active degrees of freedom (DoF) is varied from 3 to 5, activating joints from the base outward and fixing the remaining (distal) joints at zero radians. We generate 1M valid pose–configuration pairs by uniformly sampling active joint angles within their mechanical limits (as specified in the URDF), computing the end-effector (EE) pose via FK, and retaining samples within the reachable workspace. The valid samples are split into 900K training and 100K evaluation samples. The network input consists of the 3D EE position concatenated with the EE rotation under the chosen representation: three ZXY Euler angles for Euler (input dimension 6) or the first two columns of the rotation matrix for 6D (input dimension 9). The output is the vector of active joint angles, and all models are trained with MSE loss in joint-angle space. All models are matched to approximately 100K parameters and trained for 30 epochs with batch size 1,024, using AdamW with learning rate 10 −3. Evaluation is performed every 5 epochs on a subset of 5K evaluation samples. For each sample, predicted joint angles are assembled into a full 7-DoF configuration and FK is used to compute the predicted EE position. We report the mean forward-kinematics position error in centimeters (FKE) and the success rate under a 1 cm FK threshold (SR@1cm). Table 2 reports results from the best-performing epoch. For the workspace-robustness study in Table 2(b), we repeat the 3-DoF protocol while scaling the axis-aligned end-effector workspace box to 0.7×
+
+and 0.5× its default half-extents about the workspace center, regenerating 1M valid pose–configuration pairs within each shrunken box and keeping all other settings unchanged. 
+
+E.3 Biomechanical Hand Articulation 
+
+When constructing the inverse kinematics benchmark, forward kinematics is first applied to the MANO Romero et al. (2017) pose and shape parameters to generate 21 3D hand joints. All joints are expressed in a wrist-centered coordinate frame; removing the root joint results in a 60-dimensional flattened input. We exclude the root rotation from supervision and predict only the 15 articulated joints, with output dimensions of 45 and 90 for the Euler-angle and the 6D representation Zhou et al. (2019), respectively. Con-sidering the hand joint rotation ranges defined in Zhang et al. (2024d), we adopt a consistent intrinsic ZXY convention for both Euler-to-matrix and matrix-to-Euler conversions, and additionally evaluate a baseline 20 with a YZX rotation ordering that is inconsistent with these ranges. Input joint positions are normalized to 
+
+[−1, 1] using training data statistics. To ensure a fair comparison between MLP and KAN under matched parameter counts, the MLP uses a single hidden layer with dimensions [60 , 320 , 45] (Euler) and [60 , 224 , 90] 
+
+(6D), while the KAN uses spline degree 3 with 4 control points and layer dimensions [60 , 64 , 45] (Euler) and 
+
+[60 , 45 , 90] (6D). Both architectures are matched at ∼34 K parameters. Models are trained using AdamW with learning rate 2×10 −3, and batch size 1024 for approximately 10K steps. For data-efficiency experiments, the training set is randomly subsampled without replacement and the number of epochs is scaled inversely with the retained data fraction to keep the total number of optimization steps approximately constant across data fractions. 
+
+E.4 Controlled Rotation Regression 
+
+Rotation matrices are sampled from SO(3) using the ZXY Euler convention. We generate 500K training and 50K test samples per configuration. The network receives a flattened 3 × 3 rotation matrix (9 dimensions) as input and outputs the underlying Euler angles. The gimbal-prone middle axis is sampled from [−π/ 2, π/ 2] 
+
+and the two outer axes from [−π, π ]; for each division factor div , all three ranges are uniformly scaled by 
+
+1/div (so the middle axis occupies [−π/ (2 div) , π/ (2 div)] ). Optimization uses Adam with batch size 1,024, an initial learning rate of 1.6 × 10 −4 reduced to 10 −6 after 10,000 iterations, and a total of 31,250 training iterations. Both KAN and MLP models are compared under matched parameter budgets; the MLP scaling in Table 5(b) uses 4-layer MLPs with hidden widths {48 , 100 , 220 , 300 }, while the matched KAN uses 2 hidden layers of width 16 with 12 control points. For the angle-range study in Figure 4, div is swept from 1
+
+to 2 in steps of 0.1 and additionally over {3, 4, 8}, reporting the best GE achieved during training for each value. 21

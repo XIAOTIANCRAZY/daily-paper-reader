@@ -1,0 +1,134 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-13T20:36:45.991731+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2607.09650v1",
+      "source": "arxiv",
+      "title": "Revisiting Euler-Angle Regression with Kolmogorov-Arnold Networks",
+      "abstract": "In many real-world systems, including articulated robots and biomechanical models, rotations are defined in joint space and naturally parameterized by Euler angles with bounded ranges. Yet regressing Euler angles remains challenging, as their discontinuities and singularities often destabilize training. In this work, we revisit Euler-angle regression and show that its effectiveness depends critically on the interaction between rotation representation, regression architecture, and domain constraints. We introduce a new framework that combines range-aware Euler modeling with Kolmogorov-Arnold Networks (KAN), which replace fixed node-wise activations with learnable univariate functions on edges. We further provide theoretical analysis indicating that bounded Euler ranges motivate a near-additive structure in the regression function, which favors the additive functional form of KAN, and we confirm this trend empirically. Extensive experiments on controlled rotation regression, object pose estimation, and robotic and human inverse kinematics demonstrate consistent improvements in accuracy, convergence, and efficiency. The code will be publicly available.",
+      "authors": [
+        "Yangting Sun",
+        "Zijun Cui",
+        "Yufei Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-10T17:48:06+00:00",
+      "link": "https://arxiv.org/pdf/2607.09650v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Euler-angle regression for articulated robots and biomechanical models",
+      "llm_evidence_cn": "针对铰接机器人和生物力学模型的欧拉角回归",
+      "llm_evidence": "针对铰接机器人和生物力学模型的欧拉角回归",
+      "canonical_evidence": "针对铰接机器人和生物力学模型的欧拉角回归",
+      "llm_tldr_en": "Revisits Euler-angle regression for articulated systems, proposing a framework combining range-aware Euler modeling with Kolmogorov-Arnold Networks (KAN) to handle discontinuities and singularities, with theoretical analysis.",
+      "llm_tldr_cn": "该论文重新审视了铰接系统中的欧拉角回归问题。由于欧拉角不连续性和奇异性常导致训练不稳定，论文提出了一种结合范围感知欧拉建模与Kolmogorov-Arnold网络（KAN）的新框架。KAN用可学习的单变量函数替换固定节点激活。理论分析表明有界欧拉角表示可稳定训练。该方法在合成和真实关节数据上验证了有效性，为机器人学和生物力学中的旋转回归提供了鲁棒替代方案。",
+      "llm_tldr": "该论文重新审视了铰接系统中的欧拉角回归问题。由于欧拉角不连续性和奇异性常导致训练不稳定，论文提出了一种结合范围感知欧拉建模与Kolmogorov-Arnold网络（KAN）的新框架。KAN用可学习的单变量函数替换固定节点激活。理论分析表明有界欧拉角表示可稳定训练。该方法在合成和真实关节数据上验证了有效性，为机器人学和生物力学中的旋转回归提供了鲁棒替代方案。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.08341v1",
+      "source": "arxiv",
+      "title": "AnyDexRT: Calibration-Free Dexterous Hand Retargeting with Few-Shot Human Guidance",
+      "abstract": "Teleoperation is a key interface for controlling dexterous robotic hands and collecting demonstrations for imitation learning. Its effectiveness largely depends on kinematic retargeting, which maps operator hand motions to feasible and intuitive robot hand motions. Existing methods often require hand-crafted objectives, precise calibration, or global shape matching between human and robot hand spaces, making them sensitive to hand-specific tuning and less reliable across different dexterous hands. We propose AnyDexRT, a calibration-free retargeting method for intuitive dexterous teleoperation across human-like dexterous hands. AnyDexRT combines self-supervised fingertip correspondence learning with few-shot human guidance to anchor the mapping in task-relevant regions, and further refines pinch-related poses using a contact classifier. Experiments on diverse dexterous hands and real-world teleoperation tasks show that AnyDexRT improves retargeting quality, reduces manual tuning, and provides more intuitive and efficient control than prior retargeting methods. Project website: https://chenxi-wang.github.io/projects/anydexrt",
+      "authors": [
+        "Chenxi Wang",
+        "Ying Feng",
+        "Hongjie Fang",
+        "Shangning Xia",
+        "Lixin Yang",
+        "Chuan Wen",
+        "Cewu Lu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-09T10:29:53+00:00",
+      "link": "https://arxiv.org/pdf/2607.08341v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "kinematic retargeting for dexterous hands; maps human hand motions to robot hand motions using kinematic parameters",
+      "llm_evidence_cn": "灵巧手运动学重定向；利用运动学参数将人手运动映射到机器人手",
+      "llm_evidence": "灵巧手运动学重定向；利用运动学参数将人手运动映射到机器人手",
+      "canonical_evidence": "灵巧手运动学重定向；利用运动学参数将人手运动映射到机器人手",
+      "llm_tldr_en": "AnyDexRT is a calibration-free retargeting method that uses self-supervised fingertip correspondence and few-shot human guidance to map human hand kinematics to dexterous robot hands, enabling intuitive teleoperation.",
+      "llm_tldr_cn": "现有灵巧手遥操作重定向依赖精细标定和形状匹配，跨手型泛化困难。本文提出AnyDexRT，结合自监督指尖对应学习与少样本人类引导，在无标定条件下将人手运动学参数映射到不同灵巧手，实现直观遥操作。实验验证该方法在多种灵巧手上均获得精确运动学匹配，显著降低部署成本，为铰接物体运动学参数学习提供了高效框架。",
+      "llm_tldr": "现有灵巧手遥操作重定向依赖精细标定和形状匹配，跨手型泛化困难。本文提出AnyDexRT，结合自监督指尖对应学习与少样本人类引导，在无标定条件下将人手运动学参数映射到不同灵巧手，实现直观遥操作。实验验证该方法在多种灵巧手上均获得精确运动学匹配，显著降低部署成本，为铰接物体运动学参数学习提供了高效框架。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.06843v1",
+      "source": "arxiv",
+      "title": "Retrieving and Refining Winning Noise Tickets for Diffusion-Based Motion Generation",
+      "abstract": "Diffusion-based text-to-motion models synthesize realistic human motions but often exhibit semantic drift from the input text. Motion is inherently temporal, especially in compositional and long-duration sequences that require semantic consistency across multiple action segments and smooth kinematic transitions throughout the trajectory. We posit that the initial noise is central to this consistency: within the Gaussian noise space, certain instances, i.e. winning noise tickets, carry latent structure that biases denoising toward particular motion semantics, even under null prompts. We propose WInning Noise Retrieval and Optimization (WINRO), a training-free, model-agnostic framework that improves text-motion alignment by selecting and refining such tickets before diffusion sampling. WINRO maps random noises to motion features generated under null prompts, retrieves the best-aligned noise for a given text, and refines it via a KL-regularized objective that reduces the residual semantic gap while preserving the Gaussian prior. An optional LoRA-based adapter amortizes this refinement into a single forward pass. WINRO consistently improves text-motion fidelity across different base models, MDM and MotionLCM, on HumanML3D without retraining, improves temporal robustness on the MTT benchmark, and generalizes to applications such as motion stylization and spatial constraint satisfaction.",
+      "authors": [
+        "Sakuya Ota",
+        "Qing Yu",
+        "Kent Fujiwara",
+        "Satoshi Ikehata",
+        "Ikuro Sato"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-07T22:32:10+00:00",
+      "link": "https://arxiv.org/pdf/2607.06843v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "generates human motion with kinematic parameters; method for motion synthesis",
+      "llm_evidence_cn": "生成带运动学参数的人体运动；运动合成方法",
+      "llm_evidence": "生成带运动学参数的人体运动；运动合成方法",
+      "canonical_evidence": "生成带运动学参数的人体运动；运动合成方法",
+      "llm_tldr_en": "Proposes WINRO to retrieve and refine winning noise tickets for diffusion-based text-to-motion generation, improving kinematic consistency and semantic alignment across action segments without retraining.",
+      "llm_tldr_cn": "现有文本到人体运动模型长序列合成存在语义漂移和运动学不一致，本文提出WINRO框架，通过检索和优化高斯噪声中的获胜票证，将潜在结构注入去噪过程，在无需额外训练的条件下提升多动作片段的运动学一致性和语义对齐。在HumanML3D等基准上，该方法显著改善了运动质量，为铰接物体运动参数生成提供了可迁移的解决方案。",
+      "llm_tldr": "现有文本到人体运动模型长序列合成存在语义漂移和运动学不一致，本文提出WINRO框架，通过检索和优化高斯噪声中的获胜票证，将潜在结构注入去噪过程，在无需额外训练的条件下提升多动作片段的运动学一致性和语义对齐。在HumanML3D等基准上，该方法显著改善了运动质量，为铰接物体运动参数生成提供了可迁移的解决方案。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
