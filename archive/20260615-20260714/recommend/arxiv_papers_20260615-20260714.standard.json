@@ -1,0 +1,571 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-14T09:43:10.606176+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 7,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 7,
+    "quick_skim_target": 11,
+    "quick_selected": 7
+  },
+  "deep_dive": [
+    {
+      "id": "2606.29395v1",
+      "source": "arxiv",
+      "title": "NaLA: A 3D Native LLM Layout Agent for High-quality 3D Scene Generation",
+      "abstract": "Recently, Large Language Models (LLMs) have emerged as promising layout agents for 3D scene generation. Existing layout agents still suffer from implausible layout generation because most of them convert 3D assets and 3D layouts into textual descriptions as inputs and outputs, which involves severe information loss due to the modality gap between texts and 3D assets and 3D layouts. We propose NaLA, a native 3D LLM layout Agent for high-quality 3D scene generation by placing 3D assets in the scene. For the inputs, NaLA encodes 3D scene boundaries and 3D assets directly into the LLM, preserving fine-grained geometry and enabling explicit reasoning over relationships like collisions, surface supporting, and containment. To accurately output the positions and orientations of assets, NaLA adopts a coarse-to-fine prediction mechanism that first predicts discrete poses in an autoregressive manner and then refines the discrete poses with a continuous regression. Trained on diverse layout datasets, NaLA attains strong geometric perception and layout coherence. Experiments demonstrate that NaLA outperforms prior layout agents in both generation quality and inference efficiency, with comprehensive ablation studies to verify each component's effectiveness.",
+      "authors": [
+        "Cheng Wan",
+        "Yongsen Mao",
+        "Wenzheng Wu",
+        "Yuxuan Xie",
+        "Chucheng Xiang",
+        "Runze Wang",
+        "Xiang Zhang",
+        "Zhongyuan Liu",
+        "Rushi Dai",
+        "Yuan Liu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-28T13:33:44+00:00",
+      "link": "https://arxiv.org/pdf/2606.29395v1",
+      "tags": [
+        "keyword:d-scn-gen",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "native 3D LLM layout agent for training-free high-quality 3D scene generation",
+      "llm_evidence_cn": "原生3D LLM布局智能体，实现无需训练的高质量3D场景生成",
+      "llm_evidence": "原生3D LLM布局智能体，实现无需训练的高质量3D场景生成",
+      "canonical_evidence": "原生3D LLM布局智能体，实现无需训练的高质量3D场景生成",
+      "llm_tldr_en": "NaLA encodes 3D scene boundaries and assets directly into LLM, enabling explicit spatial reasoning for high-quality layout generation without training.",
+      "llm_tldr_cn": "本文提出NaLA，一种原生3D大语言模型布局智能体，直接将3D场景边界和资产编码进LLM，实现对碰撞、支撑、包含等空间关系的显式推理。该方法无需额外训练，即可生成高质量、布局合理的3D场景。实验表明NaLA在布局合理性和场景质量上显著优于现有基于文本描述的布局方法。",
+      "llm_tldr": "本文提出NaLA，一种原生3D大语言模型布局智能体，直接将3D场景边界和资产编码进LLM，实现对碰撞、支撑、包含等空间关系的显式推理。该方法无需额外训练，即可生成高质量、布局合理的3D场景。实验表明NaLA在布局合理性和场景质量上显著优于现有基于文本描述的布局方法。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.30608v1",
+      "source": "arxiv",
+      "title": "UnfoldArt: Zero-Shot Recovery of Full Articulated 3D Objects from Text or Image",
+      "abstract": "Articulated 3D objects are essential for interactive environments in embodied AI, robotics, and virtual reality, but reconstructing their structure and motion from sparse observations remains challenging. Existing approaches remain largely constrained by lack of supervised data or lack the priors needed to reliably recover articulation, hidden geometry, and internal object structure. We present the first debate-driven agentic approach to articulated 3D object reconstruction from text or image inputs that both grounds articulation reasoning in concrete motion and exposes the occluded geometry revealed under articulation. High-level agents reason about object semantics and motion using knowledge from vision-language and video models, while low-level agents estimate articulation parameters and interaction points; together, they engage in a two-round structured debate that first exploits global--local disagreement and then grounds the agents in freely generated video. The same video prior, conditioned on the agreed articulation, then drives each part through its motion to expose occluded interiors and geometry that cannot be inferred from a single static view. By combining agentic reasoning with a video generative prior, our approach jointly infers articulation and reconstructs complete 3D articulated objects, producing high-fidelity geometry, internal structure, and motion-consistent states beyond directly observed surfaces.",
+      "authors": [
+        "Mohamed el amine boudjoghra",
+        "Ivan Laptev",
+        "Angela Dai"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-29T17:44:53+00:00",
+      "link": "https://arxiv.org/pdf/2606.30608v1",
+      "tags": [
+        "keyword:d-scn-gen",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "zero-shot recovery of articulated 3D objects with kinematic parameters from text or image",
+      "llm_evidence_cn": "从文本或图像零样本恢复铰接3D物体及其运动学参数",
+      "llm_evidence": "从文本或图像零样本恢复铰接3D物体及其运动学参数",
+      "canonical_evidence": "从文本或图像零样本恢复铰接3D物体及其运动学参数",
+      "llm_tldr_en": "First debate-driven agentic approach for articulated 3D object reconstruction from text or image, recovering articulation and hidden geometry using VLM and video model reasoning.",
+      "llm_tldr_cn": "本文提出首个基于辩论驱动智能体的铰接3D物体零样本重建方法。方法通过高层智能体利用视觉语言模型和视频模型推理物体语义与运动，低层智能体负责具体几何恢复，能够从单一文本或图像输入中重建完整的铰接结构和隐藏几何。实验表明该方法在多种铰接物体上取得了高质量重建效果，为交互式环境中的物体理解提供了新途径。",
+      "llm_tldr": "本文提出首个基于辩论驱动智能体的铰接3D物体零样本重建方法。方法通过高层智能体利用视觉语言模型和视频模型推理物体语义与运动，低层智能体负责具体几何恢复，能够从单一文本或图像输入中重建完整的铰接结构和隐藏几何。实验表明该方法在多种铰接物体上取得了高质量重建效果，为交互式环境中的物体理解提供了新途径。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.30608v2",
+      "source": "arxiv",
+      "title": "UnfoldArt: Zero-Shot Recovery of Full Articulated 3D Objects from Text or Image",
+      "abstract": "Articulated 3D objects are essential for interactive environments in embodied AI, robotics, and virtual reality, but reconstructing their structure and motion from sparse observations remains challenging. Existing approaches remain largely constrained by lack of supervised data or lack the priors needed to reliably recover articulation, hidden geometry, and internal object structure. We present the first debate-driven agentic approach to articulated 3D object reconstruction from text or image inputs that both grounds articulation reasoning in concrete motion and exposes the occluded geometry revealed under articulation. High-level agents reason about object semantics and motion using knowledge from vision-language and video models, while low-level agents estimate articulation parameters and interaction points; together, they engage in a two-round structured debate that first exploits global--local disagreement and then grounds the agents in freely generated video. The same video prior, conditioned on the agreed articulation, then drives each part through its motion to expose occluded interiors and geometry that cannot be inferred from a single static view. By combining agentic reasoning with a video generative prior, our approach jointly infers articulation and reconstructs complete 3D articulated objects, producing high-fidelity geometry, internal structure, and motion-consistent states beyond directly observed surfaces.",
+      "authors": [
+        "Mohamed el Amine Boudjoghra",
+        "Ivan Laptev",
+        "Angela Dai"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-29T17:44:53+00:00",
+      "link": "https://arxiv.org/pdf/2606.30608v2",
+      "tags": [
+        "keyword:d-scn-gen",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Zero-shot recovery of articulated 3D objects using debate-driven agent with VLM",
+      "llm_evidence_cn": "使用辩论驱动agent和VLM零样本恢复铰接3D物体",
+      "llm_evidence": "使用辩论驱动agent和VLM零样本恢复铰接3D物体",
+      "canonical_evidence": "使用辩论驱动agent和VLM零样本恢复铰接3D物体",
+      "llm_tldr_en": "UnfoldArt presents the first debate-driven agentic approach for zero-shot recovery of full articulated 3D objects from text or image, using vision-language and video models to reason about articulation and expose hidden geometry.",
+      "llm_tldr_cn": "现有铰接3D物体重建方法受限于监督数据不足或缺乏先验，难以恢复结构和运动。UnfoldArt提出首个辩论驱动的agent方法，利用视觉语言和视频模型从文本或图像零样本恢复完整铰接物体，包括隐藏几何。高层agent推理物体语义和运动，低层agent生成具体运动序列。实验表明该方法能有效重建多种铰接物体，为交互环境和机器人提供新途径。",
+      "llm_tldr": "现有铰接3D物体重建方法受限于监督数据不足或缺乏先验，难以恢复结构和运动。UnfoldArt提出首个辩论驱动的agent方法，利用视觉语言和视频模型从文本或图像零样本恢复完整铰接物体，包括隐藏几何。高层agent推理物体语义和运动，低层agent生成具体运动序列。实验表明该方法能有效重建多种铰接物体，为交互环境和机器人提供新途径。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.01766v1",
+      "source": "arxiv",
+      "title": "SimWorlds: A Multi-Agent System for Dynamic 3D Scene Creation",
+      "abstract": "LLM agents are increasingly used to translate natural language into 3D scenes in a procedural way, but existing systems focus on static output. Dynamic 4D scenes from text alone, in which liquids flow, particles emit, rigid bodies cascade, and articulated mechanisms move, remain largely unexplored despite their value as editable content and as physics-grounded training data for video generation and embodied AI. Two challenges set the dynamic case apart from static text-to-scene work: an agent must jointly coordinate spatial layout, multiple physics solvers, temporal sequencing, camera, and lighting in a single coherent scene, and verifying motion correctness from rendered video is fundamentally harder than judging a single image. We present SimWorlds: a multi-agent framework that produces dynamic, editable 4D scenes from text, with Blender-specific procedural knowledge, a planner-coder-reviewer workflow driving a fixed ordered sequence of construction stages, a layered scene protocol enforced by a deterministic verifier, and a runtime-state inspection tool suite that catches mechanism failures the rendered image cannot reveal. We also introduce 4DBuildBench, a benchmark for assessing both visual fidelity and physical consistency of the procedural dynamic 3D scenes generated from text prompts. Experiments show that SimWorlds outperforms prior dynamic Blender generation baselines.",
+      "authors": [
+        "Chunjiang Liu",
+        "Xiaoyuan Wang",
+        "Haoyu Chen",
+        "Yizhou Zhao",
+        "Ming-Hsuan Yang",
+        "László A. Jeni"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-07-02T06:29:18+00:00",
+      "link": "https://arxiv.org/pdf/2607.01766v1",
+      "tags": [
+        "keyword:d-scn-gen",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-agent system using LLM agents for dynamic 3D scene creation from natural language",
+      "llm_evidence_cn": "使用大语言模型智能体的多智能体系统从自然语言创建动态3D场景",
+      "llm_evidence": "使用大语言模型智能体的多智能体系统从自然语言创建动态3D场景",
+      "canonical_evidence": "使用大语言模型智能体的多智能体系统从自然语言创建动态3D场景",
+      "llm_tldr_en": "SimWorlds presents a multi-agent system that uses LLM agents to jointly coordinate spatial layout, physics solvers, temporal sequencing, and camera/lighting for dynamic 4D scene creation from text.",
+      "llm_tldr_cn": "该论文提出SimWorlds，一个多智能体系统，利用大语言模型智能体从自然语言生成动态3D场景。智能体协同处理空间布局、物理模拟、时间序列和相机光照，生成包含流体、粒子、刚体和铰接机构运动的4D场景。该方法直接满足基于LLM agent的三维场景生成需求，且无需额外训练。",
+      "llm_tldr": "该论文提出SimWorlds，一个多智能体系统，利用大语言模型智能体从自然语言生成动态3D场景。智能体协同处理空间布局、物理模拟、时间序列和相机光照，生成包含流体、粒子、刚体和铰接机构运动的4D场景。该方法直接满足基于LLM agent的三维场景生成需求，且无需额外训练。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.02407v1",
+      "source": "arxiv",
+      "title": "Text-Driven 3D Indoor Scene Synthesis in Non-Manhattan Environments",
+      "abstract": "Large Language Models (LLMs) have demonstrated remarkable capabilities in 3D indoor synthesis for Manhattan environments. However, existing methods often fail to capture plausible object layout patterns in non-Manhattan settings, primarily because they struggle to model non-orthogonal spatial relationships, leading to high geometric violations and low physical fidelity. To address this challenge, we propose SPG-Layout, a novel text-driven framework designed to generate physically plausible indoor scenes within complex non-Manhattan environments. Specifically, we first utilize statistical priors of object distributions to guide the training process, enhancing environmental understanding and fidelity. Furthermore, mirroring human design workflows, we adopt a hierarchical layout strategy that prioritizes the placement of large objects, thereby substantially minimizing layout violations. By synergizing these components, SPG-Layout achieves a balanced optimization of semantic realism and physical plausibility. To evaluate performance in these complex settings, we constructed a new benchmark comprising 500 diverse non-Manhattan environments. Extensive experiments demonstrate that SPG-Layout consistently and significantly outperforms existing methods across both Manhattan and non-Manhattan environments. The code will be publicly released.",
+      "authors": [
+        "Xianhui Meng",
+        "Zirui Song",
+        "Yuchen Zhang",
+        "Li Zhang",
+        "Yongxuan Lv",
+        "Xiuying Chen",
+        "Kun Wang",
+        "Yan Luo",
+        "Kai Chen",
+        "Hangjun Ye",
+        "Long Chen",
+        "Jun Liu",
+        "Xiaoshuai Hao"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CV"
+      ],
+      "published": "2026-07-02T16:40:08+00:00",
+      "link": "https://arxiv.org/pdf/2607.02407v1",
+      "tags": [
+        "keyword:d-scn-gen",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LLM-based text-driven 3D indoor scene synthesis",
+      "llm_evidence_cn": "基于大语言模型的文本驱动三维室内场景合成",
+      "llm_evidence": "基于大语言模型的文本驱动三维室内场景合成",
+      "canonical_evidence": "基于大语言模型的文本驱动三维室内场景合成",
+      "llm_tldr_en": "SPG-Layout uses LLMs and distribution priors to generate physically plausible 3D indoor scenes in non-Manhattan environments.",
+      "llm_tldr_cn": "SPG-Layout针对非曼哈顿环境下的3D室内场景合成问题，利用大语言模型（LLM）和物体分布统计先验，生成物理上合理的布局。它模仿人工设计流程，先预测物体密度图，再迭代放置物体。在多个数据集上的实验表明，该方法在布局合理性上显著优于现有文本驱动方法。这项工作拓展了LLM在复杂非正交场景中的应用。",
+      "llm_tldr": "SPG-Layout针对非曼哈顿环境下的3D室内场景合成问题，利用大语言模型（LLM）和物体分布统计先验，生成物理上合理的布局。它模仿人工设计流程，先预测物体密度图，再迭代放置物体。在多个数据集上的实验表明，该方法在布局合理性上显著优于现有文本驱动方法。这项工作拓展了LLM在复杂非正交场景中的应用。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "large language model 3d scene generation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.31471v1",
+      "source": "arxiv",
+      "title": "Think While You Map: Asynchronous Vision-Language Agents for Incremental 3D Scene Graphs",
+      "abstract": "Open-vocabulary 3D scene graph methods typically operate in two stages: first reconstruct, then enrich with vision-language models, leaving the graph unqueryable during exploration. We argue that this sequential coupling is unnecessary and propose an asynchronous architecture in which lightweight online mapping runs concurrently with heavyweight semantic refinement. A probabilistic voxel-based backbone maintains stable object identities incrementally, while background VLM agents progressively enrich the graph. This framework resolves duplicate object tracks through semantic loop closure, attaches fine-grained visual attributes and derives spatial relations between objects. A multi-target frame scheduler amortizes VLM cost by selecting a small set of informative frames that jointly cover multiple targets. The resulting scene graph is queryable during exploration and grows in semantic richness over time. Our method matches or outperforms existing open-vocabulary 3D scene graph methods on semantic segmentation (ScanNet, Replica) and surpasses the prior state-of-the-art across three visual grounding benchmarks (Sr3D+, Nr3D, ScanRefer) by 15.3 to 18.8 A@0.25. Project page: https://denizbickici.github.io/thinkgraphs/",
+      "authors": [
+        "Deniz Bickici",
+        "Michael Pabst",
+        "Shohei Mori",
+        "Dieter Schmalstieg"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-30T10:49:21+00:00",
+      "link": "https://arxiv.org/pdf/2606.31471v1",
+      "tags": [
+        "keyword:d-scn-gen",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "VLM agents incrementally build 3D scene graphs, matching agent-based scene construction",
+      "llm_evidence_cn": "VLM智能体增量构建3D场景图，符合基于智能体的场景构建需求",
+      "llm_evidence": "VLM智能体增量构建3D场景图，符合基于智能体的场景构建需求",
+      "canonical_evidence": "VLM智能体增量构建3D场景图，符合基于智能体的场景构建需求",
+      "llm_tldr_en": "Proposes asynchronous architecture with VL agents for incremental 3D scene graph building, enabling queryable graphs during exploration and reducing VLM cost via scheduling.",
+      "llm_tldr_cn": "针对现有3D场景图方法需要先重建再丰富导致探索期间不可查询的问题，本文提出异步架构，轻量在线映射与重语义细化并行运行。通过概率体素骨干保持对象身份，后台VLM智能体逐步丰富图结构、属性与空间关系，并引入多目标帧调度器降低VLM开销。实验证明该方法在构建增量场景图时高效且鲁棒，直接满足基于语言模型智能体的3D场景构建需求。",
+      "llm_tldr": "针对现有3D场景图方法需要先重建再丰富导致探索期间不可查询的问题，本文提出异步架构，轻量在线映射与重语义细化并行运行。通过概率体素骨干保持对象身份，后台VLM智能体逐步丰富图结构、属性与空间关系，并引入多目标帧调度器降低VLM开销。实验证明该方法在构建增量场景图时高效且鲁棒，直接满足基于语言模型智能体的3D场景构建需求。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "language model agent for 3d scene construction",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.11673v1",
+      "source": "arxiv",
+      "title": "ABot-3DWorld 0: A Universal World Model to Explore Any 3D Space",
+      "abstract": "We present ABot-3DWorld 0, a universal multimodal 3D world model that turns text, image, and video inputs into high-fidelity, explorable 3D worlds. At the heart of our framework is a unified Spatial Generative Primitive (SGP), a compact tuple of a high-quality panorama and a spatial point cloud that delivers an efficient description of any 3D space. Multimodal inputs are first lifted into this primitive; a 3D-consistent panoramic video generator then explores the primitive along a planned trajectory; finally, our panoramic video reconstruction engine converts the generated video into a clean, photorealistic 3D Gaussian Splatting (3DGS) world. This pipeline covers two regimes: rich inputs (multi-view sets, casual video) are lifted into the SGP through a geometry-rigorous recovery that mirrors the observed scene, while a single image or sentence is completed generatively into a creative world. The result is one low-barrier engine for general 3D content creation that further anchors generated worlds to geographic points of interest, enabling map-native spatial exploration at consumer scale. Experiments show that ABot-3DWorld 0 sets the state of the art among open-source methods and demonstrates stronger scene fidelity than Marble under rich multimodal inputs.",
+      "authors": [
+        "Mingchao Sun",
+        "Luyang Tang",
+        "Yu Liu",
+        "Xu Yan",
+        "Zhan Li",
+        "Yunwei Zhang",
+        "Fei Yu",
+        "Zengye Ge",
+        "Yumin Liu",
+        "Jiacheng Zhang",
+        "Yongchang Zhang",
+        "Jiawei Zhang",
+        "Zhicheng Liu",
+        "Zhongxu Sun",
+        "Tianjian Ouyang",
+        "Wenzheng Chen",
+        "Shixing Yang",
+        "Nianfei Fan",
+        "Guodong Sun",
+        "Huan Li",
+        "Zheng Zhou",
+        "Yongze Li",
+        "Yingliang Peng",
+        "Mengmeng Du",
+        "Yuan Liu",
+        "Haozhe Shi",
+        "Chunnuo Gong",
+        "Chengzhen Yu",
+        "Chunxue Jia",
+        "Yang Liu",
+        "Shiying Zeng",
+        "Junnan Lai",
+        "Hang Zhang",
+        "Ning Guo",
+        "Baoquan Chen",
+        "Mu Xu",
+        "Hongyu Pan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-13T15:14:48+00:00",
+      "link": "https://arxiv.org/pdf/2607.11673v1",
+      "tags": [
+        "keyword:d-scn-gen",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Text-driven 3D world generation using a universal world model",
+      "llm_evidence_cn": "使用通用世界模型以文本驱动生成3D世界",
+      "llm_evidence": "使用通用世界模型以文本驱动生成3D世界",
+      "canonical_evidence": "使用通用世界模型以文本驱动生成3D世界",
+      "llm_tldr_en": "Proposes ABot-3DWorld, a universal world model that converts text, image, video into explorable 3D worlds via Spatial Generative Primitive and 3DGS reconstruction.",
+      "llm_tldr_cn": "针对如何将多模态输入转化为可探索3D世界的问题，本文提出ABot-3DWorld 0，引入统一空间生成元组（SGP）作为中间表示，包含全景图与点云。通过3D一致全景视频生成器沿轨迹探索，再重建为高质量的3D高斯场景。支持文本、图像、视频多种输入，实现高保真3D场景生成。实验表明生成世界具有高保真度和良好的可探索性，直接满足大语言模型驱动的3D场景生成需求。",
+      "llm_tldr": "针对如何将多模态输入转化为可探索3D世界的问题，本文提出ABot-3DWorld 0，引入统一空间生成元组（SGP）作为中间表示，包含全景图与点云。通过3D一致全景视频生成器沿轨迹探索，再重建为高质量的3D高斯场景。支持文本、图像、视频多种输入，实现高保真3D场景生成。实验表明生成世界具有高保真度和良好的可探索性，直接满足大语言模型驱动的3D场景生成需求。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "large language model 3d scene generation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.24206v1",
+      "source": "arxiv",
+      "title": "Inclusive Interactive Collisions for Multi-View Consistent Compositional 3D Generation",
+      "abstract": "Recent breakthroughs in 3D generation have advanced notably with the development of text-to-image diffusion model. However, existing methods remain two practical challenges: (1) They primarily generate single 3D object, but struggle to generate multi-object compositional 3D assets due to the lack of the modeling for Gaussian primitives in reasonable interactions. (2) They often suffer from cross-view inconsistency during 3D optimization, as Score Distillation Sampling inherently performs on each single view, inevitably resulting in cross-view hallucinations. To solve above issues, we propose I2C-3D, a novel optimization-based method to generate multi-view consistent compositional 3D assets with reasonable interactions. Specifically, we propose an Inclusive Interactive Collisions strategy to guide Gaussian primitives appearing in reasonable interaction regions naturally, thereby ensuring objects in the compositional scene interact in a physically plausible and visually coherent way. Additionally, to enhance multi-view consistency, Multi-View Adaptive Score Distillation Sampling is devised to distill multi-view consistency prior and layout prior from pre-trained diffusion model by modulating attention map of instance token and spatial token across viewpoints. Benefiting from above elaborate designs, I2C-3D not only generates high-fidelity multi-view consistent compositional 3D assets but also supports 3D editing flexibly, facilitating complex scene generation. Extensive experiments demonstrate our I2C-3D outperforms existing methods in generation quality and multi-view consistency.",
+      "authors": [
+        "Chang Liu",
+        "Mingwen Shao",
+        "Xiang Lv",
+        "Xinyuan Chen",
+        "Lingzhuang Meng",
+        "Qiao Zhang",
+        "Zhengyi Gong",
+        "Jinghao Hu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-06-23T06:48:22+00:00",
+      "link": "https://arxiv.org/pdf/2606.24206v1",
+      "tags": [
+        "keyword:d-scn-gen",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "generates multi-object compositional 3D scenes from text",
+      "llm_evidence_cn": "从文本生成多物体组合3D场景",
+      "llm_evidence": "从文本生成多物体组合3D场景",
+      "canonical_evidence": "从文本生成多物体组合3D场景",
+      "llm_tldr_en": "I2C-3D generates multi-object compositional 3D assets with reasonable interactions and multi-view consistency via optimization with collision modeling and score distillation.",
+      "llm_tldr_cn": "I2C-3D针对现有方法难以生成多物体组合3D资产且跨视角不一致的问题，提出优化方法，建模高斯原语的合理交互，并通过碰撞约束和分数蒸馏采样实现多视角一致。该方法可从文本生成包含多个物体且交互合理的3D场景，但需要优化并非训练-free。",
+      "llm_tldr": "I2C-3D针对现有方法难以生成多物体组合3D资产且跨视角不一致的问题，提出优化方法，建模高斯原语的合理交互，并通过碰撞约束和分数蒸馏采样实现多视角一致。该方法可从文本生成包含多个物体且交互合理的3D场景，但需要优化并非训练-free。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "interactive 3d scene generation natural language",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.27738v1",
+      "source": "arxiv",
+      "title": "HandMade: Spatial Prompting for Generative 3D Creation with Part-Labeled VR Sketches",
+      "abstract": "Text-to-3D generation lowers the barrier to 3D content creation, but text alone is a weak interface for specifying spatial intent: where parts should be placed, how they relate, and how an object should be organized in 3D. We present HandMade, a workflow that combines VR 3D sketching and language for open-domain 3D asset generation. HandMade treats coarse, part-labeled 3D sketches not as incomplete geometry to reconstruct directly, but as spatial prompts for existing generative models. It converts segmented VR strokes into multi-view part guidance and structured prompts, allowing users to specify object layout and part relationships through 3D sketching while using language for identity, material, style, and local details. A technical evaluation shows that HandMade better preserves user-authored spatial scaffolds than text-only and sketch-based baselines on 20 varied examples. A user study with eight participants characterizes how users make use of 3D sketching for spatial layout and language for identity, materials, and details across initial authoring and subsequent revision. HandMade contributes an interaction paradigm and interface-to-generation pipeline for spatially guided 3D creation.",
+      "authors": [
+        "Jialin Huang",
+        "Rana Hanocka",
+        "Ariel Shamir",
+        "Yotam Gingold"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-06-26T05:37:56+00:00",
+      "link": "https://arxiv.org/pdf/2606.27738v1",
+      "tags": [
+        "keyword:d-scn-gen",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "interactive 3D generation using natural language and VR sketches",
+      "llm_evidence_cn": "使用自然语言和VR草图交互式3D生成",
+      "llm_evidence": "使用自然语言和VR草图交互式3D生成",
+      "canonical_evidence": "使用自然语言和VR草图交互式3D生成",
+      "llm_tldr_en": "HandMade combines VR 3D sketching with language to generate 3D assets by treating sketches as spatial prompts for pretrained generative models.",
+      "llm_tldr_cn": "HandMade提出了一种结合VR 3D草图和自然语言的工作流程，用于开放域3D资产生成。它将粗粒度的部件标记草图视为空间提示，转换为多视图部件引导和结构化提示，同时用语言指定类别、材质等属性。用户研究和技术评估表明，该方法有效地将空间意图和语言相结合，提高了生成的可控性。这项工作为交互式3D内容创作提供了新范式。",
+      "llm_tldr": "HandMade提出了一种结合VR 3D草图和自然语言的工作流程，用于开放域3D资产生成。它将粗粒度的部件标记草图视为空间提示，转换为多视图部件引导和结构化提示，同时用语言指定类别、材质等属性。用户研究和技术评估表明，该方法有效地将空间意图和语言相结合，提高了生成的可控性。这项工作为交互式3D内容创作提供了新范式。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "interactive 3d scene generation natural language",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.03731v1",
+      "source": "arxiv",
+      "title": "CoGen3D: An Agentic Human-AI Co-Design Pipeline for 3D Asset Generation for Virtual Reality",
+      "abstract": "Creating 3D assets for virtual reality requires modeling expertise, which restricts the authorship of immersive experiences. Existing generative AI tools rely on unconstrained, command-driven prompting, lacking the conversational scaffolding needed for users to articulate their intent and validate designs prior to rendering. To address this, we introduce CoGen3D, an agentic human-AI co-design pipeline that proactively guides users through conversational intent elicitation, a concept image confirmation, and image-to-3D generation that directly deploys to immersive scenes. We evaluated this system through a user study (N=120) across six affectively diverse immersive scenes, observing 60 Design group participants who co-created 3D assets for the scenes, and 60 Validation group participants who experienced the scenes with generated assets. Our findings show that co-designed assets are associated with higher scene engagement and shifted affective responses, while participants generally preferred concept images over the final 3D assets, with no increased leniency toward degradation in their own creations. Analysis of the human-AI conversations further shows that target environments shape users' conversational patterns. Our results suggest that our staged, intent-based co-design can democratize virtual reality authoring and shift immersive content creation from technical execution toward collaborative spatial design.",
+      "authors": [
+        "Weiwei Jiang",
+        "Wanyu He",
+        "Zheyu Tan",
+        "Zheyuan Kuang",
+        "Difeng Yu",
+        "Shinobu Hasegawa",
+        "Sven Mayer",
+        "Zhanna Sarsenbayeva"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC",
+        "cs.AI"
+      ],
+      "published": "2026-07-04T06:37:26+00:00",
+      "link": "https://arxiv.org/pdf/2607.03731v1",
+      "tags": [
+        "keyword:d-scn-gen",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "agentic human-AI co-design pipeline for 3D asset generation, deployable to immersive scenes",
+      "llm_evidence_cn": "用于3D资产生成的智能体式人机协作管道，可直接部署到沉浸式场景",
+      "llm_evidence": "用于3D资产生成的智能体式人机协作管道，可直接部署到沉浸式场景",
+      "canonical_evidence": "用于3D资产生成的智能体式人机协作管道，可直接部署到沉浸式场景",
+      "llm_tldr_en": "CoGen3D is an agentic pipeline that guides users through conversational intent elicitation to generate 3D assets and deploy to VR scenes, evaluated with 120 users.",
+      "llm_tldr_cn": "本文提出CoGen3D，一种智能体式人机共设计管道，通过对话式意图引导、概念图确认和图像到3D生成，将3D资产直接部署到沉浸式虚拟现实场景。在120名用户的实验中，设计组成功创建了多样化的3D资产，验证了系统在降低创作门槛和提升用户体验方面的有效性。",
+      "llm_tldr": "本文提出CoGen3D，一种智能体式人机共设计管道，通过对话式意图引导、概念图确认和图像到3D生成，将3D资产直接部署到沉浸式虚拟现实场景。在120名用户的实验中，设计组成功创建了多样化的3D资产，验证了系统在降低创作门槛和提升用户体验方面的有效性。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "agent based 3d scene generation",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.03819v1",
+      "source": "arxiv",
+      "title": "CGGS: Consistency-Augmented Geometric Gaussian Splatting for Ego-centric 3D Scene Generation",
+      "abstract": "Challenges remain in ego-centric 3D scene generation due to limited view overlap and the dominant influence of individual perspectives on scene interpretation. These factors hinder the creation of viewpoint-consistent and semantically aligned visual content, as well as the construction of accurate geometric structures. In this paper, we propose CGGS, a text-to-3D framework aiming to enhance 3D-content-awareness and address geometric distortions in ego-centric scene generation. Firstly, the Ego-centric Generator is proposed by fine-tuning a Multi-View Latent Diffusion Model with consistency-augmented loss to generate consistent, high-fidelity 2D content aligned with textual descriptions. Then, Layout Decorator leverages optical flow and point-track correspondence to estimate depth, therefore producing dense point clouds as coarse layouts from the ego-centric 2D priors. Building on this initialization, Geometric Refiner is proposed to enhance 3D Gaussian reconstruction via an entropy-based Mutual Information Depth Loss (MID) combined with a hierarchical optimization scheme for improving visual quality and geometric structure. Comprehensive experiments demonstrate that \\textcolor{softred}{CGGS} outperforms previous methods in generating coherent and accurate text-driven 3D scenes. Project page: https://cggs-26.github.io/cggs26/.",
+      "authors": [
+        "Zhenyu Sun",
+        "Xiaohan Zhang",
+        "Qi Liu",
+        "Huan Wang"
+      ],
+      "primary_category": "cs.GR",
+      "categories": [
+        "cs.GR",
+        "cs.AI"
+      ],
+      "published": "2026-07-04T11:06:41+00:00",
+      "link": "https://arxiv.org/pdf/2607.03819v1",
+      "tags": [
+        "keyword:d-scn-gen",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "text-to-3D scene generation for ego-centric view",
+      "llm_evidence_cn": "文本到三维场景生成，面向自我中心视角",
+      "llm_evidence": "文本到三维场景生成，面向自我中心视角",
+      "canonical_evidence": "文本到三维场景生成，面向自我中心视角",
+      "llm_tldr_en": "CGGS proposes a text-to-3D framework that fine-tunes a multi-view diffusion model with consistency-augmented loss and uses layout decorator with optical flow to generate consistent ego-centric 3D scenes from text descriptions.",
+      "llm_tldr_cn": "本文针对自我中心视角下三维场景生成中视图重叠有限和几何失真问题，提出了CGGS框架。该方法通过微调多视图潜在扩散模型并引入一致性增强损失来生成与文本描述对齐的高保真2D内容，再利用布局装饰器结合光流优化几何结构。实验表明该方法能生成视角一致、几何准确的三维场景，有效推动了文本驱动三维场景生成在自我中心场景中的应用。",
+      "llm_tldr": "本文针对自我中心视角下三维场景生成中视图重叠有限和几何失真问题，提出了CGGS框架。该方法通过微调多视图潜在扩散模型并引入一致性增强损失来生成与文本描述对齐的高保真2D内容，再利用布局装饰器结合光流优化几何结构。实验表明该方法能生成视角一致、几何准确的三维场景，有效推动了文本驱动三维场景生成在自我中心场景中的应用。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "interactive 3d scene generation natural language",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.05392v1",
+      "source": "arxiv",
+      "title": "SynCity 3000: Bootstrapping Scene-Scale 3D Diffusion",
+      "abstract": "We present SynCity 3000, a framework for generating 3D scenes that are globally coherent while enabling fine-grained layout control. Building on the ability of current image-to-3D generators to produce complex 3D assets from a single image, we extend this capability to the scale of entire scenes by adapting the generator to be applicable as a convolutional operator. We achieve this by fine-tuning the model on scene-like data generated by a new synthetic data engine, which we propose to address the scarcity of 3D scene data for training. The convolutional generator is then applied to a dimetric image of the entire scene, generated from the user prompt, resulting in 3D scenes of arbitrary size and complexity. Across diverse prompts and layouts, SynCity 3000 produces large, coherent, and detailed scenes, addressing the shortcomings of prior approaches to 3D scene generation.",
+      "authors": [
+        "Paul Engstler",
+        "Iro Laina",
+        "Christian Rupprecht",
+        "Andrea Vedaldi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-06T17:59:35+00:00",
+      "link": "https://arxiv.org/pdf/2607.05392v1",
+      "tags": [
+        "keyword:d-scn-gen",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "generates 3D scenes from user prompt",
+      "llm_evidence_cn": "从用户提示生成3D场景",
+      "llm_evidence": "从用户提示生成3D场景",
+      "canonical_evidence": "从用户提示生成3D场景",
+      "llm_tldr_en": "SynCity 3000 adapts image-to-3D generators to entire scenes via convolutional operator fine-tuned on synthetic data, enabling large-scale 3D scene generation from user prompts.",
+      "llm_tldr_cn": "SynCity 3000针对现有3D生成方法难以生成全场景且缺乏全局一致性的问题，提出将图像到3D生成器改造为卷积算子，并在合成场景数据上微调。该方法首先根据用户提示生成整个场景的等角图像，然后通过卷积方式应用生成器，得到任意大小且布局可控的3D场景。实验表明该方法能在多种提示下生成大规模连贯场景，推动了场景级3D生成的发展。",
+      "llm_tldr": "SynCity 3000针对现有3D生成方法难以生成全场景且缺乏全局一致性的问题，提出将图像到3D生成器改造为卷积算子，并在合成场景数据上微调。该方法首先根据用户提示生成整个场景的等角图像，然后通过卷积方式应用生成器，得到任意大小且布局可控的3D场景。实验表明该方法能在多种提示下生成大规模连贯场景，推动了场景级3D生成的发展。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "interactive 3d scene generation natural language",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.06565v1",
+      "source": "arxiv",
+      "title": "ELSA3D: Elastic Semantic Anchoring for Unified 3D Understanding and Generation",
+      "abstract": "Unified 3D foundation models aspire to generate 3D assets and reason about them in language within a single backbone, but their text-3D interaction remains largely implicit. Existing methods concatenate text and 3D tokens into a flat sequence and rely on self-attention, collapsing coarse structural cues and fine geometric details into one undifferentiated representation. We introduce ELSA3D, a unified 3D model that addresses this with elastic semantic anchoring, structuring language and geometric reasoning jointly along matched abstraction scales. ELSA3D represents geometry with a scale-aware octree tokenizer and introduces Anchor Tokens, sparse cross-modal units that select semantic cues, route them to the most relevant 3D scale, retrieve scale-specific geometric evidence, and write the fused signal back into the unified representation, keeping interaction sparse yet precise. A lightweight per-block router makes both computation and reasoning elastic, choosing which text tokens instantiate anchors at which geometric scale so that cross-modal capacity concentrates where alignment is most needed. ELSA3D achieves state-of-the-art performance across image-to-3D generation, text-to-3D generation, and 3D captioning, outperforming the strongest unified baseline while roughly halving FLOPs and inference latency relative to the non-elastic version of the same model.",
+      "authors": [
+        "Tianjiao Yu",
+        "Xinzhuo Li",
+        "Yifan Shen",
+        "Onkar Susladkar",
+        "Yuanzhe Liu",
+        "Xiaona Zhou",
+        "Ismini Lourentzou"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-07-07T17:59:50+00:00",
+      "link": "https://arxiv.org/pdf/2607.06565v1",
+      "tags": [
+        "keyword:d-scn-gen",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "vision-language model for unified 3D understanding and generation",
+      "llm_evidence_cn": "视觉语言模型用于统一三维理解与生成",
+      "llm_evidence": "视觉语言模型用于统一三维理解与生成",
+      "canonical_evidence": "视觉语言模型用于统一三维理解与生成",
+      "llm_tldr_en": "ELSA3D introduces elastic semantic anchoring to align language and geometry at matched scales, enabling a unified backbone for 3D asset generation and reasoning.",
+      "llm_tldr_cn": "ELSA3D通过弹性语义锚定将语言和几何信息在匹配的抽象尺度上对齐，构建了一个统一的3D基础模型。它使用尺度感知的八叉树分词器和锚点标记，实现了稀疏的跨模态交互。实验表明，该方法在3D生成和语言推理任务上优于现有统一模型。这项工作为语言引导的3D场景生成提供了新的架构思路。",
+      "llm_tldr": "ELSA3D通过弹性语义锚定将语言和几何信息在匹配的抽象尺度上对齐，构建了一个统一的3D基础模型。它使用尺度感知的八叉树分词器和锚点标记，实现了稀疏的跨模态交互。实验表明，该方法在3D生成和语言推理任务上优于现有统一模型。这项工作为语言引导的3D场景生成提供了新的架构思路。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "vision language model 3d scene generation",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
