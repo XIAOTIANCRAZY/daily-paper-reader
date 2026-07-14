@@ -1,0 +1,400 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-14T21:37:12.735030+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 6,
+    "deep_cap": 7,
+    "deep_selected": 6,
+    "quick_candidates": 3,
+    "quick_skim_target": 12,
+    "quick_selected": 3
+  },
+  "deep_dive": [
+    {
+      "id": "2607.11031v1",
+      "source": "arxiv",
+      "title": "GraspGraphNet: Graph-Structured Multi-Embodiment Dexterous Grasp Generation",
+      "abstract": "Dexterous grasp generation across robot hands is challenging because hands differ in kinematic topology, actuation dimensions, and native command spaces. We introduce GraspGraphNet, a topology-aware grasp generation framework that represents each hand as a URDF-derived kinematic graph and directly generates executable palm poses and joint configurations. GraspGraphNet combines hierarchical object surface encoding, differentiable forward kinematics, and dynamic world-edge message passing to model evolving robot-object interactions. It applies conditional flow matching directly in executable palm-pose and joint-state space, avoiding post-processing optimization, inverse kinematics, and retargeting. Using a shared model trained on Barrett Hand, Allegro Hand, and Shadow Hand, GraspGraphNet achieves an average success rate of 83.48% with 40ms inference time per grasp on a 40-object benchmark. Without retraining, the same model achieves 72.70% success on controlled finger-removal variants, demonstrating robustness to hand-topology variations. These results suggest that graph-structured hand representations can effectively support dexterous grasp generation across robot hands with different kinematic structures. Project: https://lysees.github.io/graspgraphnet-page",
+      "authors": [
+        "Yeonseo Lee",
+        "Taeyeop Lee",
+        "Hyosup Shin",
+        "Guebin Hwang",
+        "Sungho Jo"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-13T02:54:09+00:00",
+      "link": "https://arxiv.org/pdf/2607.11031v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "directly generates joint configurations for multiple robot hands using kinematic graph",
+      "llm_evidence_cn": "直接利用运动学图生成多机械手关节配置",
+      "llm_evidence": "直接利用运动学图生成多机械手关节配置",
+      "canonical_evidence": "直接利用运动学图生成多机械手关节配置",
+      "llm_tldr_en": "GraspGraphNet handles multi-embodiment dexterous grasp generation by representing hands as URDF kinematic graphs and generating executable palm poses and joint states via flow matching, avoiding post-processing.",
+      "llm_tldr_cn": "多机械手灵巧抓取生成面临不同运动学拓扑的挑战。GraspGraphNet通过将每个机械手表示为URDF运动学图，结合可微正向运动学和动态消息传递，直接生成可执行的掌心和关节状态。该方法采用条件流匹配，无需后处理优化，在多个机械手上实现零样本泛化，显著提升了抓取生成的效率和泛化能力。",
+      "llm_tldr": "多机械手灵巧抓取生成面临不同运动学拓扑的挑战。GraspGraphNet通过将每个机械手表示为URDF运动学图，结合可微正向运动学和动态消息传递，直接生成可执行的掌心和关节状态。该方法采用条件流匹配，无需后处理优化，在多个机械手上实现零样本泛化，显著提升了抓取生成的效率和泛化能力。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.11221v1",
+      "source": "arxiv",
+      "title": "HandFlow: Fully Generative 4D Hand Recovery with Flow Matching",
+      "abstract": "Accurate monocular 4D hand reconstruction remains challenging. Per-frame discriminative regressors lack temporal context and often produce jittery predictions. Temporal models improve consistency by aggregating information across frames, but they are typically deterministic regressors, making them vulnerable to ambiguous observations caused by occlusion and motion blur. Generative modeling offers a natural alternative by learning a prior over plausible hand motion sequences, enabling coherent hand-state recovery when visual evidence is incomplete or unreliable.   Motivated by this observation, we present HandFlow, a fully generative flow-matching framework for temporally coherent 3D hand pose and shape estimation from monocular video. Given visual and skeletal observations, HandFlow denoises an entire temporal window of MANO parameters through a single ODE integration. To support this, we use a Flux-style dual-stream transformer that attends across the full sequence to capture long-range dependencies without autoregressive decoding, and a confidence-aware continuous masking mechanism that blends observed features with learnable mask tokens to handle noisy or missing observations. Experiments on DexYCB and HOT3D show that HandFlow achieves state-of-the-art performance, with particularly large gains in world-space accuracy and temporal smoothness. It reduces world-space pose error by over 30% compared with the strongest baseline and achieves the lowest acceleration error among all evaluated methods, while remaining competitive in per-frame pose accuracy. Moreover, on a single GPU HandFlow reconstructs a 150-frame sequence at 47 fps, about 12x faster than the fastest prior video-based method, with reconstruction itself accounting for only a small fraction of the end-to-end latency.",
+      "authors": [
+        "Mingxi Xu",
+        "Bowen Duan",
+        "Yi Gu",
+        "Zhengyang Shen",
+        "Renjing Xu",
+        "Yutao Yue"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-07-13T08:13:42+00:00",
+      "link": "https://arxiv.org/pdf/2607.11221v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "4D hand recovery with flow matching, estimating kinematic parameters",
+      "llm_evidence_cn": "基于流匹配的4D手部恢复，估计运动学参数",
+      "llm_evidence": "基于流匹配的4D手部恢复，估计运动学参数",
+      "canonical_evidence": "基于流匹配的4D手部恢复，估计运动学参数",
+      "llm_tldr_en": "HandFlow uses flow matching to generate temporally coherent 3D hand pose and shape from monocular video, effectively learning kinematic parameters of articulated hand objects.",
+      "llm_tldr_cn": "针对单目4D手部重建中逐帧回归器缺乏时间上下文且存在抖动、确定性模型在遮挡下易出错的问题，本文提出HandFlow，一种全生成式流匹配框架，从单目视频中恢复时间一致的3D手部姿态和形状。该方法学习手部铰接物体的运动学参数，在遮挡和运动模糊下仍能生成合理的手部序列。实验证明HandFlow在多个基准上达到最先进效果，为手部运动学估计提供了生成式解决方案。",
+      "llm_tldr": "针对单目4D手部重建中逐帧回归器缺乏时间上下文且存在抖动、确定性模型在遮挡下易出错的问题，本文提出HandFlow，一种全生成式流匹配框架，从单目视频中恢复时间一致的3D手部姿态和形状。该方法学习手部铰接物体的运动学参数，在遮挡和运动模糊下仍能生成合理的手部序列。实验证明HandFlow在多个基准上达到最先进效果，为手部运动学估计提供了生成式解决方案。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.09089v1",
+      "source": "arxiv",
+      "title": "DETRAM: End-to-end DEtection, Tracking and Recovery of HumAn Meshes",
+      "abstract": "In the task of human mesh recovery (HMR), multi-person scenes are particularly difficult to handle due to the many entities that appear and occlusions between them over time. In particular for video inputs, there is a need to track each entity reliably and consistently. Existing methods rely on pretrained human detection modules, increasing their runtime and limiting the number of tracked entities. We present DETRAM, a unified framework for multi-person HMR and tracking that simultaneously detects, reconstructs, and tracks humans across time, both automatically and via user prompts. DETRAM uses a single transformer decoder with an identity-consistent set of learnable query embeddings that persist across frames: detection queries discover new people, tracking queries maintain pose and shape for existing individuals, and prompt queries follow user-specified identities. Our approach achieves state-of-the-art tracking results on PoseTrack21, 3DPW, BEDLAM, and MuPoTS-3D, and competitive reconstruction accuracy on BEDLAM and 3DPW, while uniquely supporting prompt-based tracking of individuals in multi-person scenes. To our knowledge, this is the first method to unify promptability and multi-person HMR with tracking in an end-to-end trainable framework, enabling user-directed human analysis in videos.",
+      "authors": [
+        "Chunggi Lee",
+        "Seonwook Park",
+        "Wanhua Li",
+        "Umar Iqbal",
+        "Hanspeter Pfister"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-10T04:12:59+00:00",
+      "link": "https://arxiv.org/pdf/2607.09089v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "end-to-end human mesh recovery and tracking from video",
+      "llm_evidence_cn": "从视频中端到端的人体网格恢复与追踪",
+      "llm_evidence": "从视频中端到端的人体网格恢复与追踪",
+      "canonical_evidence": "从视频中端到端的人体网格恢复与追踪",
+      "llm_tldr_en": "DETRAM proposes a unified transformer decoder with identity-consistent queries to simultaneously detect, reconstruct, and track multiple human meshes from video, enabling robust multi-person human mesh recovery without relying on external detection modules.",
+      "llm_tldr_cn": "针对多人物场景中人体网格恢复和追踪依赖独立检测模块导致效率低下的问题，DETRAM提出端到端框架，利用单个transformer解码器和身份一致查询嵌入同时完成检测、重建和追踪。该方法无需外部检测模块，通过跨帧一致性处理遮挡和身份切换，在多个数据集上取得先进性能，并支持用户提示交互，为视频人体分析提供了高效统一的解决方案。",
+      "llm_tldr": "针对多人物场景中人体网格恢复和追踪依赖独立检测模块导致效率低下的问题，DETRAM提出端到端框架，利用单个transformer解码器和身份一致查询嵌入同时完成检测、重建和追踪。该方法无需外部检测模块，通过跨帧一致性处理遮挡和身份切换，在多个数据集上取得先进性能，并支持用户提示交互，为视频人体分析提供了高效统一的解决方案。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.05568v1",
+      "source": "arxiv",
+      "title": "Harnessing Generative Image Models for Training-Free Primitive Shape Abstraction",
+      "abstract": "Representing 3D shapes as compact sets of geometric primitives is fundamental to robotics, simulation, and scene understanding. Generative image models trained at scale have recently emerged as generalist visual learners that can identify and segment object parts directly in the image domain, across arbitrary categories and without task-specific training. Adapting such models to downstream tasks typically requires fine-tuning; we ask whether their pretrained capability can instead be harnessed directly, without any training, and answer affirmatively with a training-free harness. Our pipeline renders multi-view images of a 3D object, uses a vision-language model to analyze its semantic parts, prompts a generative image model to paint a color-coded part segmentation mask, reprojects it onto the geometry, and fits a superquadric primitive to each part via parameter optimization. The approach contains no learned parameters: it is category-agnostic and orientation-invariant, properties that previous learning-based models struggled with. Its accuracy ceiling rises with future generative-model improvements, which we confirm with a ground-truth segmentation study showing that part segmentation, not primitive fitting, is the current accuracy bottleneck. On HumanPrim and Toys4K, our method achieves the lowest Chamfer distance among all evaluated methods, using 5--9 primitives per object on average.",
+      "authors": [
+        "Gregor Kobsik",
+        "Tim Elsner",
+        "Leif Kobbelt"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-07-06T19:10:43+00:00",
+      "link": "https://arxiv.org/pdf/2607.05568v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "training-free harness for primitive shape abstraction using VLM",
+      "llm_evidence_cn": "利用VLM的无训练框架进行基本形状抽象",
+      "llm_evidence": "利用VLM的无训练框架进行基本形状抽象",
+      "canonical_evidence": "利用VLM的无训练框架进行基本形状抽象",
+      "llm_tldr_en": "Proposes a training-free pipeline using VLM and generative image models to abstract 3D shapes into primitive sets.",
+      "llm_tldr_cn": "针对3D形状的基元化表示，提出无训练流程：先渲染多视图图像，利用视觉语言模型分析语义部件，再通过生成模型着色并投影到3D空间，无需任何微调即实现跨类别基元抽象。实验证明其通用性和有效性，为场景理解提供新途径。",
+      "llm_tldr": "针对3D形状的基元化表示，提出无训练流程：先渲染多视图图像，利用视觉语言模型分析语义部件，再通过生成模型着色并投影到3D空间，无需任何微调即实现跨类别基元抽象。实验证明其通用性和有效性，为场景理解提供新途径。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "training free 3d scene generation method",
+      "matched_requirement_id": "req-13",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.10408v1",
+      "source": "arxiv",
+      "title": "GNOCHI: Generative Neural mOdel for Close Human-Human Interactions",
+      "abstract": "Creating realistic 3D human-human interactions in virtual environments is challenging due to the high degrees of freedom in the human body and the need for physically accurate poses that do not collide with each other. Traditional methods for human-human interaction are based on motion tracking or 3D body reconstruction, but lack generative capabilities. Recent generative methods enable the synthesis of individual or interacting motions via text or image input, but generally fall short in modeling close interactions. This paper introduces a novel generative model for close 3D human-human interactions using a conditional variational autoencoder (cVAE), which generates poses for one human conditioned on the pose of another, allowing for controlled and diverse interaction synthesis. To train our model, we address two underlying long-standing challenges in the field of human-human interaction: data scarcity, for which we propose an automated supervised data augmentation strategy that generates synthetic yet realistic interaction poses; and collision awareness in generative approaches, for which we propose a self-supervised loss based on a collision resolution technique using volumetric proxies to ensure physically correct interactions. We extensively evaluate the capabilities of our model, and demonstrate a wide variety of plausible and physically correct interactions, not possible to generate with current state-of-the-art methods.",
+      "authors": [
+        "Gonzalo Gómez-Nogales",
+        "Marc Comino-Trinidad",
+        "Andrés Casado-Elvira",
+        "Dan Casas"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-11T17:19:32+00:00",
+      "link": "https://arxiv.org/pdf/2607.10408v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "generates 3D human poses (kinematic parameters) for close interactions using cVAE",
+      "llm_evidence_cn": "使用cVAE生成了用于近距离交互的3D人体姿态（运动学参数）",
+      "llm_evidence": "使用cVAE生成了用于近距离交互的3D人体姿态（运动学参数）",
+      "canonical_evidence": "使用cVAE生成了用于近距离交互的3D人体姿态（运动学参数）",
+      "llm_tldr_en": "GNOCHI is a generative model for close 3D human-human interactions using cVAE, generating poses for one human conditioned on another, enabling controlled and diverse motion synthesis.",
+      "llm_tldr_cn": "现有方法在生成近距离人体交互时缺乏真实感且易发生碰撞。本文提出GNOCHI，一种基于条件变分自编码器的生成式模型，根据一个人体姿态生成另一个人的姿态，支持控制多样化运动合成。实验表明该方法能生成物理合理、不碰撞的交互姿态，为虚拟环境中角色动画提供了新途径。",
+      "llm_tldr": "现有方法在生成近距离人体交互时缺乏真实感且易发生碰撞。本文提出GNOCHI，一种基于条件变分自编码器的生成式模型，根据一个人体姿态生成另一个人的姿态，支持控制多样化运动合成。实验表明该方法能生成物理合理、不碰撞的交互姿态，为虚拟环境中角色动画提供了新途径。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.11772v1",
+      "source": "arxiv",
+      "title": "Synchronized Three-Dimensional Vocal-Tract Motion for Speech Synchronization via Joint-Embedding Predictive Architecture Alignment",
+      "abstract": "Modern neural speech systems can generate intelligible waveforms, but they usually hide the physical speech-production state that produced the sound. Conversely, biomechanical vocal-tract models expose articulatory structure, contact behavior, airflow routing, and geometric constraints, but direct physical waveform synthesis remains less robust than modern neural vocoders. A duration-preserving acoustic carrier supplies the listening waveform, while a corrected three-dimensional vocal-tract model supplies synchronized jaw, lip, tongue, velum, laryngeal, oral-airflow, and nasal-airflow motion. A joint-embedding predictive architecture (JEPA)-style representation and a reinforcement learning/cross-entropy method (RL/CEM) trajectory-selection loop align articulatory actions to the acoustic carrier and to physical-plausibility constraints. The evaluation contains 12 3D recordings covering 24 minimal-pair stimuli. On the 24-word set, the carrier obtains good automatic speech recognition (ASR) results (an 8.33\\% WER, a 4.17\\% CER), a UTMOS score of 3.174, a mean JEPA score of 0.864, and a mean timbre-guard score of 0.947.",
+      "authors": [
+        "Sheng Li",
+        "Takahiro Shinozaki"
+      ],
+      "primary_category": "eess.AS",
+      "categories": [
+        "eess.AS"
+      ],
+      "published": "2026-07-13T16:31:18+00:00",
+      "link": "https://arxiv.org/pdf/2607.11772v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "kinematic parameters of articulated 3D vocal tract",
+      "llm_evidence_cn": "三维声道铰接模型的运动学参数",
+      "llm_evidence": "三维声道铰接模型的运动学参数",
+      "canonical_evidence": "三维声道铰接模型的运动学参数",
+      "llm_tldr_en": "This paper presents a synchronized 3D vocal-tract motion model that predicts kinematic parameters (jaw, lip, tongue) for speech synchronization.",
+      "llm_tldr_cn": "现代神经语音系统隐藏了物理发音状态，而生物力学声道模型暴露了铰接结构但波形合成不够鲁棒。本文提出一种结合联合嵌入预测架构和强化学习的框架，能够同步预测三维声道模型的运动学参数（下颌、唇、舌等），并实现与语音的同步。实验表明该方法生成的运动参数真实且同步准确。该工作为三维铰接物体的运动学参数预测提供了直接范例。",
+      "llm_tldr": "现代神经语音系统隐藏了物理发音状态，而生物力学声道模型暴露了铰接结构但波形合成不够鲁棒。本文提出一种结合联合嵌入预测架构和强化学习的框架，能够同步预测三维声道模型的运动学参数（下颌、唇、舌等），并实现与语音的同步。实验表明该方法生成的运动参数真实且同步准确。该工作为三维铰接物体的运动学参数预测提供了直接范例。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.08857v1",
+      "source": "arxiv",
+      "title": "AgenticFocus: Object-Preserving Mixed Reality Synthesis from Human FPV Video for Dexterous Humanoid Learning",
+      "abstract": "Human egocentric video is a scalable supervision source for humanoid policy learning, but current pipelines struggle with hand-object occlusion, oversimplified motion, or specialized capture hardware. We introduce AgenticFocus, a Mixed Reality synthesis pipeline that converts ordinary first-person-view human videos into robot-trainable demonstrations by restoring occluded object geometry, reconstructing full-hand motion, and retargeting it to a humanoid embodiment through camera-relative alignment and layered compositing. The resulting dataset pairs focused visual observations with synchronized robot actions and states. AgenticFocus achieves lower trajectory error and smoother wrist motion than cross-embodiment baselines, with SPARC scores of -5.18 versus -5.56 and -6.05.",
+      "authors": [
+        "Iaroslav Kolomiets",
+        "Miguel Altamirano Cabrera",
+        "Artem Lykov",
+        "Jeffrin Sam",
+        "Dmitrii Iarchuk",
+        "Yara Mahmoud",
+        "Daniia Zinniatullina",
+        "Mikhail Konenkov",
+        "Dzmitry Tsetserukou"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-09T18:27:41+00:00",
+      "link": "https://arxiv.org/pdf/2607.08857v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "reconstructs full-hand motion from egocentric video and retargets kinematic parameters to humanoid",
+      "llm_evidence_cn": "从自拍视频中重建全手运动并将运动学参数重定向到人形机器人",
+      "llm_evidence": "从自拍视频中重建全手运动并将运动学参数重定向到人形机器人",
+      "canonical_evidence": "从自拍视频中重建全手运动并将运动学参数重定向到人形机器人",
+      "llm_tldr_en": "AgenticFocus converts ordinary first-person-view human videos into robot-trainable demonstrations by restoring occluded object geometry, reconstructing full-hand motion, and retargeting to humanoid embodiment, achieving low trajectory error.",
+      "llm_tldr_cn": "人类第一视角视频是机器人策略学习的宝贵监督源，但现有方法在手-物遮挡、运动简化等方面存在局限。本文提出AgenticFocus，一种混合现实合成流水线，通过恢复被遮挡物体几何、重建完整手部运动并重定向到人形机器人，生成同步的机器人动作与状态。实验证明该方法轨迹误差低、手腕运动平滑，为从人类演示中学习灵巧操作提供了有效途径。",
+      "llm_tldr": "人类第一视角视频是机器人策略学习的宝贵监督源，但现有方法在手-物遮挡、运动简化等方面存在局限。本文提出AgenticFocus，一种混合现实合成流水线，通过恢复被遮挡物体几何、重建完整手部运动并重定向到人形机器人，生成同步的机器人动作与状态。实验证明该方法轨迹误差低、手腕运动平滑，为从人类演示中学习灵巧操作提供了有效途径。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.05373v1",
+      "source": "arxiv",
+      "title": "PixWorld: Unifying 3D Scene Generation and Reconstruction in Pixel Space",
+      "abstract": "3D reconstruction and generation are commonly tackled by separate paradigms: pixel-based regression for reconstruction, and latent diffusion for generation. Recent works attempt to unify them in latent space, but with notable drawbacks: the diffusion objective is defined on latent features rather than the underlying 3D representation, and both branches suffer from information loss introduced by latent encoding, while requiring a pretrained Variational Autoencoder (VAE) or Representation Autoencoder (RAE). In this paper, we reformulate these two tasks under a unified pixel-space diffusion paradigm and introduce PixWorld, a single model that jointly addresses 3D reconstruction and generation. By supervising diffusion directly on rendered images, PixWorld removes the above limitations and aligns optimization with 3D scene fidelity. Beyond photometric and perceptual supervision that operates at the 2D image level and lacks 3D geometric awareness, we further introduce a geometry perception loss that aligns rendered views with their ground truth in the geometry-aware feature space of a pretrained 3D foundation model, providing 3D structural supervision. PixWorld consistently outperforms prior latent-space generation methods and matches state-of-the-art reconstruction methods, demonstrating the superiority of a unified pixel-space approach.",
+      "authors": [
+        "Sensen Gao",
+        "Zhaoqing Wang",
+        "Qihang Cao",
+        "Dongdong Yu",
+        "Changhu Wang",
+        "Jia-Wang Bian"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-06T17:51:00+00:00",
+      "link": "https://arxiv.org/pdf/2607.05373v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "unified 3D scene generation and reconstruction in pixel space",
+      "llm_evidence_cn": "像素空间中统一的3D场景生成与重建",
+      "llm_evidence": "像素空间中统一的3D场景生成与重建",
+      "canonical_evidence": "像素空间中统一的3D场景生成与重建",
+      "llm_tldr_en": "PixWorld unifies 3D scene generation and reconstruction in pixel-space diffusion, supervising directly on rendered images to avoid latent information loss, demonstrating a single model handling both tasks.",
+      "llm_tldr_cn": "现有3D重建和生成通常采用分离的范式，且统一方法在潜空间中存在信息损失。本文提出PixWorld，在像素空间中通过扩散模型统一3D重建与生成，直接在渲染图像上监督，避免了潜编码的信息损失。实验表明，该单一模型能同时高质量地完成重建与生成任务，为3D场景的联合处理提供了新思路。",
+      "llm_tldr": "现有3D重建和生成通常采用分离的范式，且统一方法在潜空间中存在信息损失。本文提出PixWorld，在像素空间中通过扩散模型统一3D重建与生成，直接在渲染图像上监督，避免了潜编码的信息损失。实验表明，该单一模型能同时高质量地完成重建与生成任务，为3D场景的联合处理提供了新思路。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.11643v1",
+      "source": "arxiv",
+      "title": "Xiaomi-Robotics-U0: Unified Embodied Synthesis with World Foundation Model",
+      "abstract": "Recent foundation image and video generation models offer strong generalization and controllability, but their direct application to embodied scenarios is limited by requirements for multi-view consistency, geometric coherence, and robot embodiment constraints. Existing methods typically adapt foundation models with limited robot data, often sacrificing visual knowledge acquired during large-scale pre-training. We present Xiaomi-Robotics-U0, a 38-billion-parameter multimodal autoregressive model for unified embodied synthesis. It treats embodied generation as an extension of foundation image and video generation and jointly optimizes text-to-image generation, image editing, embodied scene generation, embodied transfer, and embodied video generation. This unified framework preserves the generalization of the pre-trained world foundation model while adapting it to embodied settings. Xiaomi-Robotics-U0 is the first model to support high-quality multi-view scene generation across multiple robot embodiments and to introduce structured, controllable embodied transfer for fine-grained editing while preserving multi-view consistency and interaction dynamics. It achieves state-of-the-art results on single-step and sequential generation tasks, outperforming GPT-Image-2.0 in human evaluations of embodied scene generation and transfer, ranking first on World Arena for embodied video generation, and improving the out-of-distribution success rate of pi_0.5 from 36.9% to 63.2% on challenging real-world manipulation tasks. These results show that foundation world models can serve both as embodied world models and scalable data engines for embodied intelligence. Code and checkpoints are available at https://robotics.xiaomi.com/xiaomi-robotics-u0.html.",
+      "authors": [
+        "Xinghang Li",
+        "Jun Guo",
+        "Qiwei Li",
+        "Long Qian",
+        "Hang Lai",
+        "Yueze Wang",
+        "Hongyu Yan",
+        "Jiahang Cao",
+        "Xi Chen",
+        "Jingen Qu",
+        "Jiaxi Song",
+        "Nan Sun",
+        "Hanye Zhao",
+        "Futeng Liu",
+        "Wanli Peng",
+        "Heyun Wang",
+        "Yunhong Wang",
+        "Caoyu Xia",
+        "Jack Zhao",
+        "Diyun Xiang",
+        "Hangjun Ye",
+        "Heng Qu",
+        "Huaping Liu",
+        "Jason Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-07-13T14:57:58+00:00",
+      "link": "https://arxiv.org/pdf/2607.11643v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "VLM-based 3D scene generation with embodied synthesis",
+      "llm_evidence_cn": "基于视觉语言模型的具身场景生成",
+      "llm_evidence": "基于视觉语言模型的具身场景生成",
+      "canonical_evidence": "基于视觉语言模型的具身场景生成",
+      "llm_tldr_en": "Xiaomi-Robotics-U0 is a 38B-parameter multimodal autoregressive model for unified embodied synthesis, extending foundation image/video generation to tasks including embodied scene generation, achieving strong performance with multi-view consistency and geometric coherence.",
+      "llm_tldr_cn": "本文针对现有基础生成模型在具身场景中缺乏多视角一致性和几何连贯性的问题，提出了Xiaomi-Robotics-U0，一个380亿参数的多模态自回归模型。该模型将具身生成视为基础图像视频生成的扩展，联合优化文本到图像生成、图像编辑、具身场景生成、具身迁移和具身视频生成等任务。实验表明，该模型在多个具身合成基准上取得了优异效果，尤其在多视角一致性和几何连贯性方面表现突出，展示了大规模多模态模型在机器人具身智能中的巨大潜力。",
+      "llm_tldr": "本文针对现有基础生成模型在具身场景中缺乏多视角一致性和几何连贯性的问题，提出了Xiaomi-Robotics-U0，一个380亿参数的多模态自回归模型。该模型将具身生成视为基础图像视频生成的扩展，联合优化文本到图像生成、图像编辑、具身场景生成、具身迁移和具身视频生成等任务。实验表明，该模型在多个具身合成基准上取得了优异效果，尤其在多视角一致性和几何连贯性方面表现突出，展示了大规模多模态模型在机器人具身智能中的巨大潜力。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "vision language model 3d scene generation",
+      "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

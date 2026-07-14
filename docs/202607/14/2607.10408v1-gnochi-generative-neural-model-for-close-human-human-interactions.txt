@@ -1,0 +1,384 @@
+Title: GNOCHI: Generative Neural mOdel for Close Human-Human Interactions
+
+URL Source: https://arxiv.org/pdf/2607.10408v1
+
+Published Time: Tue, 14 Jul 2026 01:56:48 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+ACM SIGGRAPH / Eurographics Symposium on Computer Animation 2026 D. Levin and M. Chu (Guest Editors) 
+
+COMPUTER GRAPHICS forum 
+
+Volume 45 (2026 ), Number 8 
+
+# GNOCHI: Generative Neural mOdel for Close Human-Human Interactions 
+
+Gonzalo Gómez-Nogales †1 Marc Comino-Trinidad †1 Andrés Casado-Elvira 1 Dan Casas ‡1
+
+> 1
+
+Universidad Rey Juan Carlos, Madrid, Spain. 
+
+Figure 1: Given an input 3D pose (i.e., the conditioning pose, in purple), our generative model infers a 3D pose of a human in close interaction (i.e., the reaction pose, in green). This enables the conditional generation of 3D humans in close interaction, which can be used fine-grain control signal for image generative methods (right). 
+
+Abstract 
+
+Creating realistic 3D human-human interactions in virtual environments is challenging due to the high degrees of freedom in human body and the need for physically accurate poses that do not collide with each other. Traditional methods for human-human interaction are based on motion tracking or 3D body reconstruction, but lack generative capabilities. Recent generative methods enable the synthesis of individual or interacting motions via text or image input, but generally fall short in modeling close interactions. This paper introduces a novel generative model for close 3D human-human interactions using a conditional variational autoencoder (cVAE), which generates poses for one human conditioned on the pose of another, allowing for con-trolled and diverse interaction synthesis. To train our model, we address two underlying long-standing challenges in the field of human-human interaction: data scarcity, for which we propose an automated supervised data augmentation strategy that generates synthetic yet realistic interaction poses; and collision awareness in generative approaches, for which we propose a self-supervised loss based on a collision resolution technique using volumetric proxies to ensure physically correct interac-tions. We extensively evaluate the capabilities of our model, and demonstrate a wide variety of plausible and physically correct interactions, not possible to generate with current state-of-the-art methods. 
+
+CCS Concepts 
+
+• Computing methodologies → Physical simulation; Collision detection; Mesh models; 
+
+1. Introduction 
+
+Creating life-like virtual 3D scenes is central to Computer Vision, Graphics, and VR, impacting dataset generation, human track-
+
+† Equal contribution 
+
+‡ Work done prior to joining Amazon 
+
+ing, 3D scene understanding, and character animation. However, modeling and reconstructing how humans interact in everyday 3D scenes is a highly complex task due to the large number of degrees of freedom involved. Additionally, as humans, we are very sensitive to non-physically-correct virtual scene arrangements ( e.g. , inter-penetrations, mesh collisions, or impossible configurations), hence,  
+
+> © 2026 The Authors. Computer Graphics Forum published by Eurographics - The European Asso-ciation for Computer Graphics and John Wiley & Sons Ltd. This is an open access article under the terms of the Creative Commons Attribution License, which permits use, distribution and reproduction in any medium, provided the original work is properly cited. arXiv:2607.10408v1 [cs.CV] 11 Jul 2026 2 of 13 Gómez-Nogales et al. / GNOCHI: Generative Neural mOdel for Close Human-Human Interactions
+
+errors in modeling human interactions automatically produce sig-nificant visual discomfort. Existing research on 3D interaction generally falls into three categories: human-scene methods [JZL ∗24, HGT ∗21, GCM ∗24, ZZW ∗23,ZWZ ∗22,HCV ∗21,MCZ ∗25], for large-scale navigation; human-object methods [JLC ∗23, XBPM22, CKA ∗22, HVT ∗19, YGKT24, TCBT22], for manipulation and grasping; and human-human models [MYP ∗24, YPMK23, FZO ∗20, FZS ∗21, MMR ∗24]. We focus on the latter, specifically addressing the synthesis of nat-ural, close-contact interactions between two highly articulated bod-ies. Unfortunately, most existing human-human interaction methods prioritize tracking or reconstruction [FZO ∗20, FZS ∗21, YPMK23, GBAPM22, YGK ∗23, SBL ∗21, SLB ∗22]. These approaches yield complex optimization or learning-based strategies for pose estima-tion, yet they lack generative capabilities and cannot sample from a learned distribution to synthesize unseen human-human interac-tions. Recent works [TF23, CTO ∗23, FTC ∗25, SDH ∗25, JGCL25, LZL ∗24] proposed generative models for human interaction, usu-ally from text prompts, but they do not tackle the specific case of close interactions, nor do they incorporate robust collision aware-ness in their formulations. BUDDI [MYP ∗24] is the notable ex-ception, and it proposes a generative model capable of synthesiz-ing realistic poses of two humans in close interaction. Despite that BUDDI models both poses in a joint latent space, we show that con-ditional sampling can be achieved by incorporating the condition-ing pose information throughout the diffusion process, similar to the in-painting strategies for conditional image synthesis. However, our experiments show that this often compounds errors in close in-teractions, leading to physically non-plausible root placements or orientations, or unresolved colliding 3D meshes. To mitigate this limitation, we propose a novel generative model for close 3D human-human interaction that is explicitly condi-tioned on one pose. Implemented as a conditional variational au-toencoder (cVAE) , our model uses the SMPL [LMR ∗15] param-eters of a conditioning human to synthesize the body parameters of a reactive agent. Since our model is probabilistic, we can gener-ate many different poses given the same conditioning pose, which further increases the applicability of the method. Additionally, we demonstrate that our model yields a continuous latent space that al-lows to seamlessly interpolate between reactive poses while keep-ing the same conditioning pose. Manual rigging of two-person interactions is challenging; adjust-ing a single joint in a conditioning pose typically requires the artist to manually re-balance dozens of degrees of freedom in the react-ing pose to maintain contact and avoid penetration. Our model acts as a 3D pose copilot, offering a variety of semantically plausible reactive candidates that serve as a high-quality starting point for artists, effectively shortening the manual iterative loop. To train our model, we tackle two long-standing problems in data-driven human-human interaction: data scarcity and collision awareness in data-driven models. Regarding the first problem, de-spite the few recently introduced datasets for this task [FZO ∗20, YGK ∗23, XLY ∗24, ZSZ ∗21, GBAPM22], the coverage and diver-sity of close interactions are still limited because these datasets rely on cumbersome motion capture, manual annotations, or ex-pensive post-processing pipelines that do not scale well. To miti-gate this, we introduce a novel automated strategy to, for the first time, apply data augmentation techniques to 3D human-human in-teraction data, enabling to create synthetic and physically-plausible poses without requiring any manual work or new recordings. Our key contribution is an individual-level stochastic process to ma-nipulate the degrees of freedom of captured human-human mo-tions while guaranteeing the correctness of the resulting interac-tion. We achieve this by combining a learned human pose subspace [PCG ∗19] that guarantees natural (yet unseen) individual poses, with an efficient collision resolve strategy that guarantees physi-cally correct human-human poses in interactions without mesh in-tersections at the vertex level. Our second contribution addresses a fundamental limitation in data-driven models: while our augmented dataset provides potentially unlimited collision-free human interaction samples, trained data-driven models ( e.g. , cVAE) cannot inherently guaran-tee collision-free states for unseen samples. We tackle this limita-tion by incorporating an additional decoder trained with a collision-aware novel self-supervised loss based on highly-efficient distance computation across volumetric proxies, ensuring physically plausi-ble interactions during generation. We demonstrate that our generative approach can synthesize pose-conditioned human-human interactions for a wide variety of scenarios, including sports, dancing, fighting, and social commu-nications. Additionally, as a forward generative model, our ap-proach can be used to synthesize reactive interaction partners or refine tracking results from current human mesh recovery meth-ods [SLB ∗22, MYP ∗24], providing a richer variety of plausible re-sponses and enhanced controllability of the final output. 
+
+2. Related Work 2.1. Datasets 
+
+Obtaining accurate human-human body data is inherently challeng-ing. Various methods exist to transform real-world data into pa-rameters suitable for computational processing [FZO ∗20,YGK ∗23, XLY ∗24,GBAPM22,ZSZ ∗21]. Fieraru et al . [FZO ∗20] use 2D an-notated data to predict 3D contact, resulting in two datasets: CHI3D based on captured data, and FlickrCI3D based on Flickr images. Using an alternating optimization scheme, Yin et al. [YGK ∗23] segment the 3D surface of two avatars and fit SMPL [LMR ∗15] model parameters to them. Inter-X [XLY ∗24] is the largest labeled human interaction dataset, featuring around 11,000 sequences and over 8.1 million frames. It provides detailed descriptions, ac-tion categories, and annotations for interaction order. Zheng et al. [ZSZ ∗21] addresses self-occlusions through multiview capture. Their MultiHuman dataset consists of 150 static scenes with dif-ferent levels of occlusions and ground truth 3D human models. To predict subsequent dance moves, Guo et al. [GBAPM22] cre-ated a dataset of dancers in extreme poses, capturing dynamic and complex movements for motion prediction tasks. In this work, we leverage the Hi4D [YGK ∗23] dataset which, despite the impres-sive quality of the reconstructed human interactions, still contains a limited amount of in-contact interactions. We apply our novel  
+
+> © 2026 The Authors. Computer Graphics Forum published by Eurographics and John Wiley & Sons Ltd. Gómez-Nogales et al. / GNOCHI: Generative Neural mOdel for Close Human-Human Interactions 3 of 13
+
+pose augmentation technique to the subset of in-contact interac-tions from Hi4D, generating 10 × samples that we use to train our model. 
+
+2.2. Multi-Character Animation 
+
+Generating human-human interaction is a classic problem in com-puter animation. Early works use optimization-based frameworks [LHP06] and spatial relationship descriptors [HKT10] to adapt captured motions to new interactions. Later, patch-based meth-ods [KHHL12] tiled or concatenated pre-recorded interactions to generate variety, while data-driven generate-and-rank systems [WLO ∗14] composed and ranked scenes from motion-capture li-braries. While effective, these data-driven approaches required dense motion libraries. More recently, there is increasing use of physics-based simula-tion [ZGY ∗23], alongside strategic planning methods that explic-itly model competitive and collaborative goals [SKY07, SKY12]. Other recent works aim at learning time-dependent dynamic human interactions [GZD ∗25, LGZW25]. Instead, we focus our efforts on learning a continuous space generative manifold of static interac-tion, which is a fundamental problem in keyframe animation. 
+
+2.3. Reconstruction of People in Close Interaction 
+
+Many previous works [MYP ∗24, MOT ∗21, YPMK23, SYZ ∗23, JGK ∗24, ZSZ ∗21] aim to accurately reconstruct interacting hu-mans. SLAHMR [YPMK23] reconstructs sequences involving multiple people by accurately decoupling human and camera mo-tion. The underlying model uses an optimization method to achieve this decoupling, allowing for the reconstruction of complex scenes. However, while the method is effective in handling multiple peo-ple, it falls short in accurately recovering close interactions between them, highlighting an area for potential improvement in future re-search. Shuai et al. [SYZ ∗23] tackle the challenge of reconstructing close human interactions from multiple views. Their approach inte-grates a learning-based pose estimation component that uses multi-view 2D keypoint heatmaps as input and reconstructs the pose of each individual using a 3D conditional volumetric network. This method significantly improves the accuracy of pose reconstruction in crowded scenes. Other works [MOT ∗21, MSB ∗22] address the challenge of modeling single avatars with accurate self-contact us-ing collision-specific terms. Rather than focusing on interactions between multiple avatars, these approaches emphasize the impor-tance of self-contact, ensuring that the reconstructed avatars main-tain realistic and physically plausible poses. Closest to our work, BUDDI [MYP ∗24] focuses on modeling two interactive avatars using a diffusion model, which learns the joint distribution over the poses of two people in close social in-teraction. The model is particularly notable for its ability to gener-ate pairs of 3D avatars that exhibit realistic and close interactions, making it highly relevant for applications requiring detailed social dynamics. Our objective, however, is to explicitly generate an in-teracting avatar given the pose of another one. Despite that BUDDI can be adapted to pose-conditional sampling, our method yields more accurate contact for close interactions. 
+
+2.4. Collision Aware Reconstruction 
+
+Some works [FZS ∗21, UPP ∗24, MYP ∗24] put a special effort into avoiding collisions and mesh intersections between avatars. MultiPhys [UPP ∗24] integrates a physics simulator in an autore-gressive manner to refine kinematic estimates and ensure phys-ical compliance. The simulator captures coherent spatial place-ment between individuals and eliminates penetration issues. The pipeline involves feeding motion estimated by a kinematic-based method into the physics simulator, which then corrects any colli-sions or penetrations by adjusting the avatars’ positions and poses. BUDDI [MYP ∗24] employs a collision-checking strategy that pri-marily relies on a coarse approximation of the avatar mesh. This simplified representation facilitates efficient collision detection and resolution by reducing computational complexity. The model uses ground-truth contact annotations to fit SMPL-X to images, ensur-ing that avatars maintain realistic social distances and avoid colli-sions. Similarly, REMIPS [FZS ∗21] also uses a coarse mesh ap-proximation by applying decimation operators to detect and solve self- and interpenetration-collisions. This model incorporates self-contact and interaction-contact losses directly into the learning pro-cess, ensuring that the reconstructed avatars do not intersect with each other or the environment. The use of self-supervised losses allows the model to generalize well to in-the-wild scenarios, main-taining physical consistency in multi-person 3D reconstructions. Instead of using a coarse version of SMPL, we resolve collisions at the vertex level to create a large yet vertex-accurate dataset. At train time, we use highly-efficient volumetric capsules to compute potential intersections. 
+
+3. Close Contact Dataset 
+
+Capturing and reconstructing 3D humans in close interaction is a tedious task due to the unavoidable occlusions that prevent observ-ing the full human surface, even in multi-camera environments. Re-cent methods [YGK ∗23] have proposed complex pipelines for ac-curately reconstructing close interactions in 3D; however, they are expensive and do not scale well. In data-driven methods, to circumvent the scarcity of training data, data augmentation is a common strategy to increase the num-ber of dataset samples, and it plays a fundamental part in many image-based machine learning methods [MBS ∗18]. However, aug-menting 3D human-human pose data is challenging due to the many nuances that make human interaction realistic. To this end, we propose a novel approach to build a pseudo-synthetic dataset of human-human interactions. Starting from a subset of the Hi4D [YGK ∗23] dataset, we first apply an individual-level data-augmentation strategy (Section 3.1), and then resolve vertex-level human-human collisions using a physics-based sim-ulation strategy (Section 3.2). This enables us to obtain a dataset of unseen yet physically-correct close (i.e. in-contact) human-human interaction poses, which we later use to train a pose-conditioned generative model in Section 4. 
+
+3.1. Individual-level Pose Augmentation 
+
+We begin our dataset creation by selecting a subset of frames from the Hi4D [YGK ∗23] dataset that contain contact interactions, 
+
+> © 2026 The Authors. Computer Graphics Forum published by Eurographics and John Wiley & Sons Ltd.
+
+4 of 13 Gómez-Nogales et al. / GNOCHI: Generative Neural mOdel for Close Human-Human Interactions Human -Human  
+
+> Interaction Dataset
+> Stochastic data augmentation DOFs
+> Section 3
+> Inidividual -level pose
+> augmentation
+> Section 3.1
+> Human -human
+> collision resolve
+> Section 3.2
+> 𝒩 (0,1)
+> Vposer
+> decoder cVAE
+> encoder
+> Pose -conditioned Human Interaction
+> Section 4
+> 𝒩 (0,1)
+> 𝒩 (0,1)cVAE
+> decoder
+> CapFix  𝒩 (0,1)
+> cVAE
+> decoder
+
+Data generation Train Runtime   
+
+> cVAE
+> decoder
+> Physics
+> simulation
+> DOFs
+> change
+> CapFix
+> 🔥 🔥
+> 🔥
+> ❄❄
+> ❄❄
+
+Figure 2: From an existing dataset [YGK ∗23] (left), we apply individual-level noise at each body joint (Section 3.1), and jointly resolve the collisions using a physical simulator (Section 3.2) to create an augmented dataset. At train time, our model learns to infer a reacting avatar given a conditioning avatar (center top, Section 4.2). Then, a second model is trained to fix collisions between two interacting avatars (center bottom, Section 4.3). At runtime, we can sample a reacting collision-free avatar given a conditioning pose. 
+
+namely poses where both interacting meshes are at less than 1 cm from each other. For each body pose of each selected frame, we first apply random noise to the rotation of specific body joints, and then project the resulting pose into a subspace of feasible poses us-ing the VPoser [PCG ∗19] autoencoder, ensuring the final pose is anatomically plausible and introducing additional noise. To generate random rotations, we employ the axis-angle repre-sentation for its intuitive and mathematically simple nature, the full details of which are provided in the Supplementary Material. We carefully define a specific rotation distribution for each joint. For example, knees only rotate around the horizontal axis, while for other joints, such as hips, the distribution is weighted for all three spatial axes. For each joint, we define a set of weights wx, wy, wz
+
+and a maximum angle αM . We then sample a vector 
+
+−→vr = wxrx + wyry + wzrz
+
+∥wxrx + wyry + wzrz∥ , (1) where rx, ry, rz ∼ U [−0.5,0.5]. Finally, the angle α is similarly ob-tained 
+
+α = αM wα, (2) where wα ∼ U [−1,1]. This symmetric uniform distribution effec-tively places the rest pose at the center of each joint’s maximum sweep angle. The final random axis-angle is obtained by multiply-ing α · −→vr . To apply the noise to the joint, we convert both the joint and the random axis-angle rotation into matrix rotation represen-tation and multiply them. Setting two weights wi to zero means selecting only one axis for rotation. If one or none of the weights are zero, controlling the random rotation becomes more challeng-ing. Because our perturbation is based strictly on these maximum sweep bounds, the naive random rotation can potentially result in an anatomically unfeasible configuration, such as joints bending back-ward. To explicitly address this lack of joint constraints, we pass the randomized pose through the VPoser autoencoder [PCG ∗19]. VPoser projects the perturbed pose back into a learned subspace of human poses, ensuring that the final output is always anatomically valid regardless of the initial random noise. 
+
+3.2. Human-Human Collision Resolve 
+
+Our individual-level pose augmentation described in Section 3.1 is a naive strategy that can lead to new, albeit physically incorrect, poses that may intersect with nearby individuals. To mitigate this, we employ a highly efficient strategy to accurately resolve colli-sions between interacting humans, which is crucial in building our large dataset. Approximating humans with coarse volumetric proxies is a com-mon technique to resolve collisions because it allows for fast inter-proxy distance computation. However, in the specific case of close human-human contact, this strategy produces unrealistic interac-tions due to the coarse approximation of the human surface. To cir-cumvent this problem, we leverage a pre-existing solver that imple-ments a method based on accurate Signed Distance Fields (SDFs) to resolve human-human intersections. It is important to note that the initial SMPL fits of the Hi4D data are not inherently penetration-free. For each pair of humans interacting in the original dataset, the solver computes the SDF of each human in the scene using OpenVDB. This effectively creates two grids (one for each human) that can be efficiently used to query distances to human surfaces from any 3D world coordinate. The solver then checks the distance of all surface points of one human (i.e., all the vertices) against the other human in the frame, and vice versa. For each surface vertex that is inside the other body or its own body, a penalty force Ecol (δ) = 12 kδ δ2 is applied in the direction of the closest surface point normal. Here, δ represents the distance from the vertex position to the surface of the penetrated body, and this force is applied to the bones that influence the vertex. We integrate the penalty equations using the popular optimiza-tion formulation of backward Euler [GSS ∗15,KMOW00]. To solve it, we use Newton’s method with analytical computation of gra-dients and Hessians. Just one Newton iteration works well for our disentanglement simulations. Each Newton iteration yields a sparse linear system of size 6 × 24 × 2, where 2 is the number of humans interacting, 24 is the number of bones per body, and 6 is the number of degrees of freedom per bone. We solve this linear system using the conjugate gradient method. We present results of our collision resolution approach in Fig-ure 3. Notably, our method effectively eliminates mesh interpene-trations while preserving close contact between the avatars.      
+
+> © 2026 The Authors. Computer Graphics Forum published by Eurographics and John Wiley & Sons Ltd. Gómez-Nogales et al. / GNOCHI: Generative Neural mOdel for Close Human-Human Interactions 5 of 13 Original sample
+> (a)
+> Augmented samples (Section 3.1)
+> (b) (c) (d)
+> Corrected samples (Section 3.2)
+> (e) (f) (g)
+
+Figure 3: Data augmentation steps. We add noise to the origi-nal poses (3a), yielding augmented poses (3b, 3c, and 3d) which may contain collisions. Our physics solver fixes these, yielding physically-correct interactions (3e, 3f, and 3g). 
+
+3.3. Final Dataset Details 
+
+For each avatar pair in the Hi4D dataset, we generated 10 varia-tions. Because the random noise introduced during pose augmenta-tion can cause the avatars to drift apart, we filtered out any samples that no longer met our contact threshold, resulting in a final dataset comprising 55,897 examples. We later merged this dataset with the 5,744 poses from Hi4D interaction scans, yielding a full aug-mented dataset of 61,641 poses. To prevent any information leak-age between sets, we implemented a sequence-heldout train-test split rather than a random per-sample partition. Augmented vari-ants are strictly assigned to the same split as their base sequence. Detailed sample distributions for the training and testing sets are provided in Section 5.1. 
+
+4. Pose-Conditioned Human Interactions 
+
+Our goal is to model physically-correct and realistic 3D human poses in close interaction. Specifically, we address the problem of 
+
+pose-conditioned pose inference, where we are given a pose (the conditioning pose) and aim to infer poses (the reaction poses) that realistically interact with the input. To this end, we first introduce the representation used to describe poses (Section 4.1). We then present our compact yet expressive generative latent space tailored for humans in interaction (Section 4.2), which we train using a conditional Variational Autoencoder (cVAE) that leverages the pose-augmented human-human dataset introduced in Section 3. Next, we describe a self-supervised strat-egy (Section 4.3) to learn to resolve the residual human-human collisions in our latent space. At inference time (Section 4.4), our method enables the generation of human-human 3D pose interac-tions conditioned on the pose of one of the avatars. Figure 2 depicts the detailed architecture of this pipeline. The full architecture de-tails of the model can be found in the Supplementary Material. 
+
+4.1. Pose Representation 
+
+We define the pose of an avatar X as 
+
+pX = {θX , rX , tX } , (3) where θX are the joint rotations, rX is the global rotation, and tX
+
+is the global translation. We use the original SMPL [LMR ∗15] 23 joints but, to facilitate training, we leverage the continuous 6D rep-resentation for each joint rotation by Zhou et al. [ZBL ∗19]. Conse-quently, the joint rotations θX is a tensor in R23 ×3×2 and the global rotation matrix rX is R3×2. The global translation tX is represented by a 3D position vector tX in R3.Each sample consists of two poses: a conditioning pose pC and a reaction pose pR. We use pose coordinates relative to the condition-ing avatar pC, therefore, translation tC and the rotation rC of avatar 
+
+C are the origin of coordinates and a unit matrix, respectively, and 
+
+pC can be defined by the θC alone. 
+
+4.2. Latent Space for Human Interaction 
+
+To learn a generative model for human-human interaction, we use a conditional Variational Autoencoder (cVAE) [SYL15] con-sisting of an encoder E and decoder D implemented as multi-layer perceptron (MLP) networks. We use a custom cVAE archi-tecture and train the encoder-decoder network end to end. The encoder E : (R23 ×3×2, R23 ×3×2, R3, R3×2) → (R128 , R128 ) takes as input {θC, θR, tR, rR} and predicts the latent variables that de-fine the normal distribution ( i.e. , mean μ and variance parame-ters σ2) of the latent space. The decoder D : (R23 ×3×2, R128 ) →
+
+(R23 ×3×2, R3×2, R3) takes as input a concatenation of a sample 
+
+z = μ + z0 · σ | z0 ∼ N (0, 1) and the conditioning pose θC,and it decodes the reaction pose ˆ pR = {ˆθR, ˆrR, ˆtR}. As depicted in Figure 4, the encoder E and decoder D are implemented us-ing shared and specialized components. For example, the decoder 
+
+DS : R128 → R128 first converts our latent representation z into a shared decoded pose representation. Then, we extract the joint ro-tations ˆ θR, global translation ˆ tR, and global rotation ˆ rR using task-specific decoder networks Dθ , Dt , and Dr as follows: ˆθR = Dθ (DS({θC, z})) (4) ˆrR = Dr (DS({θC, z})) (5) ˆtR = Dt (DS({θC, z})) (6) where {θC, z} ∈ R266 denotes the concatenation and flattening of the tensors. We train our cVAE network end-to-end using the loss 
+
+LVAE = λKL LKL + λrec Lrec (7) where LKL is the Kullback–Leibler divergence term that enforces the latent spaces to follow a Gaussian distribution, and Lrec is a body surface term defined as 
+
+Lrec = fSMPL (pR) − fSMPL ( ˆpR) 22 (8) that enforces the output reaction pose body parameters ˆ pR to gener-ate SMPL body surface vertices close to ground truth vertices. We empirically set the loss weights to λKL = 1 × 10 −3 and λrec = 7.5. 
+
+> © 2026 The Authors. Computer Graphics Forum published by Eurographics and John Wiley & Sons Ltd.
+
+6 of 13 Gómez-Nogales et al. / GNOCHI: Generative Neural mOdel for Close Human-Human Interactions Pose 
+
+> Relative
+> translation
+> Relative
+> rotation
+> Pose
+
+Figure 4: Detailed cVAE model architecture. The input consists of the conditioning pose θC and the reaction pose θR, tR, rR, where 
+
+tR and rR are the relative translation and rotation of the reacting avatar with respect to the conditioning avatar. These four tensors are fed into the encoder, which has shared weights ES and special-ized weights Eμ, Eσ. The interaction is then encoded into two ten-sors, μ and σ, that define a normal distribution. To sample a react-ing pose from the distribution, we first sample z0 from the standard normal distribution and then apply the reparameterization trick to obtain the sample z. To decode this sample, the decoding process uses shared weights DS and specialized weights Dθ , Dt , Dr , which return the corresponding body parameters. Note that the condition-ing pose θC is also an input to the decoder. Different z values will generate different reactions for a given pose θC. Similarly, the same 
+
+z value will generate different avatars depending on the pose θC it has to react to. 
+
+The network is trained using the Adam optimizer with a learning rate of 1 × 10 −4 and a batch size of 50. Once our cVAE is trained, the decoder D is be able to generate realistic reactive poses pR for any arbitrary conditioning pose pC.
+
+4.3. Learning to Resolve Human-Human Contact 
+
+Despite training on collision-free data, our cVAE cannot guaran-tee intersection-free samples at test-time. To mitigate this, we pro-pose an additional module CF , which is trained in a self-supervised manner. Our main idea is to infer joint rotation offsets that slightly modify the reaction pose to resolve collisions with the conditioning pose. We do not modify the global translation and rotation to avoid the trivial solution of moving one avatar far from the other. This module is illustrated in Figure 5. More specifically, the CF module is a MLP network that takes 
+
+θCv and {ˆθRv , ˆrRv , ˆtRv } as input and predicts joint rotation offsets 
+
+∆ˆθRv such that the SMPL mesh rigged using {ˆθRv + ∆ˆθRv , ˆrRv , ˆtRv }
+
+does not intersect with the SMPL mesh rigged using θCv :
+
+CF : (R23 ×3×2, R23 ×3×2, R3×2, R3) → R23 ×3×2
+
+(θCv , ˆθRv , ˆrRv , ˆtRv ) 7 → ∆ˆθRv 
+
+(9) To train CF in a self-supervised manner, we first generate ran-dom SMPL poses θCv by sampling the VPoser [PCG ∗19] de-coder. These poses, together with a random latent space vector 
+
+z ∼ N (0, 1), are fed into our decoder D generating the predicted poses D({θCv , z}) = {ˆθRv , ˆrRv , ˆtRv }.We train the CF network end-to-end, while keeping the D pa-
+
+Figure 5: Detailed architecture collision resolve module. The out-put is an offset ∆θ R that, once applied to the original reacting pose 
+
+θR, results in a pose ˆθR that avoids colliding with the conditioning avatar with pose θC.
+
+rameters frozen, using the loss: 
+
+LCF = λcol Lcol + λ∆ˆθ L∆ˆθ + λjoints Ljoints (10) where L∆ˆθ = || ∆ˆθ|| 22 is a regularizer to penalize the joint rotation offsets from growing too large, Ljoints is a regularizer to penalize the 3D joint positions from moving too far from the original ones, and Lcol is a collision penalty between two bodies, explained next. To efficiently detect and prevent mesh intersections, we approxi-mate each human body using a set of 24 capsules rigidly attached to the skeleton joints (see Supplementary Material for rigging details). Using these capsules, for a pair of avatars, C and R, we compute a distance matrix DC×R ∈ R24 ×24 , representing the penetration dis-tance between a pair of capsules across both bodies. Positive val-ues indicate no intersection, while negative values indicate capsule overlap. Since capsules provide a loose approximation of the avatar geometry, we establish a tolerance threshold DT from our training data. This threshold is computed as the 95th percentile of distance values across all training poses, allowing for natural proximity be-tween avatars without triggering the collision penalty. The collision loss Lcol is then defined as 
+
+Lcol = ∥min (DC×R − DT, 0)∥ (11) This formulation penalizes only the distances below the learned tolerance threshold DT, effectively preventing unrealistic intersec-tions while allowing natural close interactions. We empirically set the loss weights to λcol = 30, λjoints = 0.5, and λ∆ˆθ = 0.1. Similar to the cVAE, this module is optimized using Adam with a learning rate of 1 × 10 −4 and a batch size of 50. 
+
+4.4. Inference 
+
+As hinted in Figure 2, at inference time, only a conditioning avatar is needed. More specifically, given a conditioning body pose θC
+
+and after sampling a latent space vector z ∼ N (0, 1), the generated reacting avatar can be computed as: 
+
+pR = CF (D({θC, z})) . (12)  
+
+> © 2026 The Authors. Computer Graphics Forum published by Eurographics and John Wiley & Sons Ltd. Gómez-Nogales et al. / GNOCHI: Generative Neural mOdel for Close Human-Human Interactions 7 of 13
+
+Method Data Aug. In-Distribution (ID) Out-of-Distribution (OOD) 
+
+Lrec ↓ ErR ↓ EtR ↓ Inter ↓ IoU ↓ VPoser ↓ Inter ↓ IoU ↓ VPoser ↓
+
+cVAE (Lrec , LKL ) No 32.731 151.168 15.428 299.790 2.135 54.070 815.900 6.191 60.887 cVAE (Lrec , LKL ) Yes 7.462 10.132 3.127 206.810 1.441 30.836 205.057 1.390 26.391 
+
+cVAE (Lrec , LKL , Lcol ) Yes 66.725 431.798 41.218 26.090 0.229 239.468 15.571 0.138 233.418 cVAE (Lrec , LKL ) + CF Yes 9.679 10.132 3.127 121.690 0.846 31.499 120.629 0.833 28.970 
+
+Table 1: In-Distribution (ID) and Out-of-Distribution (OOD) metrics for the different cVAE variants evaluated on the baseline heldout test set and standalone Mixamo keyframes respectively. Values Lrec , ErR , EtR and IoU have been scaled by 10 3. The average volume intersection Inter is represented in cm 3. Best results are highlighted in bold , and second-best results are underlined. 
+
+5. Results and Evaluation 5.1. Ablation Study 
+
+In this section, we present several metrics to justify our architec-tural choices for conditional human pose generation. Specifically, we compare four distinct model variants. The first is a baseline vanilla cVAE trained exclusively with Lrec and LKL losses (as de-tailed in Section 4.2) on a subset of Hi4D [YGK ∗23] poses iden-tified as containing close-contact interactions. The second variant maintains this vanilla architecture but is trained on our augmented dataset. The third model builds upon this augmented version by incorporating the additional Lcol loss during training. Finally, we evaluate our complete proposed architecture, which applies the CF 
+
+module to the augmented-trained vanilla cVAE. 
+
+Training: We train our models using a sequence-heldout train-test split, keeping all frames from a given base interaction sequence strictly within either the training or testing set. Specifically, the data is organized into 100 sequence groups. The baseline split contains 5,744 poses from Hi4D interaction scans, divided into 76 training groups (4,616 poses) and 24 testing groups (1,128 poses). The aug-mented setting merges these baseline poses with 55,897 augmented poses, totaling 61,641 poses partitioned into 49,202 for training and 12,439 for testing. 
+
+Metrics: We utilize six key metrics to thoroughly evaluate our models. The first three assess pose reconstruction accuracy: the test-split reconstruction loss Lrec , the mean error on the generated reaction avatar global orientation ErR , and the mean error on the generated reaction avatar global translation EtR . The next two met-rics evaluate physical plausibility by measuring collisions. Specif-ically, we compute the mean intersected volume ( Inter ) V (C ∩ R)
+
+between each pair of conditioning avatar C and reaction avatar R,and the mean intersection over union ( IoU ), where the individual IoU C,R is defined as: IoU C,R = V (C ∩ R)
+
+V (C) + V (R) −V (C ∩ R) . (13) Finally, to assess the overall naturalness of the generated poses, we compute the VPoser plausibility score. We take the generated body pose, isolate the first 21 body joints, encode this pose using VPoser, and calculate the latent prior energy as 12 ∑(exp (logvar ) + 
+
+μ2 − 1 − logvar ). Poses that lie closer to the learned human-pose prior yield lower energy values, indicating that lower scores reflect more plausible and realistic human poses. 
+
+Evaluation: We evaluate our models on in-distribution (ID) and out-of-distribution (OOD) benchmarks, sampling 10 generations per conditioning pose for both. For the ID setup, we use 100 con-ditioning poses from the baseline test split (yielding 1,000 gen-erations). Because these samples possess ground-truth interacting partners, we evaluate them using the complete suite of reconstruc-tion, collision, and plausibility metrics defined above. For the OOD setting, we select 70 keyframes from 35 Mixamo animations (yield-ing 700 generations). Since we lack ground-truth reaction poses for this out-of-distribution set, our evaluation relies strictly on mea-suring the physical plausibility (VPoser) and collision (IoU, Inter) metrics of the generated reaction poses. 
+
+Results As shown in Table 1, the performance trends remain re-markably consistent across both the In-Distribution (ID) and Out-of-Distribution (OOD) evaluations. First, we observe a clear im-provement when training the baseline cVAE on our augmented dataset (second row) compared to the non-augmented baseline (first row), resulting in a drastic reduction across all the metrics. The aug-mented baseline establishes a strong foundation, yielding the best overall reconstruction loss ( Lrec ) as well as the lowest global ori-entation ( ErR ) and translation ( EtR ) errors. To address the remaining mesh intersections, incorporating the additional capsule loss term Lcol (third row) proves highly effec-tive at avoiding collisions, yielding the absolute lowest Inter and IoU values. However, this aggressive collision resolution comes at a severe cost. Because the loss penalty artificially pushes bodies apart to clear intersections, the reconstruction loss ( Lrec ) degrades significantly, and the human pose plausibility prior is broken, as evidenced by a drastic spike in the VPoser energy. Finally, applying our proposed CF module (fourth row) offers the most balanced trade-off, consistently securing first or second best across all evaluated metrics. Because CF resolves collisions by exclusively modifying the local body pose, the global trajectory er-rors ( ErR and EtR ) remain entirely unaffected, maintaining the best-in-class performance of the augmented baseline. While moving ver-tices to prevent collisions inevitably incurs a slight penalty to the re-construction loss compared to the unconstrained augmented model, 
+
+CF preserves a significantly better Lrec than the capsule loss. Ulti-mately, our module successfully minimizes collisions while main-taining natural and plausible body structures, yielding a VPoser en-ergy that is nearly identical to the augmented-only approach.  
+
+> © 2026 The Authors. Computer Graphics Forum published by Eurographics and John Wiley & Sons Ltd. 8 of 13 Gómez-Nogales et al. / GNOCHI: Generative Neural mOdel for Close Human-Human Interactions
+
+5.2. Quantitative evaluation 
+
+To further quantitatively evaluate our method, we compare our re-sults with BUDDI [MYP ∗24] in terms of mesh intersections. To en-able this comparison, we adapt BUDDI to generate reaction poses conditioned on a conditioning pose using an in-painting strategy: at each step of the BUDDI sampling process, we pass the condition-ing pose prior to the diffusion and denoising steps. Table 2 presents two metrics ( Inter and IoU ) as described in the previous section. To ensure a fair comparison and avoid dataset bias, we compute these metrics not on randomly sampled outputs from our model, but on a specific split of the Hi4D dataset. While both our model and BUDDI were trained on instances from the full Hi4D dataset, we ensure that the selected split contains only poses that were unseen by our model during training. For additional fair-ness and to obtain a more informative evaluation, we only evaluate test samples that generate reaction poses that are in-contact with the conditioning pose. This is to avoid naive samples that are in in-teraction but are not in contact, which, of course, do not suffer from mesh intersections. Our results in Table 2 show that BUDDI samples exhibit signif-icantly more mesh intersections, which is reflected in the higher 
+
+Inter and IoU values. In contrast, our method maintains a marginal intersection error, showcasing that it is able to generate interacting meshes that are in close contact but do not intersect with each other. 
+
+Method Inter ↓ IoU ↓
+
+Ours 182.45 1.25 
+
+BUDDI [MYP ∗24] 2283.90 16.87 
+
+Table 2: Quantitative comparison between our method and BUDDI [MYP ∗24]. IoU values have been scaled by 10 3. The aver-age volume intersection Inter is represented in cm 3
+
+We further illustrate these differences in the qualitative evalua-tion Section 5.3. 
+
+5.3. Qualitative evaluation 
+
+In this section, we present qualitative results of our approach and compare with BUDDI [MYP ∗24]. To this end, we generated con-ditioned reaction avatars with BUDDI as explained in the previous section. We first evaluate the smoothness of the latent space of each model by interpolating between two random latent vectors z, us-ing a fixed conditioning pose. For a fair comparison and to avoid any dataset bias, we specifically select conditioning poses that are originally generated with BUDDI, hence never seen at train time by our model. In Figure 7, we present for both Ours and BUDDI, 8 equally spaced steps of interpolation between two random samples. Our results demonstrate that the interpolations generated by our method exhibit smoother transitions, a greater diversity of poses, and fewer mesh collisions compared to those produced by BUDDI. For further insights, please refer to the Supplementary Video and Material. In Figure 8, we compare the expressivity of our model and 
+
+Figure 6: Our results (i.e., renders with conditioning and reaction poses) can be used as accurate driving signal to control image-to-image models [Lab24]. This enables fine-control synthesis of pho-torealistic images with complex human-human interactions. 
+
+BUDDI by sampling diverse reaction poses conditioned on a condi-tioning pose from the Hi4D dance category (See the Supplementary Material for more examples). Results demonstrate that our model generates rich and semantically consistent responses. In contrast, BUDDI often lacks contextual coherence and shows interpenetra-tions. Figures 1 and 6 showcase applications of our method, high-lighting how our increased controllability enables easy control for text-conditioned image generative tools like FLUX.1-Depth-dev [Lab24], which yields accurate pose control human synthesis. Please refer to the Supplementary Material for more examples. 
+
+5.4. User Study 
+
+To evaluate the perceptual plausibility of our generated interac-tions, we conducted a user study with 35 participants (19 female, 16 male), aged 18 to 58 years ( μ = 32 .2 years, σ = 11 .4 years), rating 3D dyadic scenes on a 5-point Likert scale (1 = Very Implausible, 5 = Very Plausible). We designed the study around 10 base interactions, each pre-sented under three conditions: ground truth, augmented (i.e. sam-ples from Section 3), and generated with our method. Critically, the conditioning avatar is held identical across all three conditions for a given interaction, ensuring that any difference in plausibility ratings is driven solely by the reacting avatar. Each participant eval-uated 30 scenes, distributed across three randomized blocks to pre-vent immediate cross-condition comparison. Participants interacted with a WebGL viewer that allowed free camera rotation, panning, and zooming to resolve spatial ambiguities before rating. Mean plausibility scores were 3 .97 ± 0.76 for ground truth, 3.91 ± 0.78 for augmented poses, and 4 .02 ± 0.69 for generated poses. To test whether generated poses are perceived as equivalent to ground truth, rather than merely not different, we applied equiv-alence testing (TOST) with a margin of δ = 0.5 points. The re-sults confirm perceptual equivalence between generated and ground truth poses ( p < 0.0001), between augmented and ground truth poses ( p < 0.0001), and between generated and augmented poses (p < 0.0001). These findings demonstrate that our model produces interactions that are indistinguishable in perceived plausibility from real captured data.  
+
+> © 2026 The Authors. Computer Graphics Forum published by Eurographics and John Wiley & Sons Ltd. Gómez-Nogales et al. / GNOCHI: Generative Neural mOdel for Close Human-Human Interactions 9 of 13
+> Ours
+> Interpolation 1
+> BUDDI Ours
+> Interpolation 2
+> BUDDI
+
+Figure 7: Two examples (Interpolation 1 and Interpolation 2) of the reacting poses yielded by interpolating two latent vectors (left and right columns) for a constant conditioning pose. The conditioning poses were originally generated with BUDDI, hence were never seen at train time by our model. Our model generates smoother and more expressive poses, notice seamless and smooth changes of the reacting poses along the horizontal axis. In contrast, BUDDI reacting poses are less expressive and exhibit pose discontinuities. 
+
+6. Conclusions 
+
+This work presented a novel approach for human-human interac-tion generation. Our model enables the 3D collision-aware syn-thesis of humans in interaction, conditioned on one pose. We in-troduced a new data augmentation strategy that leverages exist-ing datasets to reduce the need for extensive data collection, thus reducing the dependency on costly motion capture systems and post-processing pipelines. This democratizes the creation of high-quality human-human interaction data for a broader range of users. We also demonstrate that traversing our latent space results in smooth transitions across diverse poses, which can become a pow-erful tool for artists to fine-tune their creations. Furthermore, our generated reaction poses consistently exhibit greater contextual co-herence and fewer interpenetrations compared to those produced by BUDDI [MYP ∗24]. A potential open path for exploration is integrating our approach as a post-processing step in existing methods for tracking and re-constructing 3D humans [SLB ∗22,MYP ∗24], which would provide a greater variety and enhanced controllability of the output pose. Additionally, incorporating our model into text-to-motion genera-tive methods would enable the synthesis of realistic animations of humans in contact. Despite improving 3D interaction synthesis, our model cur-rently handles only static poses. Since the trajectory leading to a pose often defines its semantic meaning, future work involves extending our data augmentation and architecture to incorpo-rate time-dependent information for dynamic interactions. Further-more, since each augmented pose is treated as a quasi-static con-figuration, we currently do not employ Continuous Collision De-tection (CCD) in our data generation stage. While our SDF-based approach effectively resolves static interpenetrations, interpreting the augmentation as a continuous deformation and applying CCD could better preserve first-contact configurations, particularly for thin structures such as fingers. Beyond physical and temporal con-straints, our stochastic augmentation lacks explicit semantic limits, which could theoretically generate socially awkward interactions. However, our user studies did not identify any such problematic cases. Explicitly enforcing social plausibility remains an interest-ing area for further exploration. Additionally, while our CF module resolves geometric inter-penetration via volumetric proxies, it is not a full physics sim-ulation. It does not account for secondary dynamics like mus-cle deformation, soft-body contact, or gravity-induced balance. In rare cases of extreme mesh entanglement, the module may con-verge to local minima. We thus view CF as a geometric prerequi-
+
+> © 2026 The Authors. Computer Graphics Forum published by Eurographics and John Wiley & Sons Ltd.
+
+10 of 13 Gómez-Nogales et al. / GNOCHI: Generative Neural mOdel for Close Human-Human Interactions 
+
+> Ours
+> Sampling (Basketball)
+> BUDDI Ours
+> Sampling (High Five)
+> BUDDI Ours
+> Sampling (Dance)
+> BUDDI
+
+Figure 8: Examples of conditional sampling from our model and BUDDI [MYP ∗24] for a set of conditioning pose, labeled as dance, from the Hi4D dataset. These conditioning poses belong to the in-distribution benchmark. We show two views and four different samples, organized in four columns. Our generated reaction poses respond naturally to the input, producing realistic human-human 3D interactions that are semantically consistent with the input poses. In contrast, BUDDI reaction poses lack contextual coherence and frequently display noticeable interpenetrations. 
+
+site for realism, rather than a replacement for high-fidelity physics solvers [ZGY ∗23]. Finally, this module is explicitly designed to reduce inter-body collisions and does not include a separate self-contact loss, meaning the matrix is computed across the two bod-ies rather than within a single body. However, because our data augmentation stage successfully resolves self-penetrations using SDFs (as detailed in Section 3.2), the model does not observe self-collisions during training. Consequently, the network rarely pro-duces outputs with noticeable self-penetrations in practice. Incor-porating an explicit self-collision term during this refinement stage remains a potential extension for future work. 
+
+> © 2026 The Authors. Computer Graphics Forum published by Eurographics and John Wiley & Sons Ltd.
+
+Gómez-Nogales et al. / GNOCHI: Generative Neural mOdel for Close Human-Human Interactions 11 of 13 
+
+Acknowledgments 
+
+This work has been partially funded by the Comunidad de Madrid through two initiatives. First, in the framework of the Multiannual Agreement with the Universidad Rey Juan Carlos in line of Action 1, "Estímulo a la investigación de jóvenes doctores", for the project "Captura de humanos restringida por sus entornos" (Acronym: CaptHuRe) with reference M2736. Second, the presented results are also part of the project "Inteligencia artificial para la indus-tria 4.0: generación de datos, modelado avanzado optimización e interpretabilidad" (Acronym: IDEA-CM), with reference TEC-2024/COM-89, funded through the call for grants for collaborative R&D projects under the modality of "Programas de Actividades de I+D en Tecnologías 2024", according to Order 3177/2024. 
+
+References 
+
+[CKA ∗22] CHRISTEN S., K OCABAS M., A KSAN E., H WANGBO J., SONG J., H ILLIGES O.: D-grasp: Physically plausible dynamic grasp synthesis for hand-object interactions. In 2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (New Orleans, LA, USA, 2022), IEEE, pp. 20545–20554. doi:10.1109/CVPR52688. 2022.01992 . 2 [CTO ∗23] CHOPIN B., T ANG H., O TBERDOUT N., D AOUDI M., S EBE 
+
+N.: Interaction Transformer for Human Reaction Generation. IEEE Transactions on Multimedia 25 (2023), 8842–8854. doi:10.1109/ TMM.2023.3242152 . 2 [FTC ∗25] FAN K., T ANG J., C AO W., Y I R., L I M., G ONG J., Z HANG 
+
+J., W ANG Y., W ANG C., M A L.: Freemotion: A unified framework for number-free text-to-motion synthesis. In Computer Vision – ECCV 2024 (Cham, 2025), Leonardis A., Ricci E., Roth S., Russakovsky O., Sattler T., Varol G., (Eds.), Springer Nature Switzerland, pp. 93–109. 2 [FZO ∗20] FIERARU M., Z ANFIR M., O NEATA E., P OPA A.-I., O LARU 
+
+V., S MINCHISESCU C.: Three-dimensional reconstruction of human interactions. In 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Seattle, WA, USA, 2020), IEEE, pp. 7212– 7221. doi:10.1109/CVPR42600.2020.00724 . 2 [FZS ∗21] FIERARU M., Z ANFIR M., S ZENTE T. A., B AZAVAN E. G., OLARU V., S MINCHISESCU C.: Remips: physically consistent 3d re-construction of multiple interacting people under weak supervision. In Proceedings of the 35th International Conference on Neural Information Processing Systems (Red Hook, NY, USA, 2021), NIPS ’21, Curran As-sociates Inc. 2, 3 [GBAPM22] GUO W., BIE X., ALAMEDA -P INEDA X., MORENO –N OGUER F.: Multi-person extreme motion prediction. In 2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (New Orleans, LA, USA, 2022), IEEE, pp. 13043– 13054. doi:10.1109/CVPR52688.2022.01271 . 2 [GCM ∗24] GUZOV V., C HIBANE J., M ARIN R., H E Y., S ARACOGLU 
+
+Y., S ATTLER T., P ONS -M OLL G.: Interaction replica: Tracking hu-man–object interaction and scene changes from human motion. In 2024 International Conference on 3D Vision (3DV) (Davos, Switzerland, 2024), IEEE, pp. 1006–1016. doi:10.1109/3DV62453.2024. 00072 . 2 [GSS ∗15] GAST T. F., S CHROEDER C., S TOMAKHIN A., J IANG C., TERAN J. M.: Optimization integrator for large time steps. IEEE transactions on visualization and computer graphics 21, 10 (2015), 1103– 1115. 4 [GZD ∗25] GHOSH A., Z HOU B., D ABRAL R., W ANG J., G OLYANIK 
+
+V., T HEOBALT C., S LUSALLEK P., G UO C.: DuetGen: Music Driven Two-Person Dance Generation via Hierarchical Masked Modeling. In ACM SIGGRAPH Conference Proceedings (2025). 3 [HCV ∗21] HASSAN M., C EYLAN D., V ILLEGAS R., S AITO J., Y ANG 
+
+J., Z HOU Y., B LACK M.: Stochastic scene-aware motion prediction. In 2021 IEEE/CVF International Conference on Computer Vision (ICCV) (Montreal, QC, Canada, 2021), IEEE, pp. 11354–11364. doi:10. 1109/ICCV48922.2021.01118 . 2 [HGT ∗21] HASSAN M., G HOSH P., T ESCH J., T ZIONAS D., B LACK 
+
+M. J.: Populating 3d scenes by learning human-scene interac-tion. In 2021 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Nashville, TN, USA, 2021), IEEE, pp. 14703– 14713. doi:10.1109/CVPR46437.2021.01447 . 2 [HKT10] HO E. S. L., K OMURA T., T AI C.-L.: Spatial relationship pre-serving character motion adaptation. In ACM SIGGRAPH 2010 Papers (New York, NY, USA, 2010), SIGGRAPH ’10, Association for Comput-ing Machinery. URL: https://doi.org/10.1145/1833349. 1778770 , doi:10.1145/1833349.1778770 . 3 [HVT ∗19] HASSON Y., V AROL G., T ZIONAS D., K ALEVATYKH I., BLACK M. J., L APTEV I., S CHMID C.: Learning joint reconstruction of hands and manipulated objects. In 2019 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Long Beach, CA, USA, 2019), IEEE, pp. 11799–11808. doi:10.1109/CVPR.2019. 01208 . 2 [JGCL25] JAVED M. G., G UO C., C HENG L., L I X.: InterMask: 3D Human Interaction Generation via Collaborative Masked Modeling. In The Thirteenth International Conference on Learning Representations (Singapore, 2025), OpenReview.net, pp. 1–22. URL: https:// openreview.net/forum?id=ZAyuwJYN8N . 2 [JGK ∗24] JIANG Z., G UO C., K AUFMANN M., J IANG T., V ALENTIN 
+
+J., H ILLIGES O., S ONG J.: Multiply: Reconstruction of multiple people from monocular video in the wild. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (2024). 3 [JLC ∗23] JIANG N., L IU T., C AO Z., C UI J., Z HANG Z., C HEN Y., WANG H., Z HU Y., H UANG S.: Full-body articulated human-object interaction. In 2023 IEEE/CVF International Conference on Computer Vision (ICCV) (Paris, France, 2023), IEEE, pp. 9331–9342. doi:10. 1109/ICCV51070.2023.00859 . 2 [JZL ∗24] JIANG N., Z HANG Z., L I H., M A X., W ANG Z., C HEN Y., LIU T., Z HU Y., H UANG S.: Scaling up dynamic human-scene interac-tion modeling. In 2024 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Seattle, WA, USA, 2024), IEEE, pp. 1737– 1747. doi:10.1109/CVPR52733.2024.00171 . 2 [KHHL12] KIM M., HWANG Y., HYUN K., LEE J.: Tiling mo-tion patches. In Proceedings of the ACM SIGGRAPH/Eurographics Symposium on Computer Animation (Goslar, DEU, 2012), SCA ’12, Eurographics Association, p. 117–126. 3 [KMOW00] KANE C., MARSDEN J. E., ORTIZ M., WEST M.: Variational integrators and the newmark algorithm for conserva-tive and dissipative mechanical systems. International Journal for Numerical Methods in Engineering 49, 10 (2000), 1295–1325. 
+
+doi:https://doi.org/10.1002/1097-0207(20001210) 49:10<1295::AID-NME993>3.0.CO;2-W . 4 [Lab24] LABS B. F.: Flux. https://github.com/ black-forest-labs/flux , 2024. 8 [LGZW25] LIU S., G UO C., Z HOU B., W ANG J.: Ponimator: Unfolding interactive pose for versatile human-human interaction animation. In ICCV (2025). 3 [LHP06] LIU C. K., H ERTZMANN A., P OPOVI ´ C Z.: Composition of complex optimal multi-character motions. In Proceedings of the 2006 ACM SIGGRAPH/Eurographics Symposium on Computer Animation (Goslar, DEU, 2006), SCA ’06, Eurographics Association, p. 215–222. 3
+
+> © 2026 The Authors. Computer Graphics Forum published by Eurographics and John Wiley & Sons Ltd.
+
+12 of 13 Gómez-Nogales et al. / GNOCHI: Generative Neural mOdel for Close Human-Human Interactions 
+
+[LMR ∗15] LOPER M., M AHMOOD N., R OMERO J., P ONS -M OLL G., BLACK M. J.: Smpl: a skinned multi-person linear model. ACM Trans. Graph. 34, 6 (Oct. 2015). URL: https://doi.org/10.1145/ 2816795.2818013 , doi:10.1145/2816795.2818013 . 2, 5 [LZL ∗24] LIANG H., Z HANG W., L I W., Y U J., X U L.: Intergen: Diffusion-based multi-human motion generation under complex interac-tions. Int. J. Comput. Vision 132, 9 (Mar. 2024), 3463–3483. URL: 
+
+https://doi.org/10.1007/s11263-024-02042-6 , doi: 10.1007/s11263-024-02042-6 . 2 [MBS ∗18] MUELLER F., B ERNARD F., S OTNYCHENKO O., M EHTA 
+
+D., S RIDHAR S., C ASAS D., T HEOBALT C.: Ganerated hands for real-time 3d hand tracking from monocular rgb. In 2018 IEEE/CVF Conference on Computer Vision and Pattern Recognition (Salt Lake City, UT, USA, 2018), IEEE, pp. 49–59. doi:10.1109/CVPR.2018. 00013 . 3 [MCZ ∗25] MÜLLER L., C HOI H., Z HANG A., Y I B., M ALIK J., KANAZAWA A.: Reconstructing people, places, and cameras. In 2025 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Nashville, TN, USA, 2025), IEEE, pp. 21948–21958. doi: 10.1109/CVPR52734.2025.02044 . 2 [MMR ∗24] MALULEKE V. H., MÜLLER L., RAJASEGARAN J., PAVLAKOS G., G INOSAR S., K ANAZAWA A., M ALIK J.: Synergy and synchrony in couple dances. arXiv preprint arXiv:2409.04440 abs/2409.04440 (2024), 1–11. URL: https://arxiv.org/abs/ 2409.04440 , doi:10.48550/arXiv.2409.04440 . 2 [MOT ∗21] MÜLLER L., O SMAN A. A. A., T ANG S., H UANG C.-H. P., B LACK M. J.: On self-contact and human pose. In 2021 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Nashville, TN, USA, 2021), IEEE, pp. 9985–9994. doi: 10.1109/CVPR46437.2021.00986 . 3 [MSB ∗22] MIHAJLOVIC M., S AITO S., B ANSAL A., Z OLLHOEFER 
+
+M., T ANG S.: Coap: Compositional articulated occupancy of peo-ple. In 2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (New Orleans, LA, USA, 2022), IEEE, pp. 13191– 13200. doi:10.1109/CVPR52688.2022.01285 . 3 [MYP ∗24] MÜLLER L., YE V., PAVLAKOS G., BLACK M., KANAZAWA A.: Generative proxemics: A prior for 3d social in-teraction from images. In 2024 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Seattle, WA, USA, 2024), IEEE, pp. 9687–9697. doi:10.1109/CVPR52733.2024.00925 .2, 3, 8, 9, 10 [PCG ∗19] PAVLAKOS G., C HOUTAS V., G HORBANI N., B OLKART T., OSMAN A. A., T ZIONAS D., B LACK M. J.: Expressive body cap-ture: 3d hands, face, and body from a single image. In 2019 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Long Beach, CA, USA, 2019), IEEE, pp. 10967–10977. doi:10.1109/ CVPR.2019.01123 . 2, 4, 6 [SBL ∗21] SUN Y., B AO Q., L IU W., F U Y., B LACK M. J., M EI 
+
+T.: Monocular, one-stage, regression of multiple 3d people. In 2021 IEEE/CVF International Conference on Computer Vision (ICCV) (Mon-treal, QC, Canada, 2021), IEEE, pp. 11159–11168. doi:10.1109/ ICCV48922.2021.01099 . 2 [SDH ∗25] SHAN M., D ONG L., H AN Y., Y AO Y., L IU T., N WOGU 
+
+I., Q I G.-J., H ILL M.: Towards open domain text-driven synthesis of multi-person motions. In Computer Vision – ECCV 2024 (Cham, 2025), Leonardis A., Ricci E., Roth S., Russakovsky O., Sattler T., Varol G., (Eds.), Springer Nature Switzerland, pp. 67–86. 2 [SKY07] SHUM H. P. H., K OMURA T., Y AMAZAKI S.: Simulating com-petitive interactions using singly captured motions. In Proceedings of the 13th ACM Symposium on Virtual Reality Software and Technology (VRST) (New York, NY, USA, 2007), VRST ’07, Association for Com-puting Machinery, p. 65–72. URL: https://doi.org/10.1145/ 1315184.1315194 , doi:10.1145/1315184.1315194 . 3 [SKY12] SHUM H. P., K OMURA T., Y AMAZAKI S.: Simulating multiple character interactions with collaborative and adversarial goals. IEEE Transactions on Visualization and Computer Graphics 18, 5 (2012), 741– 752. doi:10.1109/TVCG.2010.257 . 3 [SLB ∗22] SUN Y., L IU W., B AO Q., F U Y., M EI T., B LACK M. J.: Putting people in their place: Monocular regression of 3d people in depth. In 2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (New Orleans, LA, USA, 2022), IEEE, pp. 13233– 13242. doi:10.1109/CVPR52688.2022.01289 . 2, 9 [SYL15] SOHN K., Y AN X., L EE H.: Learning structured output rep-resentation using deep conditional generative models. In Proceedings of the 29th International Conference on Neural Information Processing Systems - Volume 2 (Cambridge, MA, USA, 2015), NIPS’15, MIT Press, p. 3483–3491. 5 [SYZ ∗23] SHUAI Q., Y U Z., Z HOU Z., F AN L., Y ANG H., Y ANG C., ZHOU X.: Reconstructing close human interactions from multiple views. ACM Trans. Graph. 42, 6 (Dec. 2023). URL: https://doi.org/ 10.1145/3618336 , doi:10.1145/3618336 . 3 [TCBT22] TAHERI O., C HOUTAS V., B LACK M. J., T ZIONAS D.: Goal: Generating 4d whole-body motion for hand-object grasping. In 2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (New Orleans, LA, USA, 2022), IEEE, pp. 13253–13263. doi: 10.1109/CVPR52688.2022.01291 . 2 [TF23] TANAKA M., F UJIWARA K.: Role-aware interaction generation from textual description. In 2023 IEEE/CVF International Conference on Computer Vision (ICCV) (Paris, France, 2023), IEEE, pp. 15953–15963. 
+
+doi:10.1109/ICCV51070.2023.01466 . 2 [UPP ∗24] UGRINOVIC N., P AN B., P AVLAKOS G., P ASCHALIDOU D., SHEN B., S ANCHEZ -R IERA J., M ORENO -N OGUER F., G UIBAS L.: Multiphys: Multi-person physics-aware 3d motion estimation. In 2024 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Seattle, WA, USA, 2024), IEEE, pp. 2331–2340. doi:10. 1109/CVPR52733.2024.00226 . 3 [WLO ∗14] WON J., LEE K., O’S ULLIVAN C., HODGINS J. K., LEE J.: Generating and ranking diverse multi-character interactions. ACM Trans. Graph. 33, 6 (Nov. 2014). URL: https://doi. org/10.1145/2661229.2661271 , doi:10.1145/2661229. 2661271 . 3 [XBPM22] XIE X., B HATNAGAR B. L., P ONS -M OLL G.: Chore: Contact, human and object reconstruction from a single rgb im-age. In Computer Vision – ECCV 2022: 17th European Conference, Tel Aviv, Israel, October 23–27, 2022, Proceedings, Part II (Berlin, Heidelberg, 2022), Springer-Verlag, p. 125–145. URL: https://doi.org/10.1007/978-3-031-20086-1_8 ,
+
+doi:10.1007/978-3-031-20086-1_8 . 2 [XLY ∗24] XU L., L V X., Y AN Y., J IN X., W U S., X U C., L IU Y., Z HOU 
+
+Y., R AO F., S HENG X., L IU Y., Z ENG W., Y ANG X.: Inter-x: To-wards versatile human-human interaction analysis. In 2024 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Seat-tle, WA, USA, 2024), IEEE, pp. 22260–22271. doi:10.1109/ CVPR52733.2024.02101 . 2 [YGK ∗23] YIN Y., G UO C., K AUFMANN M., Z ARATE J. J., S ONG J., HILLIGES O.: Hi4d: 4d instance segmentation of close human interac-tion. In 2023 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Vancouver, BC, Canada, 2023), IEEE, pp. 17016– 17027. doi:10.1109/CVPR52729.2023.01632 . 2, 3, 4, 7 [YGKT24] YE Y., G UPTA A., K ITANI K., T ULSIANI S.: G-hop: Gen-erative hand-object prior for interaction reconstruction and grasp syn-thesis. In 2024 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Seattle, WA, USA, 2024), IEEE, pp. 1911–1920. 
+
+doi:10.1109/CVPR52733.2024.00187 . 2 [YPMK23] YE V., P AVLAKOS G., M ALIK J., K ANAZAWA A.: De-coupling human and camera motion from videos in the wild. In 2023 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Vancouver, BC, Canada, 2023), IEEE, pp. 21222–21232. doi: 10.1109/CVPR52729.2023.02033 . 2, 3 
+
+> © 2026 The Authors. Computer Graphics Forum published by Eurographics and John Wiley & Sons Ltd.
+
+Gómez-Nogales et al. / GNOCHI: Generative Neural mOdel for Close Human-Human Interactions 13 of 13 [ZBL ∗19] ZHOU Y., B ARNES C., L U J., Y ANG J., L I H.: On the conti-nuity of rotation representations in neural networks. In 2019 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) (Long Beach, CA, USA, 2019), IEEE, pp. 5738–5746. doi:10.1109/ CVPR.2019.00589 . 5 [ZGY ∗23] ZHANG Y., G OPINATH D., Y E Y., H ODGINS J., T URK G., WON J.: Simulation and retargeting of complex multi-character interac-tions. In ACM SIGGRAPH 2023 Conference Proceedings (New York, NY, USA, 2023), SIGGRAPH ’23, Association for Computing Machin-ery. URL: https://doi.org/10.1145/3588432.3591491 ,
+
+doi:10.1145/3588432.3591491 . 3, 10 [ZSZ ∗21] ZHENG Y., S HAO R., Z HANG Y., Y U T., Z HENG Z., D AI 
+
+Q., L IU Y.: Deepmulticap: Performance capture of multiple charac-ters using sparse multiview cameras. In 2021 IEEE/CVF International Conference on Computer Vision (ICCV) (Montreal, QC, Canada, 2021), IEEE, pp. 6219–6229. doi:10.1109/ICCV48922.2021.00618 .2, 3 [ZWZ ∗22] ZHAO K., W ANG S., Z HANG Y., B EELER T., T ANG S.: Compositional human-scene interaction synthesis with semantic control. In Computer Vision – ECCV 2022 (Cham, 2022), Avidan S., Brostow G., Cissé M., Farinella G. M., Hassner T., (Eds.), Springer Nature Switzer-land, pp. 311–327. 2 [ZZW ∗23] ZHAO K., Z HANG Y., W ANG S., B EELER T., T ANG S.: Syn-thesizing diverse human motions in 3d indoor scenes. In 2023 IEEE/CVF International Conference on Computer Vision (ICCV) (Paris, France, 2023), IEEE, pp. 14692–14703. doi:10.1109/ICCV51070. 2023.01354 . 2
