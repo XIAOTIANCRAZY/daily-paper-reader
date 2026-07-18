@@ -1,0 +1,594 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-18T21:29:32.108841+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 6,
+    "deep_cap": 7,
+    "deep_selected": 6,
+    "quick_candidates": 7,
+    "quick_skim_target": 12,
+    "quick_selected": 7
+  },
+  "deep_dive": [
+    {
+      "id": "2607.13586v1",
+      "source": "arxiv",
+      "title": "UniPhysGen: Unified Physical Grounding for Simulation-Ready 3D Assets",
+      "abstract": "Physically grounded 3D assets are increasingly important for embodied AI and robotic simulation. However, most existing 3D assets lack unified physical semantics, including articulation semantics and intrinsic physical properties, required for realistic interaction. Current approaches either treat these semantics independently or rely on canonicalized object structures, limiting robustness across heterogeneous 3D assets. We present UniPhys, a scalable framework for automatically transforming raw 3D assets into simulation-ready assets with unified physical semantics. Based on UniPhys, we construct UniPhys-40K, a large-scale physically grounded dataset, together with UniPhys-Bench, a carefully verified benchmark for unified physical grounding evaluation. We further introduce UniPhysGen, a unified physical grounding model that jointly reasons over articulation semantics and intrinsic physical properties. UniPhysGen incorporates geometry-robust articulation grounding to mitigate geometric shortcut bias under heterogeneous part decompositions. Extensive experiments demonstrate state-of-the-art performance across articulation grounding and intrinsic physical property estimation tasks, while the resulting assets can be directly deployed in robotic simulation environments for realistic physical interaction. Our code and dataset will be available at https://github.com/breezexian/UniPhysGen.",
+      "authors": [
+        "Xian Li",
+        "Rong Wei",
+        "Lujie Yang",
+        "Haolin Huang",
+        "Junyuan Fang",
+        "Siliang Tang",
+        "Jun Xiao",
+        "Rui Tang",
+        "Juncheng Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-15T08:27:07+00:00",
+      "link": "https://arxiv.org/pdf/2607.13586v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "predicting physical properties of articulated 3D objects and unifying articulation semantics",
+      "llm_evidence_cn": "预测铰接三维物体的物理属性并统一铰接语义",
+      "llm_evidence": "预测铰接三维物体的物理属性并统一铰接语义",
+      "canonical_evidence": "预测铰接三维物体的物理属性并统一铰接语义",
+      "llm_tldr_en": "UniPhysGen automatically transforms raw 3D assets into simulation-ready ones with unified physical semantics including articulation and intrinsic properties.",
+      "llm_tldr_cn": "现有3D资产缺乏统一的物理语义，包括铰接语义和内在物理属性，限制了仿真应用。本文提出UniPhys框架，自动将原始3D资产转换为具有统一物理语义的仿真就绪资产，并构建了UniPhys-40K数据集和UniPhys-Bench基准。实验表明该方法高效且鲁棒，显著提升了物理仿真质量。",
+      "llm_tldr": "现有3D资产缺乏统一的物理语义，包括铰接语义和内在物理属性，限制了仿真应用。本文提出UniPhys框架，自动将原始3D资产转换为具有统一物理语义的仿真就绪资产，并构建了UniPhys-40K数据集和UniPhys-Bench基准。实验表明该方法高效且鲁棒，显著提升了物理仿真质量。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "predicting physical properties of 3D articulated objects",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.11673v2",
+      "source": "arxiv",
+      "title": "ABot-3DWorld 0: A Universal World Model to Explore Any 3D Space",
+      "abstract": "We present ABot-3DWorld 0, a universal multimodal 3D world model that turns text, image, and video inputs into high-fidelity, explorable 3D worlds. At the heart of our framework is a unified Spatial Generative Primitive (SGP), a compact tuple of a high-quality panorama and a spatial point cloud that delivers an efficient description of any 3D space. Multimodal inputs are first lifted into this primitive; a 3D-consistent panoramic video generator then explores the primitive along a planned trajectory; finally, our panoramic video reconstruction engine converts the generated video into a clean, photorealistic 3D Gaussian Splatting (3DGS) world. This pipeline covers two regimes: rich inputs (multi-view sets, casual video) are lifted into the SGP through a geometry-rigorous recovery that mirrors the observed scene, while a single image or sentence is completed generatively into a creative world. The result is one low-barrier engine for general 3D content creation that further anchors generated worlds to geographic points of interest, enabling map-native spatial exploration at consumer scale. Experiments show that ABot-3DWorld 0 sets the state of the art among open-source methods and demonstrates stronger scene fidelity than Marble under rich multimodal inputs.",
+      "authors": [
+        "Mingchao Sun",
+        "Luyang Tang",
+        "Yu Liu",
+        "Xu Yan",
+        "Zhan Li",
+        "Yunwei Zhang",
+        "Fei Yu",
+        "Zengye Ge",
+        "Yumin Liu",
+        "Jiacheng Zhang",
+        "Yongchang Zhang",
+        "Jiawei Zhang",
+        "Zhicheng Liu",
+        "Zhongxu Sun",
+        "Tianjian Ouyang",
+        "Wenzheng Chen",
+        "Shixing Yang",
+        "Nianfei Fan",
+        "Guodong Sun",
+        "Huan Li",
+        "Zheng Zhou",
+        "Yongze Li",
+        "Yingliang Peng",
+        "Mengmeng Du",
+        "Yuan Liu",
+        "Haozhe Shi",
+        "Chunnuo Gong",
+        "Chengzhen Yu",
+        "Chunxue Jia",
+        "Yang Liu",
+        "Shiying Zeng",
+        "Junnan Lai",
+        "Hang Zhang",
+        "Ning Guo",
+        "Baoquan Chen",
+        "Mu Xu",
+        "Hongyu Pan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-13T15:14:48+00:00",
+      "link": "https://arxiv.org/pdf/2607.11673v2",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Universal world model for 3D scene generation from multimodal inputs including text",
+      "llm_evidence_cn": "从文本等模态输入生成可探索3D世界的通用世界模型",
+      "llm_evidence": "从文本等模态输入生成可探索3D世界的通用世界模型",
+      "canonical_evidence": "从文本等模态输入生成可探索3D世界的通用世界模型",
+      "llm_tldr_en": "ABot-3DWorld 0 is a universal multimodal 3D world model that generates high-fidelity explorable 3D scenes from text, image, and video inputs via a spatial generative primitive and panoramic video generation.",
+      "llm_tldr_cn": "现有3D场景生成方法在处理多种模态输入时不够灵活统一。本文提出ABot-3DWorld 0，一种通用多模态3D世界模型，核心是统一的空间生成基元（SGP），由高质量全景图和空间点云组成。多模态输入首先被提升为该基元，然后通过3D一致的全景视频生成器沿规划轨迹探索，最后用全景视频重建引擎转换为逼真的3D高斯泼溅世界。实验表明该方法能从多种输入生成高质量、可自由探索的3D场景，为通用3D场景生成提供了有效框架。",
+      "llm_tldr": "现有3D场景生成方法在处理多种模态输入时不够灵活统一。本文提出ABot-3DWorld 0，一种通用多模态3D世界模型，核心是统一的空间生成基元（SGP），由高质量全景图和空间点云组成。多模态输入首先被提升为该基元，然后通过3D一致的全景视频生成器沿规划轨迹探索，最后用全景视频重建引擎转换为逼真的3D高斯泼溅世界。实验表明该方法能从多种输入生成高质量、可自由探索的3D场景，为通用3D场景生成提供了有效框架。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "large language model 3d scene generation",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.13539v1",
+      "source": "arxiv",
+      "title": "ThinkBLOX: 3D Indoor Scene Generation with Progressive Reasoning",
+      "abstract": "While traditional graphics methods often synthesize 3D indoor scenes autoregressively or hierarchically, recent vision-language model (VLM)-based generators predominantly adopt a one-shot paradigm where the full layout is planned at once. This one-shot approach often requires global re-optimization or complete reconstruction during interactive editing (e.g., inserting or moving objects) and can lead to physically or semantically poorly organized arrangements. To address these challenges, we propose ThinkBLOX, a VLM-based progressive reasoning framework that iteratively designs and refines 3D scenes. ThinkBLOX treats layout generation as a state-conditioned, step-by-step reasoningand-action process. To power this, we construct the ThinkBLOX-Data-200K dataset, containing 224,757 procedural placement pairs annotated with multi-view scene context, explicit Chain-of-Thought (CoT) rationales, and structured JSON layouts. Through supervised fine-tuning (SFT) on this dataset, the VLM learns to bridge the reasoning-action gap under incremental updates. Furthermore, recognizing that scene synthesis is inherently a multisolution task where SFT suffers from reward conflict, we introduce Tier-Decoupled GDPO. This reinforcement learning scheme organizes heterogeneous rewards into distinct tiers, stabilizing policy optimization across physical validity, semantic plausibility, and reasoning-action consistency. Extensive experiments show that ThinkBLOX significantly outperforms recent one-shot and iterative baselines in physical plausibility, semantic alignment, and interactive editability. Additionally, we show that it supports diverse applications, including both global and local generation and rearrangement of 3D scenes.",
+      "authors": [
+        "Yuan Xiao",
+        "Can Wang",
+        "Xiangyu Kong",
+        "Jing Liao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.GR"
+      ],
+      "published": "2026-07-15T07:42:47+00:00",
+      "link": "https://arxiv.org/pdf/2607.13539v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "VLM-based progressive reasoning framework for 3D scene generation",
+      "llm_evidence_cn": "基于VLM的渐进式推理三维场景生成框架",
+      "llm_evidence": "基于VLM的渐进式推理三维场景生成框架",
+      "canonical_evidence": "基于VLM的渐进式推理三维场景生成框架",
+      "llm_tldr_en": "ThinkBLOX proposes a VLM-based progressive reasoning framework for 3D indoor scene generation, iteratively designing layouts to avoid global re-optimization and improve physical/semantic organization.",
+      "llm_tldr_cn": "针对现有VLM生成方法采用一次性规划导致交互编辑时需全局重优化和布局不合理的问题，ThinkBLOX提出基于VLM的渐进式推理框架，将布局生成视为状态依赖的逐步推理与行动过程，并构建了ThinkBLOX-Data-200K数据集。实验表明该方法能够生成物理和语义上更合理的3D室内场景，支持灵活交互编辑。",
+      "llm_tldr": "针对现有VLM生成方法采用一次性规划导致交互编辑时需全局重优化和布局不合理的问题，ThinkBLOX提出基于VLM的渐进式推理框架，将布局生成视为状态依赖的逐步推理与行动过程，并构建了ThinkBLOX-Data-200K数据集。实验表明该方法能够生成物理和语义上更合理的3D室内场景，支持灵活交互编辑。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.13451v1",
+      "source": "arxiv",
+      "title": "Learning Physics-Guided Residual Dynamics for Deformable Object Simulation",
+      "abstract": "Simulating deformable objects is essential for a wide range of robotic manipulation applications, yet accurately predicting their dynamics remains challenging. We propose Physics-Guided Residual Dynamics (PGRD), a hybrid simulation framework that combines the advantages of physics-based and learning-based approaches. Specifically, PGRD combines an optimizable spring-mass simulator as a backbone with a learned neural network that predicts residual corrections to the physics-based predictions. We adopt a velocity-based formulation to ensure stable simulation and a sliding-window transformer architecture to capture temporal dependencies. We show that PGRD produces more accurate results than both purely physics-based and learning-based methods on a set of diverse real-world deformable objects. We further demonstrate the utility of PGRD in two applications: manipulation planning via Model Predictive Control, including a language-conditioned setting with a generated goal image; and interactive simulation via action-conditioned video prediction by 3D Gaussian Splatting.",
+      "authors": [
+        "Shivansh Patel",
+        "Kaifeng Zhang",
+        "Sanjay Pokkali",
+        "Svetlana Lazebnik",
+        "Yunzhu Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CV"
+      ],
+      "published": "2026-07-15T05:15:43+00:00",
+      "link": "https://arxiv.org/pdf/2607.13451v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "predicts physical dynamics of deformable objects using physics-guided learning, applicable to articulated objects",
+      "llm_evidence_cn": "预测可变形物体的物理动力学，方法可迁移到铰接物体",
+      "llm_evidence": "预测可变形物体的物理动力学，方法可迁移到铰接物体",
+      "canonical_evidence": "预测可变形物体的物理动力学，方法可迁移到铰接物体",
+      "llm_tldr_en": "PGRD combines a spring-mass physics simulator with a learned residual correction network to accurately predict deformable object dynamics, outperforming pure physics or learning methods.",
+      "llm_tldr_cn": "PGRD提出一种混合仿真框架，结合可优化的弹簧-质量模型和神经网络残差预测，用于可变形物体动力学预测。该方法采用基于速度的公式和滑动窗口Transformer捕捉时间依赖。实验表明，PGRD在多种任务上的精度优于纯物理或纯学习方法。该框架可直接应用于铰接物体的物理属性预测。",
+      "llm_tldr": "PGRD提出一种混合仿真框架，结合可优化的弹簧-质量模型和神经网络残差预测，用于可变形物体动力学预测。该方法采用基于速度的公式和滑动窗口Transformer捕捉时间依赖。实验表明，PGRD在多种任务上的精度优于纯物理或纯学习方法。该框架可直接应用于铰接物体的物理属性预测。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "predicting physical properties of 3D articulated objects",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.12752v2",
+      "source": "arxiv",
+      "title": "Hallo4D: Multi-Modal Hallucination Mitigation for Consistent Spatio-Temporal Generation",
+      "abstract": "While recent advances in 3D generation have enabled impressive visual synthesis, existing methods often rely on 2D diffusion supervision without explicit mechanisms for geometric consistency, leading to spatial hallucinations such as duplicated structures and misaligned geometry. These issues become more severe in 4D generation, where maintaining consistency across viewpoints and temporal evolution introduces additional challenges, including jitter, identity flicker, and structural drift. We present \\textbf{Hallo4D}, a unified and model-agnostic framework for mitigating spatiotemporal hallucinations in 3D and 4D content generation. Hallo4D introduces a generation-detection-correction paradigm that leverages large multimodal language models (LMMs) to identify and summarize spatial and temporal inconsistencies from multi-view and multi-frame renderings. These insights guide a consensus-driven image-space consistency optimization, where an LMM-based selector evaluates candidate corrections through multi-model voting, without requiring retraining or architectural modifications. To further improve temporal consistency and optimization efficiency, Hallo4D incorporates motion-aware keyframe sampling, LMM-guided initialization, and appearance alignment. We additionally introduce exposure-aware optimization and visibility pruning to enhance robustness under challenging viewpoints. Extensive experiments demonstrate that Hallo4D consistently outperforms strong baselines across diverse 3D and 4D generation settings, providing a scalable and generalizable solution for consistency-aware content generation.",
+      "authors": [
+        "Hongbo Wang",
+        "Huaibo Huang",
+        "Jie Cao",
+        "Jin Liu",
+        "Haoyang Tong",
+        "Ran He"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-07-14T13:19:06+00:00",
+      "link": "https://arxiv.org/pdf/2607.12752v2",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "3D/4D generation with multimodal language model hallucination mitigation",
+      "llm_evidence_cn": "使用多模态语言模型缓解3D/4D生成中的时空幻觉",
+      "llm_evidence": "使用多模态语言模型缓解3D/4D生成中的时空幻觉",
+      "canonical_evidence": "使用多模态语言模型缓解3D/4D生成中的时空幻觉",
+      "llm_tldr_en": "Hallo4D introduces a generation-detection-correction framework leveraging large multimodal language models to mitigate spatiotemporal hallucinations in 3D and 4D content generation.",
+      "llm_tldr_cn": "3D/4D生成常出现几何不一致、抖动等时空幻觉。Hallo4D提出生成-检测-校正框架，利用大型多模态语言模型监测并自动修正几何和时序错误。该方法模型无关，可即插即用。实验表明其显著提升生成内容的一致性和质量。",
+      "llm_tldr": "3D/4D生成常出现几何不一致、抖动等时空幻觉。Hallo4D提出生成-检测-校正框架，利用大型多模态语言模型监测并自动修正几何和时序错误。该方法模型无关，可即插即用。实验表明其显著提升生成内容的一致性和质量。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.14836v1",
+      "source": "arxiv",
+      "title": "Physics-Informed Diffusion for Biomechanically Plausible 3D Sign Language Generation",
+      "abstract": "Sign language production, which generates continuous 3D skeletal motion from spoken language input, must simultaneously satisfy two constraints: semantic fidelity, so that a deaf viewer can recognize the intended sequence of glosses, and biomechanical plausibility, so that the generated skeleton respects anatomical constraints. Existing approaches optimize semantic reconstruction through coordinate-based objectives that treat the skeleton as an unstructured vector, thus allowing for bone length drift, joint angle violations, and temporarily locked fingers. We introduce PIDiffSign, a physics-informed diffusion model for gloss-to-pose translation that incorporates anatomical constraints into both the architecture and training objective. The model uses a Transformer encoder-decoder, where the decoder is conditioned on the diffusion time step through adaptive zero-initialized layer normalization and cross-attends to gloss representations. A differentiable geometry module enforces bone length consistency and biologically valid joint angles throughout generation. Training combines anthropomorphic, kinematic, angular, and finger-joint constraints with a contrastive gloss-pose alignment loss and classifier-free guidance for semantically conditioned sampling. Experiments on the PHOENIX14T and CSL-Daily benchmarks show consistent improvements over a strong diffusion baseline in pose accuracy, joint-angle correctness, distributional realism, and back-translation quality. These results demonstrate that physics-informed diffusion improves both motion realism and semantic fidelity for sign language generation.",
+      "authors": [
+        "Emanuele Colonna",
+        "Moises Diaz",
+        "Gennaro Vessio",
+        "Miguel Angel Ferrer",
+        "Giovanna Castellano"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-16T11:01:33+00:00",
+      "link": "https://arxiv.org/pdf/2607.14836v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "generates 3D skeletal motion with joint constraints, relevant to kinematic parameters",
+      "llm_evidence_cn": "生成含关节约束的3D骨骼运动，与运动学参数相关",
+      "llm_evidence": "生成含关节约束的3D骨骼运动，与运动学参数相关",
+      "canonical_evidence": "生成含关节约束的3D骨骼运动，与运动学参数相关",
+      "llm_tldr_en": "PIDiffSign uses physics-informed diffusion to generate biomechanically plausible 3D sign language motion, incorporating anatomical constraints into architecture and training. It addresses bone length drift and joint angle violations.",
+      "llm_tldr_cn": "该论文针对手语生成中骨骼运动不满足生物力学合理性的问题，提出了物理信息扩散模型PIDiffSign，将关节角度约束和骨骼长度约束融入网络架构和训练目标。在连续3D骨骼运动生成中，该方法有效避免了骨骼长度漂移和关节角度违规，生成了更自然的动作序列。这项工作展示了物理约束在3D铰接运动生成中的关键作用。",
+      "llm_tldr": "该论文针对手语生成中骨骼运动不满足生物力学合理性的问题，提出了物理信息扩散模型PIDiffSign，将关节角度约束和骨骼长度约束融入网络架构和训练目标。在连续3D骨骼运动生成中，该方法有效避免了骨骼长度漂移和关节角度违规，生成了更自然的动作序列。这项工作展示了物理约束在3D铰接运动生成中的关键作用。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.09260v1",
+      "source": "arxiv",
+      "title": "AnythingReality: Robust Online Gaussian Splatting SLAM for Open-Vocabulary VR Scene Exploration",
+      "abstract": "We present a novel integrated architecture for robust online 3D Gaussian splatting, real-time VR exploration, and speech-driven Vision-Language-Model interaction. Unlike methods assuming clean depth or external poses, our system combines ORB-SLAM3-based pose estimation with online Gaussian reconstruction for noisy real-world data. A VR pipeline enables immersive exploration of incremental reconstructions; a semantic module transcribes voice commands, generates scene descriptions, and records points of interest. Against state-of-the-art online Gaussian splatting methods, we improve image quality on our dataset (+14.5% PSNR, +8.6% SSIM, -14.3% LPIPS) and TUM-RGBD (+11.7% PSNR, +7.8% SSIM, -21.6% LPIPS), with comparable or superior frame rates via quality-speed configurations. We achieve an 88% VLM object-recognition rate.",
+      "authors": [
+        "Timofei Kozlov",
+        "Dmitrii Maliukov",
+        "Andrey Marchenko",
+        "Miguel Altamirano Cabrera",
+        "Dzmitry Tsetserukou"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-10T10:21:23+00:00",
+      "link": "https://arxiv.org/pdf/2607.09260v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "interactive 3D scene exploration with speech-driven VLM interaction, related to natural language 3D scene generation",
+      "llm_evidence_cn": "通过语音驱动的VLM交互进行交互式三维场景探索，与自然语言三维场景生成相关",
+      "llm_evidence": "通过语音驱动的VLM交互进行交互式三维场景探索，与自然语言三维场景生成相关",
+      "canonical_evidence": "通过语音驱动的VLM交互进行交互式三维场景探索，与自然语言三维场景生成相关",
+      "llm_tldr_en": "AnythingReality combines online Gaussian splatting SLAM with speech-driven VLM for open-vocabulary VR scene exploration, enabling real-time reconstruction and language-based interaction.",
+      "llm_tldr_cn": "该论文提出一个集成系统，结合在线高斯泼溅SLAM和语音驱动的视觉语言模型（VLM），实现实时三维场景重建与自然语言交互。用户可通过语音命令探索场景、生成描述和记录点。虽然侧重于场景建图而非生成，但其VLM驱动的交互能力与基于语言的三维场景构建高度相关，且方法无需预训练即可交互。",
+      "llm_tldr": "该论文提出一个集成系统，结合在线高斯泼溅SLAM和语音驱动的视觉语言模型（VLM），实现实时三维场景重建与自然语言交互。用户可通过语音命令探索场景、生成描述和记录点。虽然侧重于场景建图而非生成，但其VLM驱动的交互能力与基于语言的三维场景构建高度相关，且方法无需预训练即可交互。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "interactive 3d scene generation natural language",
+      "matched_requirement_id": "req-16",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.10370v1",
+      "source": "arxiv",
+      "title": "Neural Motion Blending Across Arbitrary Character Topologies",
+      "abstract": "Motion blending in character animation enables the synthesis of new motions by interpolating between existing examples. Current methods are typically restricted to fixed skeleton topologies, requiring identical or near-identical skeletal structures across characters. We present a novel framework for motion blending across heterogeneous skeletons. The proposed architecture combines a semantic encoder, which extracts per-frame latent representations of the motion state, with a diffusion-based decoder, which reconstructs character-specific motion conditioned on this latent code. At inference, blended motions are obtained by interpolating the latent representations of two input motions. We train and evaluate the method on the Truebones Zoo dataset using motions defined on both same and distinct skeleton topologies, demonstrating the ability to achieve smooth and plausible blending in a variety of scenarios.",
+      "authors": [
+        "Luca Cazzola",
+        "Giulia Martinelli",
+        "Nicola Conci"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.GR"
+      ],
+      "published": "2026-07-11T15:46:13+00:00",
+      "link": "https://arxiv.org/pdf/2607.10370v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "motion blending across heterogeneous skeletons, generating new articulated motions",
+      "llm_evidence_cn": "跨异质骨架的运动混合，生成新铰接运动",
+      "llm_evidence": "跨异质骨架的运动混合，生成新铰接运动",
+      "canonical_evidence": "跨异质骨架的运动混合，生成新铰接运动",
+      "llm_tldr_en": "A framework for motion blending across arbitrary character topologies using a semantic encoder and diffusion-based decoder, enabling synthesis of new articulations.",
+      "llm_tldr_cn": "传统运动混合局限于相同骨架拓扑。该文提出跨异质骨架的神经运动混合框架，采用语义编码器提取运动潜在表示，扩散解码器重建，通过插值潜在表示生成新运动。在Truebones Zoo数据集上验证了其有效性和泛化能力。该方法为铰接物体运动参数生成提供了可迁移的技术路线。",
+      "llm_tldr": "传统运动混合局限于相同骨架拓扑。该文提出跨异质骨架的神经运动混合框架，采用语义编码器提取运动潜在表示，扩散解码器重建，通过插值潜在表示生成新运动。在Truebones Zoo数据集上验证了其有效性和泛化能力。该方法为铰接物体运动参数生成提供了可迁移的技术路线。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.12752v1",
+      "source": "arxiv",
+      "title": "Hallo4D: Multi-Modal Hallucination Mitigation for Consistent Spatio-Temporal Generation",
+      "abstract": "While recent advances in 3D generation have enabled impressive visual synthesis, existing methods often rely on 2D diffusion supervision without explicit mechanisms for geometric consistency, leading to spatial hallucinations such as duplicated structures and misaligned geometry. These issues become more severe in 4D generation, where maintaining consistency across viewpoints and temporal evolution introduces additional challenges, including jitter, identity flicker, and structural drift. We present \\textbf{Hallo4D}, a unified and model-agnostic framework for mitigating spatiotemporal hallucinations in 3D and 4D content generation. Hallo4D introduces a generation-detection-correction paradigm that leverages large multimodal language models (LMMs) to identify and summarize spatial and temporal inconsistencies from multi-view and multi-frame renderings. These insights guide a consensus-driven image-space consistency optimization, where an LMM-based selector evaluates candidate corrections through multi-model voting, without requiring retraining or architectural modifications. To further improve temporal consistency and optimization efficiency, Hallo4D incorporates motion-aware keyframe sampling, LMM-guided initialization, and appearance alignment. We additionally introduce exposure-aware optimization and visibility pruning to enhance robustness under challenging viewpoints. Extensive experiments demonstrate that Hallo4D consistently outperforms strong baselines across diverse 3D and 4D generation settings, providing a scalable and generalizable solution for consistency-aware content generation.",
+      "authors": [
+        "Hongbo Wang",
+        "Huaibo Huang",
+        "Jie Cao",
+        "Jin Liu",
+        "Haoyang Tong",
+        "Ran He"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-07-14T13:19:06+00:00",
+      "link": "https://arxiv.org/pdf/2607.12752v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "uses large multimodal language model to improve consistency in 3D/4D generation",
+      "llm_evidence_cn": "利用多模态大语言模型提升3D/4D生成一致性",
+      "llm_evidence": "利用多模态大语言模型提升3D/4D生成一致性",
+      "canonical_evidence": "利用多模态大语言模型提升3D/4D生成一致性",
+      "llm_tldr_en": "Hallo4D mitigates spatial and temporal hallucinations in 3D/4D generation using a generation-detection-correction pipeline with large multimodal language models, improving geometric consistency and temporal stability.",
+      "llm_tldr_cn": "针对3D/4D内容生成中由于缺乏几何一致性导致的空间和时间幻觉问题，提出Hallo4D框架，采用生成-检测-纠正范式，利用多模态大语言模型进行错误识别和修复。实验表明该方法能有效减少重复结构、身份闪烁与结构漂移，显著提升生成内容在视角和时间上的稳定性。该框架为生成高保真动态3D场景提供了新思路。",
+      "llm_tldr": "针对3D/4D内容生成中由于缺乏几何一致性导致的空间和时间幻觉问题，提出Hallo4D框架，采用生成-检测-纠正范式，利用多模态大语言模型进行错误识别和修复。实验表明该方法能有效减少重复结构、身份闪烁与结构漂移，显著提升生成内容在视角和时间上的稳定性。该框架为生成高保真动态3D场景提供了新思路。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.11498v1",
+      "source": "arxiv",
+      "title": "See like a Robot: Robot-Centric Pointmaps for Vision-Language-Action Models",
+      "abstract": "Vision-language-action (VLA) models predict robot actions from visual observations and language instructions. These actions are defined in the robot's own 3D coordinate frame, yet most VLAs observe the scene in the camera frame, creating a frame mismatch between where the scene is observed and where actions are defined. The mismatch is benign under a fixed viewpoint, where the policy can memorize a single observation-to-action mapping, but grows harder as large-scale datasets aggregate demonstrations across diverse camera setups and the policy must generalize this mapping across viewpoints. We address this mismatch with robot-centric pointmaps, images whose pixels store the 3D coordinates of scene points in the robot frame. Pointmaps provide robot-frame 3D geometry while preserving the dense H x W grid expected by pretrained 2D VLAs, so they integrate into existing VLAs with minimal architectural change. On RoboCasa, pointmaps improve both pi0.5 and SmolVLA and outperform representative camera-viewpoint and 3D-aware baselines. In real-robot experiments, their advantage over an RGB-only policy widens when the camera is moved to a placement unseen during training.",
+      "authors": [
+        "Byungkun Lee",
+        "Dongyoon Hwang",
+        "Dongjin Kim",
+        "Hojoon Lee",
+        "Minho Park",
+        "Jaegul Choo"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-07-13T12:50:32+00:00",
+      "link": "https://arxiv.org/pdf/2607.11498v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "robot-centric pointmaps provide 3D scene coordinates in robot frame, enabling action prediction from visual data, relevant to learning kinematic parameters from visual data",
+      "llm_evidence_cn": "机器人中心点图提供机器人坐标系下的三维场景坐标，可从视觉数据预测动作，与从视觉数据学习运动学参数相关",
+      "llm_evidence": "机器人中心点图提供机器人坐标系下的三维场景坐标，可从视觉数据预测动作，与从视觉数据学习运动学参数相关",
+      "canonical_evidence": "机器人中心点图提供机器人坐标系下的三维场景坐标，可从视觉数据预测动作，与从视觉数据学习运动学参数相关",
+      "llm_tldr_en": "Proposes robot-centric pointmaps to align observation and action frames in VLA models, improving generalization across viewpoints and enabling more robust robot control.",
+      "llm_tldr_cn": "本文针对视觉-语言-动作模型中的观察帧与动作帧不匹配问题，提出机器人中心点图，将每个像素存储场景点在机器人坐标系下的三维坐标。该表示强制模型从机器人视角推理，消除了视角歧义，使策略能够跨不同相机设置泛化。在多个机器人操作基准上，该方法显著提升了任务成功率和泛化能力。虽未直接预测运动学参数，但其点图表示可视为隐式编码了场景的几何与拓扑，为从视觉数据推断机器人运动学提供了中间表征。",
+      "llm_tldr": "本文针对视觉-语言-动作模型中的观察帧与动作帧不匹配问题，提出机器人中心点图，将每个像素存储场景点在机器人坐标系下的三维坐标。该表示强制模型从机器人视角推理，消除了视角歧义，使策略能够跨不同相机设置泛化。在多个机器人操作基准上，该方法显著提升了任务成功率和泛化能力。虽未直接预测运动学参数，但其点图表示可视为隐式编码了场景的几何与拓扑，为从视觉数据推断机器人运动学提供了中间表征。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.14842v1",
+      "source": "arxiv",
+      "title": "KineFuse: Kinematic-Aware Haptic Fusion for In-Hand Occluded-Object Pose Tracking",
+      "abstract": "Dexterous in-hand manipulation requires continuous 6D pose tracking, yet the manipulating fingers inevitably occlude the object from the camera. We study how to structure the sparse haptic signals already available on multi-fingered hands, including proprioception, proximal force/torque, and binary contact, to complement a pretrained visual pose tracker under occlusion. We propose a kinematic-aware finger-level encoder and systematically compare it against four alternative designs through three levels of evaluation: per-frame refinement, sequential open-loop tracking, and closed-loop manipulation. Our experiments reveal that (i) per-frame evaluation cannot distinguish encoder quality, while sequential tracking amplifies architectural differences by up to 15 times; (ii) the structured encoder learns task-specific cross-modal gating, using vision exclusively for translation and dedicating one attention head to haptics for rotation, without explicit supervision; and (iii) compact finger-level tokenization with 4 tokens outperforms both flat fusion and joint-level representations, which suppress vision through norm dominance. We validate that improved tracking yields higher success in a downstream reorientation task and provide qualitative real-world demonstrations. Our project page is available at https://cold-young.github.io/kine-fuse/.",
+      "authors": [
+        "Chanyoung Ahn",
+        "Jaesung Lee",
+        "Sungwoo Park",
+        "Donghyun Hwang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-16T11:07:47+00:00",
+      "link": "https://arxiv.org/pdf/2607.14842v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "uses kinematic-aware encoder for object pose tracking, relevant to learning kinematic parameters from visual/haptic data",
+      "llm_evidence_cn": "使用运动学感知编码器进行物体姿态跟踪，与从视觉触觉数据学习运动学参数相关",
+      "llm_evidence": "使用运动学感知编码器进行物体姿态跟踪，与从视觉触觉数据学习运动学参数相关",
+      "canonical_evidence": "使用运动学感知编码器进行物体姿态跟踪，与从视觉触觉数据学习运动学参数相关",
+      "llm_tldr_en": "KineFuse proposes a kinematic-aware finger-level encoder to fuse haptic signals for in-hand occluded object 6D pose tracking, demonstrating that sequential tracking amplifies architectural differences.",
+      "llm_tldr_cn": "该论文研究如何利用触觉信号辅助视觉在遮挡下追踪手持物体的6D位姿，提出了运动学感知的手指级编码器。实验表明，在连续跟踪中运动学编码器显著优于其他设计，能够更好地利用运动学约束估计物体姿态。这项工作为从多模态数据学习铰接系统运动学参数提供了方法借鉴。",
+      "llm_tldr": "该论文研究如何利用触觉信号辅助视觉在遮挡下追踪手持物体的6D位姿，提出了运动学感知的手指级编码器。实验表明，在连续跟踪中运动学编码器显著优于其他设计，能够更好地利用运动学约束估计物体姿态。这项工作为从多模态数据学习铰接系统运动学参数提供了方法借鉴。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.14005v1",
+      "source": "arxiv",
+      "title": "M$^\\text{4}$World: A Multi-view Multimodal Driving World Model for Interactive Object Manipulation and Minute-long Streaming",
+      "abstract": "Driving-world generation has emerged as a core capability for scalable autonomous-driving simulation, yet existing methods remain limited in object-level controllability and long-horizon stability. We present M$^\\text{4}$World, a Multi-view and Multimodal generative driving world model that synthesizes future surround-view video streams and synchronized LiDAR scans while supporting interactive object Manipulation and stable Minute-long streaming. Fine-grained object manipulation is realized through a flexible conditioning interface that supports explicit control over both the spatial layout and visual appearance of individual objects. Stable minute-long streaming, on the other hand, is achieved through a multi-stage training framework that enables online causal generation in only four denoising steps while maintaining coherent world dynamics throughout extended rollouts. Building on these components, we introduce an efficient few-clip post-training as well as a suite of visual reference-conditioned generation models, preserving general generation ability while allowing rare-case customization for long-tail controllability. To assess controllability beyond realism, we further introduce an automated VLM-based judging pipeline that evaluates scene-level condition adherence, view-wise object controllability, and cross-view object consistency. Comprehensive experiments show that M$^\\text{4}$World consistently delivers high generation quality, precise controllability, and stable minute-long streaming. Together with downstream long-tail augmentation and scene editing, these results demonstrate the potential of M$^\\text{4}$World for controllable, scalable driving simulation.",
+      "authors": [
+        "Ke Cheng",
+        "Hanqiao Ye",
+        "Lei Shi",
+        "Yahui Liu",
+        "Yunhan Shen",
+        "Jingtao Dong",
+        "Zhenke Wang",
+        "Wenxuan Ao",
+        "Weixiang Xu",
+        "Kaining Huang",
+        "Shuhan Shen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-07-15T16:36:33+00:00",
+      "link": "https://arxiv.org/pdf/2607.14005v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "multi-view multimodal driving world model with interactive object manipulation",
+      "llm_evidence_cn": "多视图多模态驾驶世界模型，支持交互式对象操控",
+      "llm_evidence": "多视图多模态驾驶世界模型，支持交互式对象操控",
+      "canonical_evidence": "多视图多模态驾驶世界模型，支持交互式对象操控",
+      "llm_tldr_en": "M4World synthesizes surround-view videos and LiDAR scans with interactive object manipulation and stable long streams for autonomous driving simulation.",
+      "llm_tldr_cn": "自动驾驶仿真需要可交互且稳定的世界模型。M4World提出多视图多模态生成模型，支持细粒度对象操控和分钟级稳定流式生成。通过灵活条件接口控制对象布局和外观，采用渐进式生成策略保证长期一致性。实验证明其在高保真仿真和交互可控性方面的优势。",
+      "llm_tldr": "自动驾驶仿真需要可交互且稳定的世界模型。M4World提出多视图多模态生成模型，支持细粒度对象操控和分钟级稳定流式生成。通过灵活条件接口控制对象布局和外观，采用渐进式生成策略保证长期一致性。实验证明其在高保真仿真和交互可控性方面的优势。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.14927v1",
+      "source": "arxiv",
+      "title": "TanGO: Training-Free 3D Editing via Tangent-Space Guidance and Optimization",
+      "abstract": "While recent flow-matching 3D generative models (e.g., VecSet) adopt structured representations, their tokens share global context, causing conventional training-free editing to suffer from semantic artifacts such as collapsed preserved regions or incomplete transformations. To address this, we propose TanGO, a training-free framework that enables adaptive per-token steering in the tangent space of generative dynamics. To realize this selective control, we formulate a one-step optimal control rule and determine the strength of each token's control signal using a von Mises-Fisher inspired directional discrepancy derived from the source and target velocity fields. Experiments show that TanGO substantially reduces structural artifacts and achieves state-of-the-art performance, outperforming existing 3D editing baselines. The code is publicly available at https://github.com/siw00-lim/TanGO.",
+      "authors": [
+        "Siwoo Lim",
+        "Sunjae Yoon",
+        "Gwanhyeong Koo",
+        "Hyeonseo Yun",
+        "Chang D. Yoo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-16T12:42:50+00:00",
+      "link": "https://arxiv.org/pdf/2607.14927v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "training-free 3D editing method with text guidance",
+      "llm_evidence_cn": "无训练三维编辑方法，使用文本引导",
+      "llm_evidence": "无训练三维编辑方法，使用文本引导",
+      "canonical_evidence": "无训练三维编辑方法，使用文本引导",
+      "llm_tldr_en": "TanGO is a training-free framework for 3D editing that uses tangent-space guidance to steer generative dynamics, enabling selective per-token control to reduce artifacts.",
+      "llm_tldr_cn": "TanGO是一个无训练的3D编辑框架。针对现有训练-free编辑方法产生语义伪影的问题，它提出在生成动力学的切空间中进行逐token自适应控制。该方法基于最优控制规则和von Mises-Fisher方向差异来确定控制强度。实验表明，TanGO能显著减少结构伪影并保持编辑保真度，为无训练3D场景编辑提供了新思路。",
+      "llm_tldr": "TanGO是一个无训练的3D编辑框架。针对现有训练-free编辑方法产生语义伪影的问题，它提出在生成动力学的切空间中进行逐token自适应控制。该方法基于最优控制规则和von Mises-Fisher方向差异来确定控制强度。实验表明，TanGO能显著减少结构伪影并保持编辑保真度，为无训练3D场景编辑提供了新思路。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "training free 3d scene generation method",
+      "matched_requirement_id": "req-13",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

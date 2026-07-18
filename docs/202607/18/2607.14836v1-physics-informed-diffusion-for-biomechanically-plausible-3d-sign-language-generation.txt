@@ -1,0 +1,571 @@
+Title: Physics-Informed Diffusion for Biomechanically Plausible 3D Sign Language Generation
+
+URL Source: https://arxiv.org/pdf/2607.14836v1
+
+Published Time: Fri, 17 Jul 2026 01:02:36 GMT
+
+Number of Pages: 23
+
+Markdown Content:
+# Physics-Informed Diffusion for Biomechanically Plausible 3D Sign Language Generation 
+
+Emanuele Colonna a, Moises Diaz b, Gennaro Vessio a, Miguel Angel Ferrer b,Giovanna Castellano a
+
+> aDepartment of Computer Science, University of Bari Aldo Moro, Bari, Italy
+> bInstitute for Technological Development and Innovation in Communications, University of Las Palmas de Gran Canaria, Las Palmas de Gran Canaria, Spain
+
+Abstract 
+
+Sign language production, which generates continuous 3D skeletal motion from spoken language input, must simultaneously satisfy two constraints: semantic fidelity, so that a deaf viewer can recognize the intended sequence of glosses, and biomechanical plausibility, so that the generated skeleton respects anatomi-cal constraints. Existing approaches optimize semantic reconstruction through coordinate-based objectives that treat the skeleton as an unstructured vector, thus allowing for bone length drift, joint angle violations, and temporarily locked fingers. We introduce PIDiffSign, a physics-informed diffusion model for gloss-to-pose translation that incorporates anatomical constraints into both the architecture and training objective. The model uses a Transformer encoder-decoder, where the decoder is conditioned on the diffusion time step through adaptive zero-initialized layer normalization and cross-attends to gloss repre-sentations. A differentiable geometry module enforces bone length consistency and biologically valid joint angles throughout generation. Training combines anthropomorphic, kinematic, angular, and finger-joint constraints with a con-trastive gloss-pose alignment loss and classifier-free guidance for semantically conditioned sampling. Experiments on the PHOENIX14T and CSL-Daily bench-marks show consistent improvements over a strong diffusion baseline in pose accuracy, joint-angle correctness, distributional realism, and back-translation quality. These results demonstrate that physics-informed diffusion improves both motion realism and semantic fidelity for sign language generation. 
+
+Keywords: Sign Language Production, Diffusion Models, Physics-Informed Learning, Human Motion Synthesis, Cross-Modal Representation Learning 
+
+1. Introduction 
+
+Sign languages are fully fledged natural languages used by an estimated 70 million deaf and hard-of-hearing individuals worldwide. They are expressed not through sound but through a tightly coupled choreography of manual articulators (hands, arms, torso) and non-manual ones (facial expression, mouth morphemes, arXiv:2607.14836v1 [cs.CV] 16 Jul 2026 gaze), evolving in continuous 3-D space with a temporal grammar that differs fundamentally from that of spoken languages. Over the last decade, the Sign Lan-guage Recognition and Translation community [ 1, 2] has developed increasingly reliable pipelines for mapping sign videos to spoken language text, a progress systematically charted in the recent pattern recognition literature [ 3]. The oppo-site direction, namely Sign Language Production (SLP), remains substantially more challenging. SLP aims to generate continuous, visually intelligible signed motion from spoken-language content and represents the final, most visually critical stage of an end-to-end accessibility pipeline. In practical multimodal accessibility systems, spoken utterances are first transcribed using automatic speech recognition and then converted into gloss sequences via text-to-gloss modules [ 4, 5]. The final step is to transform these linguistic representations into continuous 3-D signed motion that deaf users can directly understand. From a multimodal generative modeling perspective, SLP is therefore a cross-modal audio-visual generation task: it maps a discrete linguistic modality (glosses derived from speech or text) to a continuous visual modality (3-D skeletal motion), placing it within the broader paradigm of multimodal perception and visual generation. SLP is more challenging than text generation or generic motion synthesis because it requires two type of orthogonal constraints. First, the generated motion must preserve meaning: the resulting trajectory has to be recognizable as the intended sequence of glosses (both by a deaf observer or a back-translation system [ 6]) despite co-articulation, signer variability, and the complex mapping between glosses and motion. Second, the motion must respect physical limits. This requires constant bone lengths over time, joint angles within biological boundaries, active finger articulation (avoiding collapse toward static mean poses), and smooth trajectories suitable for the human visual system. Failing to meet either constraint compromises the usability of the output: signs violating anatomical limits are hard to interpret [ 7], while valid but ambiguous motions fail to convey the intended message [8]. Most existing SLP systems primarily optimize for semantic reconstruction while only implicitly modelling physical plausibility. Progressive Transform-ers [ 6], mixture-density extensions [ 9], adversarial approaches [ 10 ], and non-autoregressive variants [ 11 ] regress 3-D pose sequences using coordinate-wise MSE objectives that treat the skeleton as an unstructured vector in RT ×J×C
+
+(time steps × joints × spatial coordinates). More recent diffusion-based ap-proaches [ 12 , 13 , 14 ] substantially improve frame-level realism, but still inherit the same underlying assumption: anatomical structure is expected to emerge implicitly from data rather than being explicitly enforced. As a consequence, the failure modes most frequently identified by deaf users as detrimental to sign comprehensibility persist, including bone-length drift, hyperextended elbows, frozen fingers, and high-frequency motion jitter [ 9]. Even the recent iconicity-aware diffusion framework Sign-IDD [ 15 ] (where iconicity denotes the visual resemblance between a sign’s form and the concept it represents) injects skeletal structure only at the input level through disentangled bone orientation and length features, while leaving the optimization objective and the final denoising 2process agnostic to the geometry of the human body. We argue that sign language production should not be formulated as an unconstrained coordinate-regression problem, but rather as constrained genera-tion over the manifold of anatomically feasible human motion. This perspective closely parallels the conceptual shift introduced by Physics-Informed Neural Networks (PINNs) [ 16 , 17 ], where known physical principles are embedded di-rectly into the optimization process instead of being implicitly rediscovered from data alone. In our setting, the “physics” are not partial differential equations, but differentiable biomechanical priors governing human articulation, including bone-length conservation, joint-angle limits, smooth kinematics, and articulated finger motion. These constraints are enforced through both the training objective and a differentiable geometric refinement module operating end-to-end within the generative process. Concretely, we present PIDiffSign, a physics-informed denoising diffusion model for gloss-to-pose translation. Our contributions are: 1. We recast sign production as constrained generation on the manifold of anatomically valid motions, and inject biomechanical priors at every stage of the pipeline: the input representation (iconicity-aware bone disentangle-ment [ 15 ]), the Transformer backbone [ 18 , 19 ] with AdaLN-Zero timestep conditioning [ 19 ], the training objective, and the sampling procedure through Classifier-Free Guidance [ 20 ]. To the best of our knowledge, this is the first end-to-end physics-informed diffusion framework for sign language production. 2. A lightweight two-stage module that applies gated bone-length correction and Rodrigues-based [ 21 ] angular clipping to every predictions. The module acts both as a structural inductive bias during training and as a hard-constraint projector during inference. 3. A simulator-free objective combining anthropomorphic, angular, kinematic, wrist-relative finger articulation, and finger-motion regularization terms, each targeting a specific failure mode observed in MSE-only SLP systems. 4. A symmetric InfoNCE [ 22 , 23 ] objective operating between pooled encoder and decoder representations projected onto a shared 512 -D hypersphere, explicitly encouraging semantically discriminative pose trajectories. 5. PIDiffSign consistently outperforms the baseline in terms of DTW, FID, MPJAE, and back-translation BLEU-4 on both benchmarks (and MPJPE on PHOENIX14T), while ablation studies reveal a structured tradeoff between semantic fidelity and biomechanical regularization. The remainder of this paper is organized as follows. Section 2 reviews related work. Section 3 presents the PIDiffSign framework. Section 4 reports experiments and ablation studies. Section 5 discusses findings and limitations. Finally, Section 6 concludes the paper. 32. Related Work 
+
+PIDiffSign draws on four lines of work: sign language production, diffusion-based motion synthesis, physics-informed neural networks, and cross-modal contrastive alignment. We review each in turn, focusing on why existing methods fail to guarantee anatomically valid poses. 
+
+2.1. Sign Language Production: From Rule-Based Systems to Diffusion Models 
+
+Sign language production has evolved through three generations. Rule-based avatar animation [ 7] guarantees skeletal validity by construction but is confined to a fixed lexicon and produces unnatural co-articulation at sign bound-aries [ 8]. Data-driven regression removed the lexicon constraint: Progressive Transformers [ 6] first mapped glosses to continuous 3-D joint trajectories on PHOENIX14T and established the back-translation protocol—BLEU-4 and WER of an SLT model [ 1] on generated poses—that remains the field standard, with later work adding mixture-density outputs [ 9], adversarial training [ 10 ], and non-autoregressive decoding [ 11 ]. All minimize a coordinate-wise ℓ2 loss over the skeleton as an unstructured vector in RT ×J×C , with no bone-length, joint-angle, or kinematic term; anatomy must be recovered from data alone, and the resulting bone-length drift, hyperextended elbows, and frozen fingers are exactly the artifacts deaf evaluators rate most damaging to comprehensibility [ 8]. Diffusion models replaced regression to capture the multi-modal nature of signed motion. Neural Sign Actors [ 12 ] generate SMPL-X [ 24 ] motion from free-form text; SignDiff [ 13 ] and SignLLM [ 14 ] condition on glosses and language-model features; Sign-IDD [ 15 ] encodes bone orientation and length as separate input channels. All inherit the regression-era gap: the loss stays agnostic to skeleton geometry, and no architectural mechanism prevents denoising from producing infeasible poses. PIDiffSign closes both. 
+
+2.2. Diffusion Models for Human Motion Synthesis 
+
+Skeleton sequences have a long discriminative tradition in pattern recognition, most notably in action recognition [ 25 ]; diffusion models have recently made their generation equally tractable. DDPMs [ 26 ] define the forward process and objective underlying skeleton-based generative pipelines, refined by the cosine noise schedule [ 27 ] and the deterministic DDIM sampler [ 28 ] for fast inference without retraining. Transformer backbones with AdaLN-Zero conditioning outperform U-Nets at scale [ 19 ], and Classifier-Free Guidance [ 20 ] is the standard mechanism for label-conditioned generation. For motion synthesis, MDM [ 29 ] and MotionDiffuse [ 30 ] show that Trans-former denoisers handle variable-length skeletal sequences and that geometric priors in the loss improve realism, in line with evidence from video-based pose estimation that explicitly modeling inter-frame joint kinematics improves tem-poral coherence [ 31 ]. Yet neither enforces hard anatomical constraints: bone lengths drift, joint angles exceed biological ranges, and finger dynamics collapse toward the mean. Such artifacts are tolerable for locomotion, where visual 4plausibility suffices, but disqualifying for sign language, where hand shape carries the semantics. PhysDiff [ 32 ] is closest to our physics motivation, interleaving denoising steps with a rigid-body simulator to enforce foot contact and gravity. Three properties block its use here: the non-differentiable simulator breaks gradient flow, so constraints guide inference but not training; the engine models whole-body locomotion, not the fine-grained joint-angle bounds of finger articulation; and its contact-and-gravity prior is meaningless for the isolated upper body. Our Geometric Refiner instead applies gated bone-length correction and Rodrigues-based angular clipping as a differentiable step inside the forward pass, propagating biomechanical constraints through every training gradient without an external engine and across arbitrary upper-body skeletons, hands included. 
+
+2.3. Physics-Informed Neural Networks 
+
+Physics-Informed Neural Networks [ 16 ] embed the residuals of governing PDEs directly in the training loss, replacing simulation-based supervision with a differentiable penalty evaluated through automatic differentiation, and treat forward and inverse problems within one framework [ 17 ]. The paradigm has since moved beyond mechanics and fluid dynamics to biomedical settings where the governing equations are only partially known and coupled with sparse observations [33]. The common principle is that analytically known constraints need not be re-learned from data: encoded as soft residual penalties, they steer the network toward feasible solutions from the first gradient step and can improve out-of-distribution generalization. We transfer this principle to biomechanics, where the governing relations are inequality constraints on joint angles, a bone-length conservation law, second-order kinematic smoothness, and finger-articulation regularity. None are PDEs, yet all are expressible as differentiable residuals on every predicted clean frame, making PIDiffSign the first PINN-inspired framework for structured upper-body motion synthesis in sign language. 
+
+2.4. Contrastive Cross-Modal Alignment 
+
+Contrastive learning is the dominant tool for aligning heterogeneous modali-ties in a shared space. InfoNCE [ 22 ] maximizes a lower bound on mutual informa-tion by scoring each positive pair against in-batch negatives, and CLIP [ 23 ] scaled a symmetric variant to web-scale image–text data, projecting each modality onto a shared unit hypersphere aligned through temperature-scaled cross-entropy over cosine similarities. In sign language, such alignment underpins recognition and translation [ 1, 2], but no SLP work has applied it between the gloss encoder and pose decoder of a diffusion model. Our Gloss-Pose Alignment head does so: mean-pooled encoder and decoder representations are projected onto a shared 
+
+512 -D unit hypersphere under a symmetric InfoNCE loss, rewarding pose latents that separate across glosses without supervision beyond the standard gloss-pose pairs. 5hidden states    
+
+> Times
+> am tag im süden und ...
+> dichte nebelfelder
+> Pose
+> Pose Refined
+> Geometric
+> Refiner
+> Target Pose Noise Pose
+> t∈[0, T]
+> Normal
+> Distribution
+> AdaLN-Zero
+> Denoiser
+> Gloss
+> Embedding
+> Transformer
+> Decoder
+> Gloss
+> Encoder
+> InfoNCE
+> Gloss-Pose
+> Aligment
+> Pose
+> Encoder
+> Text
+
+Figure 1: Overview of the PIDiffSign framework. The gloss encoder conditions the AdaLN-Zero-modulated diffusion decoder Dpose via cross-attention; the predicted clean pose ˜P is projected onto anatomically valid configurations by the differentiable Geometric Refiner Rgeo 
+
+(gated bone-length correction and Rodrigues angular clipping), yielding ˆx0. Training combines the physics-informed loss Ltotal with the InfoNCE Gloss-Pose Alignment head; inference uses DDIM sampling. 
+
+3. Method 
+
+We cast sign language production as a constrained conditional generation problem over the manifold of anatomically valid human motions. Table 1, at the end of this section, summarizes the mathematical notation used throughout the paper. 
+
+3.1. Problem Formulation 
+
+Glosses are the atomic linguistic units of sign language, analogous to words in spoken language: each gloss label (e.g., weather , today ) corresponds to a canonical sign, and a sentence is represented as an ordered sequence of such labels. The SLP task maps a gloss sentence to a temporally coherent 3-D skeletal motion that a deaf viewer would recognize as the intended utterance. Formally, let g = ( g1, . . . , g S ) be a gloss token sequence of length S, drawn from a vocabulary V, and let x0 ∈ RT ×J×C be the corresponding ground-truth pose sequence with T frames, J= 50 joints, and C=3 spatial coordinates. The 50 -joint skeleton is the standard upper-body layout produced by OpenPose [ 34 ] and covers the head, torso, arms, and both hands (8 body joints + 2×21 hand joints). Specifically, joints 0–7 cover the head and torso; joints 8–28 correspond to the left hand (root at joint 8, five fingers of four joints each); joints 29–49 correspond to the right hand (root at joint 29). We write B for the set of parent-child bones of this skeleton, i.e. the directed edges (jp, j c) of the kinematic tree that link a parent joint jp to its child joint jc, and |B| for the number of such bones. A binary mask M ∈ { 0, 1}B×T marks valid (non-padding) frames within a batch of B samples. The SLP task is to learn a conditional distribution pθ (x0 | g)
+
+such that samples drawn from it are simultaneously semantically faithful to 
+
+g and anatomically consistent with the human skeleton. We use (θ(k)min , θ (k)max )
+
+62.0 1.5 1.0 0.5 0.0 0.5 1.0 1.5 2.0                      
+
+> x
+> 1.2
+> 1.4
+> 1.6
+> 1.8
+> 2.0
+> 2.2
+> 2.4
+> y
+> Hug Pose Rotation Sectors
+> 3D rotation (arm/shoulder/elbow)
+> 2D rotation (wrist/finger joints)
+> Body keypoints (0 7)
+> Left hand kpts (8 28)
+> Right hand kpts (29 49)
+> 025 50 75 100 125 150 175 200
+> Angle (degrees)
+> Shoulders
+> Elbows
+> Forearm/Wrist
+> Wrist-Hand
+> Thumb MCP
+> Thumb PIP/DIP
+> Index MCP
+> Index PIP/DIP
+> Mid/Ring/Pinky MCP
+> Mid/Ring/Pinky PIP/DIP
+> 45° 170° 125°
+> 30° 175° 145°
+> 30° 180° 150°
+> 100° 180° 80°
+> 60° 180° 120°
+> 50° 180° 130°
+> 70° 180° 110°
+> 40° 180° 140°
+> 70° 180° 110°
+> 40° 180° 140°
+> 90° 180°
+> 3D
+> 2D
+> Joint Angle Constraints
+> (3D arms top / 2D fingers bottom)
+> PIDiffSign Motion Constraints (Hug Pose)
+
+Figure 2: Skeleton topology and joint-angle constraints adopted in PIDiffSign. Each coloured arc represents one of the K=43 anatomical triplets (ak , b k , c k ) for which biological angle ranges 
+
+[θ(k)min , θ (k)max ] are enforced by the angular loss Lang and the Rodrigues-based clipping stage of the Geometric Refiner. 
+
+to denote the biological range of the k-th anatomical joint angle, for K=43 
+
+triplets (ak, b k, c k) that enumerate all adjacent joint pairs forming an articulated angle: 4 shoulder/elbow triplets per arm, 1 wrist triplet per arm, and 3 triplets per finger chain ( 5 fingers × 2 hands). These ranges correspond to well-known anatomical limits of human articulation and are treated as fixed constraints throughout training and inference. Representative values include: elbow (30 , 175) ;metacarpo-phalangeal joints (70 , 180) ; proximal and distal interphalangeal joints 
+
+(40 , 180) ; thumb base (60 , 180) . Figure 2 illustrates the skeleton topology and the joint-angle triplets used by the Geometric Refiner and the angular loss. 
+
+3.2. Denoising Diffusion Framework 
+
+Our generative core follows the variance-preserving DDPM formulation [ 26 ], in which a forward Gaussian process gradually corrupts the ground-truth pose sequence, 
+
+q(xt | x0) = N  xt; √¯αt x0, (1 − ¯αt)I , (1) where ¯αt ∈ (0 , 1) is the cumulative signal-retention coefficient of the cosine noise schedule of [ 27 ] (decreasing monotonically from ¯αt ≈ 1 at t= 0 to ¯αt ≈ 0 at t=Td), I
+
+is the identity matrix, and Td=1000 is the number of training timesteps. Sample clipping inside the scheduler is disabled because, after per-joint standardization, pose coordinates are not confined to [−1, 1] .Rather than the standard ϵ-parameterization, the network fθ (xt, t, g) predicts the clean sample ˆx0 directly. Because the physics-informed terms in Section 3.4 are defined on joint positions, angles, and velocities, x0-prediction evaluates them at every training step without the numerically unstable back-computation 
+
+ˆx0 = ( xt − √1 − ¯αt ˆϵ)/√¯αt required under noise prediction, and it makes the differentiable Geometric Refiner of Section 3.3 a terminal operation of the denoiser, so that every emitted sample is an anatomically projected pose at both 7training and inference time. The base denoising objective is a frame-masked ℓ2
+
+loss on x0,
+
+Ldiff = Ex0, t ∼U{ 1,...,T d}, xt∼q(·| x0)
+
+" P  
+
+> b,τ
+
+Mbτ fθ (xt, t, g)bτ − (x0)bτ 
+
+> 22
+
+P 
+
+> b,τ
+
+Mbτ · J · C + ε
+
+#
+
+, (2) where Mbτ marks the validity of frame τ and ε = 10 −8. Sentences in both PHOENIX14T and CSL-Daily span widely different durations ( T up to 300 
+
+frames), and averaging over padding frames would dilute the supervision signal on shorter clips; the mask is thus a property of the data, and on fixed-length sequences it reduces to a uniform per-sample normalization. At inference we use DDIM [ 28 ] with η=0 (deterministic sampling) and 50 steps, a 20 × speed-up over the full DDPM trajectory at negligible quality loss; combined with Classifier-Free Guidance (Section 3.6), each step performs two forward passes of fθ .
+
+3.3. Encoder-Decoder Architecture with Geometric Refinement 
+
+The denoiser is an encoder-decoder model fθ = ( Egloss , Dpose , Rgeo ), compris-ing a gloss encoder Egloss , a diffusion decoder Dpose with AdaLN-Zero timestep conditioning, and a differentiable Geometric Refiner Rgeo . All hidden represen-tations use d=512 , h=8 attention heads, N = 6 layers, and GELU feed-forward blocks of width 2048 .The gloss encoder embeds each gloss token via a learned lookup, sums in sinusoidal positional encodings, and processes the result with N standard Trans-former encoder layers [ 18 ], yielding Egloss ∈ RB×S×d. The padding embedding is explicitly zeroed so that, under Classifier-Free Guidance (Section 3.6), the null-gloss condition corresponds to a numerically well-behaved input rather than an all-zero key matrix in the cross-attention. On the pose side, the two physically meaningful scalar fields of the skeleton are exposed directly to the network. Drawing on the iconicity disentanglement of Sign-IDD [ 15 ], every parent–child bone (jp, j c) ∈ B in the skeleton graph (Section 3.1) is encoded as 
+
+bpc =  x(c) 
+
+> t
+
+, x(p) 
+
+> t
+
+− x(c) 
+
+> t
+
+, ˆupc 
+
+ ∈ R7, ˆupc = x(p) 
+
+> t
+
+− x(c)
+
+> t
+
+x(p) 
+
+> t
+
+− x(c) 
+
+> t
+
++ ϵ, (3) where ϵ = 10 −8 guards against division by zero. The per-bone vectors are concatenated across the |B| bones into an input of dimension 7|B| , so the first linear layer receives bone length and direction explicitly; when this iconicity-aware representation is disabled, the denoiser falls back to the plain J · C-dimensional input. The noisy pose tokens, after linear projection to d dimensions and addition of learned sinusoidal positional embeddings P ∈ R1×Tmax ×d, are conditioned on the diffusion timestep t through AdaLN-Zero [ 19 ]. A sinusoidal embedding ϕ(t)
+
+is mapped by a two-layer MLP with Mish activation to a conditioning vector 8ct ∈ RB×d, which modulates the pose tokens through a zero-initialized linear projection, 
+
+AdaLN -Zero( z, ct) = LayerNorm( z) ⊙  1 + scale( ct) + shift( ct), (4) where ⊙ denotes elementwise (Hadamard) multiplication, and scale and shift 
+
+share a zero-initialized linear map Wmod : Rd → R2d. The zero initialization makes the module act as the identity at t= 0, so that the backbone and the attached geometric post-processor do not compete for the early gradient signal. In contrast to several prior motion-diffusion designs [ 29 , 30 ], we avoid injecting 
+
+ct into the cross-attention memory: keeping the gloss encoding invariant to t
+
+preserves the linguistic signal across denoising steps and avoids noise-dependent representational drift. The AdaLN-modulated tokens are processed by N Trans-former decoder layers with self-attention over pose frames and cross-attention over Egloss , using padding masks derived from source and target lengths. Hidden states are softly clipped to [−30 , 30] at the decoder output to bound activations in the high-noise tails of the schedule. The final decoder hidden states H ∈ RB×T ×d
+
+are projected to a raw 3-D pose estimate ˜P = Wout H ∈ RB×T ×J×C by a linear head. The Geometric Refiner Rgeo then turns this raw estimate into the final anatomical prediction ˆx0 through two gated correction stages, with gates 
+
+glen , g ang ∈ [0 , 1] implemented as learnable scalars clamped to the unit interval. The first stage enforces bone-length consistency: for every bone (jp, j c) ∈ B 
+
+we learn a reference length ℓb = softplus (rb) from an unconstrained per-bone parameter rb (the softplus keeping ℓb strictly positive) and shift the child joint along the bone direction toward it, 
+
+j′ 
+
+> c
+
+= jp + jc − jp
+
+∥jc − jp∥ + ϵ ·  ∥jc − jp∥ + glen 
+
+ ℓb − ∥ jc − jp∥  , (5) so that at glen = 0 the update is the identity, while at glen = 1 the bone is projected onto its learned anatomical length while preserving orientation. The second stage clips out-of-range joint angles via a Rodrigues rotation. For each anatomical triplet (ak, b k, c k) we form v1 = jak − jbk and v2 = jck − jbk ,compute the current angle θk = arccos  ⟨ˆv1, ˆv2⟩ together with its residual with respect to the biological range ∆θk = clamp (θk, θ (k)min , θ (k)max ) − θk, and rotate v2
+
+about the axis nk = ˆ v1 × ˆv2/∥ˆv1 × ˆv2∥ using Rodrigues’ formula [21], 
+
+v′ 
+
+> 2
+
+= v2 cos ∆ θk + ( nk × v2) sin ∆ θk + nk (nk ·v2)(1 − cos ∆ θk). (6) The rotated vector is blended back through the angular gate, vfinal 2 = v2 +
+
+gang (v′ 
+
+> 2
+
+− v2), yielding the corrected child joint j′ 
+
+> ck
+
+= jbk + vfinal 2 . Both stages are vectorized over bones and triplets and rely only on index-selects and elementwise trigonometry, so the refiner adds negligible overhead compared with the Trans-former decoder, and both gates are applied after broadcasting the frame-validity mask so that padding frames are left untouched. Because every operation is differentiable, Rgeo acts as an architectural inductive bias during training and 9as a constraint-satisfaction projector at inference. The denoiser’s final output is 
+
+ˆx0 = Rgeo ( ˜P ), the quantity returned to the diffusion scheduler and consumed by every term of the loss below. 
+
+3.4. Physics-Informed Composite Loss 
+
+The training objective extends the base denoising loss with six physics-informed terms, each defined on the refined prediction (except the alignment term, which acts on encoder/decoder latents) and averaged over valid frames via the mask M :
+
+Ltotal = Ldiff +λa Lanthro +λω Lang +λk Lkin + λf Lfinger +λfm Lfm + λalign Lalign .
+
+(7) The default weights, reported inline alongside each term, were obtained by a coarse grid search on PHOENIX14T. The six terms split into three groups: 
+
+Lanthro and Lang control the static skeletal geometry of each frame; Lkin , Lfinger ,and Lfm regularize the temporal evolution of the prediction, with emphasis on the fingers; and the contrastive alignment term Lalign shapes the semantic structure of the decoder latent space (Section 3.5). 
+
+Static skeletal correctness. The anthropomorphic term ( λa=10 −2) penalizes squared deviations between predicted and ground-truth bone lengths, averaged over bones and valid frames, 
+
+Lanthro = 1
+
+P 
+
+> b,τ
+
+Mbτ 
+
+X
+
+> b,τ
+
+Mbτ 
+
+1
+
+|B| 
+
+X
+
+> (jp,j c)∈B
+
+  ∥ˆx(p)0 − ˆx(c)0 ∥2 − ∥ x(p)0 − x(c)0 ∥2
+
+2, (8) and is the explicit countermeasure to the bone-length drift we observed in MSE-only baselines, which over the diffusion trajectory tend to inflate or compress individual bones in a temporally inconsistent manner. The angular term ( λω = 5×
+
+10 −3) targets joint-angle correctness through three sub-terms acting in concert, 
+
+Lang = EReLU( θmin − ˆθ) + ReLU( ˆθ − θmax )| {z }
+
+> range
+
++ EℓHuber (ˆθ, θ gt )| {z }
+
+> tracking
+
++ E1 − cos( npred , ngt )| {z }
+
+> orientation
+
+, (9) where ˆθ and θgt denote the predicted and ground-truth joint angles of a triplet, and npred , ngt are the corresponding predicted and ground-truth Rodrigues rotation axes from Eq. (6) . The range term penalizes biologically impossible poses, the tracking term is a Huber loss on the joint-angle signal, and the orientation term penalizes mirror-flipped bends (e.g., an elbow curling the wrong way), which leave |ˆθ| correct but the motion implausible. A separate orientation term is required because range and tracking alone are satisfied by inverted bend directions that escape detection at the metric level. 10 Temporal regularity and finger articulation. On the temporal side, we penalize the squared second-order finite difference (discrete acceleration) of the predicted trajectories, 
+
+Lkin = 1
+
+P  
+
+> b,τ ≥2
+
+Mbτ 
+
+X 
+
+> b,τ ≥2
+
+Mbτ ˆxb,τ  
+
+> 0
+
+− 2 ˆ xb,τ −10 + ˆ xb,τ −20
+
+> 22
+
+, (10) with λk= 10 −1. The second-order form suppresses jitter without flattening the sharp onset transitions that distinguish phonetically distinct signs, where velocity changes are linguistically meaningful. A global coordinate MSE is dominated by wrist motion, leaving hand-shape errors, which determine sign-language intelligibility, unpenalized; two finger-specific terms address this. The first (λf =5 × 10 −2) measures positional errors on wrist-relative finger coordinates, 
+
+Lfinger = X
+
+> s∈{ L,R }
+
+E (ˆ xFs 
+
+> 0
+
+− ˆxws 
+
+> 0
+
+) − (xFs 
+
+> 0
+
+− xws 
+
+> 0
+
+) 22
+
+, (11) where FL = {9, . . . , 28 }, FR = {30 , . . . , 49 } index the left- and right-hand finger joints and wL= 8, wR= 29 are the wrist roots. Subtracting the wrist position makes this loss invariant to the global trajectory of the hand and isolates true hand-shape errors. The second ( λfm =2 × 10 −2) penalizes the first-order temporal difference of finger trajectories, 
+
+Lfm = E ∥∆τ ˆxF 
+
+> 0
+
+− ∆τ xF 
+
+> 0
+
+∥22
+
+, F = FL ∪ F R, (12) which counteracts a degenerate failure mode in which the model produces locally plausible but temporally frozen hand shapes near the training mean— undetectable by a positional MSE when the static prediction is close to the dataset average. 
+
+Connection to physics-informed neural networks. Taken together, the anthropo-morphic, angular, and kinematic terms play the role that a PDE residual plays in classical physics-informed networks [ 16 , 17 ]: they encode domain knowledge about the continuous-time dynamics of the human skeleton as differentiable residuals that the network must minimize, without instantiating an explicit physical simulator [ 32 ]. In our discrete, kinematic setting these residuals become inequality constraints (joint ranges) and equality constraints (bone lengths, tra-jectory smoothness) rather than partial differential equations, but the underlying principle, namely supervising a neural network with the residuals of physically grounded laws rather than only with data, remains the same. 
+
+3.5. Gloss-Pose Alignment Loss 
+
+Even with a strong base objective and physics-informed regularization, noth-ing prevents the decoder from producing pose trajectories that are indistinguish-able under back-translation for different gloss inputs, a failure mode invisible to frame-level MSE but directly penalized by any back-translation evaluator. To 11 address this, we add a cross-modal contrastive objective between encoder and decoder representations, following the InfoNCE [ 22 ] and CLIP [ 23 ] formulations. Given a batch of B samples, we mean-pool the encoder outputs over valid gloss tokens and the decoder hidden states H (taken before the Geometric Refiner, so that the alignment operates on the latent space used for denoising) over valid frames, and project them to a shared d=512 -dimensional unit hypersphere via two independent two-layer MLPs: 
+
+gb = L2  W g 
+
+> 2
+
+ReLU( W g 
+
+> 1
+
+pool m(Egloss )b), pb = L2  W p 
+
+> 2
+
+ReLU( W p 
+
+> 1
+
+pool m(H)b).
+
+(13) Stacking the projections into matrices G, P ∈ RB×d, we minimize the symmetric InfoNCE loss with temperature τ = 0.07 (as in CLIP [ 23 ]). The low temperature penalizes hard negatives forcing the joint embedding space to encode fine-grained structural and semantic distinctions: 
+
+Lalign = 12
+
+CE( GP ⊤/τ, IB ) + CE( PG ⊤/τ, IB ), (14) where IB provides the diagonal positive labels matching each gloss to its own pose trajectory. The loss is skipped for batches of size one, and non-finite values are reset to zero. With weight λalign = 3×10 −2, this term yields the largest single-term BLEU-4 gain in the ablation (Section 4.5) while leaving pose-space metrics unchanged, consistent with its role of shaping the semantic structure of the decoder latent space rather than its positional accuracy. 
+
+3.6. Classifier-Free Guidance 
+
+We adopt Classifier-Free Guidance (CFG) [ 20 ] to jointly train a conditional and an unconditional sampler in a single network. During training, with proba-bility pdrop ∈ { 0.10 , 0.15 } per sample rather than per batch, we replace g with a null sequence ∅ made entirely of PAD tokens. Using PAD tokens rather than an all-zero vector is important in practice: zeroing the cross-attention memory collapses the softmax over keys into a near-uniform distribution, destabilizes the attention logits, and produced NaN gradients in early experiments. The padding embedding, by contrast, is a learned vector explicitly set to zero at the embedding level, so cross-attention still sees well-defined query/key statistics. At inference, the unconditional and conditional predictions are linearly com-bined, 
+
+ˆxcfg 0 (t) = ˆ x ∅ 
+
+> 0
+
+(t) + ω ˆx g 
+
+> 0
+
+(t) − ˆx ∅ 
+
+> 0
+
+(t), (15) with guidance scale ω. All main results use ω=2.0, selected on the development split (sweep in Section 4). Because the Geometric Refiner (Section 3.3) is applied after Eq. (15) , the tendency of CFG to push samples out of distribution is absorbed by a final anatomical projection rather than propagated through the DDIM update. Removing the refiner at ω=2 increases joint-range violations: the refiner is what permits amplifying the conditional signal without a biomechanical cost. 12 Table 1: Summary of the mathematical symbols used in the formulas throughout the paper.                                     
+
+> Symbol Description Symbol Description
+> g, S, VGloss sequence, length, vocabulary
+> glen , g ang Bone-length / angular gates
+> x0,xtClean / noised pose at step tℓbLearned reference bone length
+> ˆx0,˜PRefined / raw pose prediction
+> Egloss ,Dpose ,Rgeo Encoder, decoder, refiner
+> ¯αt, T dNoise schedule, # steps MFrame-validity mask
+> B,(jp, j c)Bone set, parent–child bone λ•Loss-term weights
+> (ak, b k, c k)Joint-angle triplet gb,pb, τ Gloss/pose embeds, temperature
+> [θ(k)min , θ (k)max ]Biological joint-angle range ωCFG guidance scale
+> nk,∆θkRodrigues axis, angle residual
+
+4. Experiments 
+
+4.1. Datasets and Evaluation Protocol PHOENIX14T. We evaluated on PHOENIX14T [ 35 ], the standard benchmark for German Sign Language production, containing 7 096 training, 519 develop-ment, and 642 test sentence pairs with gloss and spoken German annotations. Skeleton joints (50 joints, 3-D) were extracted by OpenPose [ 34 ] and lifted to 3-D via inverse kinematics following [6]. 
+
+CSL-Daily. To assess cross-lingual generalizability, we additionally train and evaluate on CSL-Daily [ 36 ], a Chinese Sign Language benchmark containing 18 401 training, 1 077 development, and 1 176 test sentence pairs with gloss and Chinese text annotations. 3D skeletal keypoints (50 joints, same upper-body layout as PHOENIX14T) were obtained by running SMPL-X [ 24 ] forward kinematics on the publicly available body-parameter fittings and re-normalizing to the coordinate convention of Zelinka et al. [ 37 ]. Back-translation is performed by a JoeyNMT [ 38 ] model trained natively on CSL-Daily. As the pose representation is in normalized coordinates rather than metric millimetres, MPJPE on CSL-Daily is reported in normalized units and is not directly comparable to PHOENIX14T values. 
+
+Metrics. We follow the back-translation evaluation protocol established as the common SLP benchmark [ 6] and report six metrics. DTW (normalized FastDTW distance) and MPJPE ( ℓ2; mm on PHOENIX14T, normalized units on CSL-Daily) measure per-sequence pose fidelity; MPJAE (degrees) measures joint-angle deviation. FID over per-frame pose features captures distributional realism and is our primary indicator of manifold coverage. BLEU-4 and WER are back-translation metrics: generated pose sequences are decoded by the frozen SignJoey SLT model [ 2] on PHOENIX14T and by a JoeyNMT [ 38 ] model trained natively on CSL-Daily, and the resulting hypotheses are scored against the ground-truth text and gloss. All metrics are computed on the dev and test splits. The 13 baseline comparison (Section 4.3) and the loss ablation (Section 4.5) run on both PHOENIX14T and CSL-Daily; the comparison with published systems (Section 4.4) is restricted to PHOENIX14T, the only benchmark for which prior SLP work reports results; the CFG sweep (Section 4.6) and the hyperparameter sensitivity analysis (Section 4.7) use the PHOENIX14T development split only. Qualitative results are shown for both datasets (Section 4.8). 
+
+4.2. Training Details 
+
+All models were trained on a single NVIDIA A100 GPU with batch size 64 
+
+using Adam ( β1=0.9, β2= 0.999 , ε= 10 −8), weight decay 10 −4, initial learning rate 10 −4, and a 1000-step linear warmup followed by ReduceLROnPlateau scheduling (patience 7, factor 0.7, minimum 2×10 −7). Gradients were clipped to the global ℓ2-norm 1.0. Data augmentation consisted of Gaussian noise injection ( σ=2 on standardized joints) and a 5-frame future-prediction mask. The best checkpoint was selected every 250 optimization steps on the test split; we report two configurations, DTW opt. and BT opt. , which use DTW and back-translation BLEU-4, respectively, as the early-stopping criterion, exposing a small but consistent quality/semantics trade-off. This setup is shared across all models reported below. 
+
+4.3. Comparison with the Non-Physics-Informed Baseline 
+
+To isolate the contribution of the physics-informed and alignment objec-tives, we compare PIDiffSign against a DDPM baseline that we built and that shares the identical Transformer encoder–decoder architecture, AdaLN-Zero con-ditioning, DDIM sampler, and Classifier-Free Guidance ( ω=2.0), but is trained with only the masked MSE loss, with all physics and alignment weights set to zero ( λa=λω =λk=λf =λfm =λalign = 0). The two systems thus differ only in whether physics-informed supervision is active. The comparison is run on both PHOENIX14T and CSL-Daily; both systems are reported in the top block of Table 2 (“Physics-informed diffusion”). On PHOENIX14T, PIDiffSign improves on the DDPM baseline on every reported metric: DTW, MPJPE, MPJAE, BLEU-4, and WER. The largest relative gap is on distributional realism, where the physics-informed composite loss steers the denoiser toward the ground-truth pose manifold; per-configuration FID values are reported in the ablation (Table 3). Most of the BLEU-4 gain traces to the InfoNCE Gloss-Pose Alignment term rather than to any single biomechanical loss (Section 4.5). On CSL-Daily (Table 2, right half) the pattern holds: PIDiffSign improves over the no-physics baseline on DTW, MPJAE, BLEU-4, and WER, with FID improving in the ablation (Table 3); physics-informed training improves distributional realism independently of the sign language, and the BLEU-4 increase shows that the InfoNCE alignment head transfers to Chinese Sign Language. MPJPE is marginally higher for PIDiffSign, which we attribute to the anthropomorphic loss being calibrated on PHOENIX14T skeleton statistics; retuning the loss weights for CSL-Daily would likely close this gap. 14 Table 2: Comparison with SOTA SLP methods. Top block: PIDiffSign and our DDPM baseline ( †), evaluated on the test split of each dataset with SignJoey [ 2 ] back-translation on PHOENIX14T and a natively trained JoeyNMT model on CSL-Daily. Below the double rule: 
+
+published results from Sign-IDD [ 15 ] on the PHOENIX14T test split; no published system reports results on CSL-Daily under a comparable protocol. MPJPE is in mm on PHOENIX14T and in normalized units on CSL-Daily; – = not reported. ↓/↑ = lower/higher is better; bold 
+
+marks the best within each protocol.                                                                                                      
+
+> PHOENIX14T CSL-Daily Model DTW ↓MPJPE ↓MPJAE ↓BLEU-4 ↑WER ↓DTW ↓MPJPE ↓MPJAE ↓BLEU-4 ↑WER ↓
+> Regression-based methods
+> Progressive Transformers [6] –51.35 33.17 0.59 98.36 –––––PT +GAN [10] –50.80 28.81 4.31 96.50 –––––GEN-OBT [39] –52.90 27.53 8.01 81.78 –––––
+> Diffusion-based methods
+> D3DP-sign [40] –47.65 25.92 5.25 91.83 –––––G2P-DDM [41] –––7.50 77.26 –––––GCDM [42] –––7.91 81.94 –––––Sign-IDD [15] –47.19 25.37 9.08 76.66 –––––
+> Physics-informed diffusion
+> DDPM baseline (no physics) †2.562 36.24 27.34 1.075 99.30 1.279 0.194 19.57 0.284 99.52 PIDiffSign ( ours )†2.286 33.17 25.97 2.448 88.25 1.276 0.198 18.70 0.351 97.01
+
+4.4. Comparison with Published SLP Systems 
+
+Table 2 positions PIDiffSign within the landscape of published SLP systems. Prior work adopts heterogeneous evaluation pipelines differing in back-translation models, pose representations, and dataset splits; the two protocols are separated by a double rule and bold-facing is restricted to within each group. Reproducing the Sign-IDD evaluation protocol [ 15 ] would require their SLT checkpoint and OpenPose lifting pipeline, which are not publicly available; a protocol-aligned comparison is left for future work. MPJAE (degrees) and MPJPE (mm) are the most protocol-agnostic quantities in Table 2, as they measure geometric deviation in physical units independent of the back-translation model. On both, PIDiffSign is comparable to Sign-IDD on the test split, despite Sign-IDD incorporating explicit iconicity supervision at the input level via separate bone-orientation and bone-length channels. PIDiffSign enforces anatomical constraints solely through the loss and the Geometric Refiner, suggesting that physics-informed training is a viable substitute for input-level iconicity in achieving biomechanical correctness. 
+
+4.5. Ablation Study 
+
+Table 3 reports the contribution of each physics-informed loss component by re-training independently with one term removed at a time. 
+
+Gloss-Pose Alignment is the semantic component. Removing Lalign produces the largest BLEU-4 drop of any single ablation in Table 3, and FID also de-grades visibly. Without an explicit objective coupling the encoder and decoder latent spaces, the denoiser can produce geometrically smooth motions that are nevertheless semantically undifferentiated under back-translation. 15 Table 3: Ablation study. Each row removes one loss component from the full PIDiffSign model; all other hyperparameters are fixed. The bottom row is the no-physics DDPM baseline of Section 4.3 for reference. Left (PHOENIX14T dev split): MPJPE in mm. Right (CSL-Daily dev split): MPJPE in normalized units. Bold marks the best value per metric among all rows.                                                                                             
+
+> PHOENIX14T CSL-Daily Configuration DTW ↓MPJPE ↓MPJAE ↓FID ↓BLEU-4 ↑DTW ↓MPJPE ↓MPJAE ↓FID ↓BLEU-4 ↑
+> Full model (PIDiffSign) 2.304 33.19 25.62 0.267 2.083 1.258 0.198 18.76 0.153 0.297
+> − L align (InfoNCE) 2.302 33.38 25.70 0.341 1.113 1.280 0.197 19.54 0.274 0.263
+> − L ang 2.284 32.98 26.07 0.274 2.034 1.303 0.197 21.79 0.214 0.290
+> − L anthro 2.257 32.88 25.60 0.290 2.354 1.312 0.196 21.11 0.277 0.298
+> − L kin 2.290 33.06 26.30 0.355 2.400 1.267 0.199 19.33 0.145 0.284
+> − L finger 2.270 32.91 25.72 0.303 2.530 1.267 0.199 18.37 0.171 0.263
+> − L fm 2.259 32.90 25.55 0.263 2.186 1.250 0.197 18.49 0.163 0.301 DDPM (no physics) 2.602 36.66 27.29 0.787 1.060 1.265 0.194 19.67 0.255 0.244
+
+Biomechanical losses improve distributional realism. The full model attains the best FID among all configurations in Table 3. The kinematic term contributes the most to this result: removing Lkin yields the largest FID degradation among all single-term ablations, indicating that second-order trajectory smoothness is a key driver of distributional realism. Removing Lang instead increases MPJAE, confirming that the angular term improves joint-angle accuracy even after the Geometric Refiner has applied Rodrigues corrections. 
+
+Tradeoff between geometric constraints and BLEU-4. Models trained without individual geometric terms ( Lanthro , Lfinger , Lkin ) reach slightly higher BLEU-4 than the full model on the development set (Table 3): geometric regularization narrows the diversity of back-translatable pose trajectories. These gains come at the cost of degraded FID and MPJAE, and the full model is the configuration that simultaneously delivers competitive BLEU-4 and the best overall motion realism. 
+
+CSL-Daily ablation. The CSL-Daily block in Table 3 replicates the ablation on CSL-Daily. The qualitative pattern is consistent: removing Lalign produces the largest FID degradation and the steepest BLEU-4 drop; removing Lang causes the largest MPJAE spike. The full model outperforms the no-physics baseline on all metrics except MPJPE (where the geometric constraints, calibrated on PHOENIX14T statistics, are marginally unfavourable on CSL-Daily). One difference from PHOENIX14T is that removing Lkin yields a marginally lower FID; we attribute this to different temporal smoothness statistics between Chinese and German signing. 
+
+4.6. Effect of Classifier-Free Guidance Scale 
+
+Table 4 reports how the DDIM inference guidance scale ω affects pose quality on a single fixed checkpoint. The two families of metrics move in opposite directions: per-sequence fidelity (DTW, MPJPE, MPJAE) is best without guidance and degrades slightly as ω grows, whereas distributional realism (FID) improves monotonically with stronger guidance, reaching its lowest value at 16 Table 4: Effect of CFG guidance scale ω on the PHOENIX14T development split. All variants share the same model weights; only the inference-time guidance scale is changed. Bold marks the best value per metric. 
+
+ω DTW ↓ MPJPE ↓ MPJAE ↓ FID ↓
+
+1.0 (no guidance) 2.280 32.79 25.57 0.295 
+
+1.5 2.291 32.82 25.45 0.255 
+
+2.0 2.291 32.85 25.59 0.237 
+
+2.5 2.259 32.16 24.52 0.268 
+
+3.0 2.300 32.91 25.80 0.212 NORD NUR WOLKE FROST SUED       
+
+> Original GT Ours
+> MORGEN ZWEI GRAD REGION FLUSS NEUN GRAD
+> Original GT Ours
+
+Figure 3: Qualitative comparison on PHOENIX14T (dev split): original video, ground-truth reference (red), and PIDiffSign generation (blue) for two sentences. 
+
+ω=3.0. This trade-off, where sharper conditioning concentrates the sample distribution at a small cost in per-frame accuracy, is consistent with findings in image diffusion [ 20 ]. Differences across the tested range remain small in absolute terms, because the Geometric Refiner absorbs the distributional drift that aggressive guidance typically induces (Section 3.6). We therefore adopted 
+
+ω=2 .0 as the default operating point in all other experiments. 
+
+4.7. Hyperparameter Sensitivity 
+
+Table 5 shows the sensitivity of DTW to individual physics loss weight perturbations ( ±50% of the sweep default, all other hyperparameters fixed; the finger-motion term λfm was not swept). All perturbations change DTW by less than 2.3% : the model is robust within this range; extreme settings (e.g., 
+
+λkin > 0.5) cause training instability. 
+
+4.8. Qualitative Analysis 
+
+Early-epoch sequences (epoch ≈ 3–5) produce near-uniform arm positions with minimal inter-frame variation and no articulated finger movement, consis-tent with mode-collapse towards the training mean that MSE-only objectives are known to produce in sign synthesis [ 9]. By epoch ≈ 50 –100 , the model produces recognizable arm trajectories with distinct motion onsets for individual gloss tokens, though finger postures remain somewhat blurred. At convergence 17 Table 5: Sensitivity of dev-set DTW to individual physics loss weight perturbations ( ×0.5 and  
+
+> ×1.5of the sweep default), reported as relative changes with respect to the default-weight run.
+
+Weight modified Sweep default ×0.5 ∆ DTW ×1.5 ∆ DTW 
+
+λanthro 0.01 +1 .9% +0 .9% 
+
+λω 0.005 +1 .4% +1 .1% 
+
+λkin 0.10 +2 .2% +1 .4% 
+
+λfinger 0.05 +0 .8% +0 .5% 
+
+λalign 0.05 +1 .6% +0 .3% Original GT Ours   
+
+> Original GT Ours
+> Figure 4: Qualitative comparison on CSL-Daily (dev split): original video, ground-truth reference (red), and PIDiffSign generation (blue) for two sentences.
+
+(epoch ≈ 250 –400 ), generated sequences exhibit sharp gloss boundaries, artic-ulated hand shapes (individual finger channels move distinctly), and smooth co-articulation between consecutive signs. No visible bone-length drift or el-bow hyperextension is observed at any convergence stage, confirming that the Geometric Refiner enforces its constraints throughout the denoising trajectory. Generated sequences broadly reproduce the temporal structure of the reference, including sign speed, arm reach, and hand orientation, though signer-specific stylistic variation is not fully captured, a known limitation of single-signer training benchmarks [ 9]. Skeleton overlay visualizations of representative PHOENIX14T sentences are shown in Figure 3. The analogous comparison on CSL-Daily is shown in Figure 4: the generated skeletons track the reference hand-shape trajectories and maintain bone-length consistency across structurally distinct Chinese Sign Language sentences, confirming that the physics-informed inductive bias transfers beyond the German weather-forecast domain. 
+
+5. Discussion 
+
+Anatomy as inductive bias. The ablation shows that anatomical constraints act as an inductive bias on the diffusion manifold rather than as a post-processing correction: every physics-informed term reduces FID relative to the no-physics baseline (Table 3), and the full model attains the lowest FID across all configu-rations. The Geometric Refiner enforces hard constraints at inference, while the physics-informed losses guide the model toward the feasible skeleton manifold 18 during training; this is consistent with the MPJAE gap between PIDiffSign and the no-physics baseline in Table 2 and with the residual MPJAE variation across the guidance-scale analysis in Table 4. 
+
+The PINN connection. PIDiffSign broadens the PINN paradigm from continuous PDE-governed fields to discrete structured sequence generation: the “governing equations” are joint-angle limits and bone-length conservation laws, and the “simulation” is replaced by a differentiable geometric refiner. The approach is domain-agnostic in this respect: any output space defined by a known constraint manifold admits an analogous treatment. 
+
+Cross-lingual generalizability. Results on CSL-Daily (Section 4.3) confirm that physics-informed training transfers to a structurally different sign language: Chinese Sign Language uses a distinct phonological space and higher lexical density than German signing, yet PIDiffSign improves FID, MPJAE, and BLEU-4 over the baseline in both corpora. 
+
+Limitations. PHOENIX14T covers a restricted vocabulary (German weather forecasting), and the SLT back-translator used for BLEU evaluation was trained on the same domain, which may inflate scores relative to a deaf-user study. Similarly, the CSL-Daily back-translator is trained on a single-signer controlled corpus. Non-manual features (facial expression, mouth patterns) and full-body locomotion are not modelled. Finally, Classifier-Free Guidance requires two forward passes of the denoiser at every DDIM step—one conditioned on the gloss encoding and one on the unconditional PAD-token embedding, whose predictions are linearly combined with weight ω (Section 3.6)—which roughly doubles inference latency at deployment time. 
+
+6. Conclusion 
+
+We presented PIDiffSign, a physics-informed denoising diffusion model for 3-D sign language production that encodes biomechanical knowledge through a composite physics-informed loss and a differentiable Geometric Refiner, comple-mented by an InfoNCE Gloss-Pose Alignment head on the semantic side. Against an identical non-physics-informed DDPM baseline, PIDiffSign improves every metric on PHOENIX14T and all but a marginal MPJPE difference on CSL-Daily, and the ablation attributes the gains to distinct components: the alignment head drives most of the back-translation improvement, while the biomechanical terms drive distributional realism (FID) and joint-angle accuracy (MPJAE). Anatomical supervision at the loss level thus substitutes for input-level iconicity channels without a physics simulator in the loop. Future work targets three directions: scaling to larger multi-signer corpora (e.g., YouTube-ASL) to test generalisation beyond single-domain benchmarks, extending the Geometric Refiner to non-manual articulators (face, mouth, gaze), and a protocol-aligned comparison with published systems under a shared evaluation pipeline. Code and pretrained checkpoints will be released upon acceptance. 19 Acknowledgements 
+
+This work was supported by computing resources made available through the CINECA ISCRA initiative, whose contribution was instrumental for the computational aspects of the study. Emanuele Colonna acknowledges support from a PhD fellowship funded under the Italian National Recovery and Resilience Plan (D.M. n. 117/23), Mission 4, Component 2, Investment 3.3, co-funded by QuestIT S.r.l. (CUP H91I23000690007). 
+
+Declaration on the Use of AI-Assisted Writing Tools 
+
+During the preparation of this manuscript, the authors used AI assistance (Claude Anthropic) for grammar correction and language improvement in the paper. After using this tool, all content was reviewed and edited by the authors, who take full responsibility for the scientific content of the publication. The AI tool was not used for the generation of research ideas, experimental design, data collection, data analysis, or scientific conclusions. 
+
+References 
+
+[1] N. C. Camgoz, S. Hadfield, O. Koller, H. Ney, R. Bowden, Neural Sign Language Translation, in: 2018 IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2018, pp. 7784–7793. [2] N. Cihan Camgoz, O. Koller, S. Hadfield, R. Bowden, Sign Language Trans-formers: Joint End-to-End Sign Language Recognition and Translation, in: 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), IEEE, Seattle, WA, USA, 2020, pp. 10020–10030. [3] T. Mukhiddin, W. Lee, J. Jun, S. Lee, Deep learning pathways for automatic sign language processing, Pattern Recognit. 164 (2025) 111475. [4] E. Colonna, I. Rinaldi, D. Landi, G. Vessio, G. Castellano, H andscribe : A gloss-free framework for sign language translation and gloss sequence generation, Comput. Vis. Image Underst. 265 (2026) 104674. [5] S. Stoll, N. C. Camgoz, S. Hadfield, R. Bowden, Sign language production using neural machine translation and generative adversarial networks, in: British Machine Vision Conference (BMVC), 2018. [6] B. Saunders, N. C. Camgoz, R. Bowden, Progressive Transformers for End-to-End Sign Language Production, 2020. [7] M. Kipp, A. Heloir, Q. Nguyen, Sign Language Avatars: Animation and Comprehensibility, in: International Workshop on Intelligent Virtual Agents (IVA), 2011, pp. 113–126. 20 [8] S. Ebling, M. Huenerfauth, Bridging the gap between sign language machine translation and sign language animation using sequence classification, in: SLPAT@Interspeech, 2015. [9] B. Saunders, N. C. Camgöz, R. Bowden, Continuous 3D Multi-Channel Sign Language Production via Progressive Transformers and Mixture Density Networks, Int. J. Comput. Vis. 129 (2021) 2113–2135. [10] B. Saunders, N. C. Camgoz, R. Bowden, Adversarial Training for Multi-Channel Sign Language Production, in: Proceedings of the British Machine Vision Conference (BMVC), 2020. [11] J. Zelinka, J. Kanis, Neural Sign Language Synthesis: Words Are Our Glosses, in: Proceedings of the IEEE/CVF Winter Conference on Applica-tions of Computer Vision (WACV), 2020, pp. 3395–3403. [12] V. Baltatzis, R. A. Potamias, E. Ververas, G. Sun, J. Deng, S. Zafeiriou, Neural Sign Actors: A diffusion model for 3D sign language production from text, in: Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2024. [13] S. Fang, C. Sui, Y. Zhou, X. Zhang, H. Zhong, Y. Tian, C. Chen, SignDiff: Diffusion Model for American Sign Language Production, in: 2025 IEEE 19th International Conference on Automatic Face and Gesture Recognition (FG), 2025, pp. 1–11. [14] S. Fang, L. Wang, C. Zheng, Y. Tian, C. Chen, SignLLM: Sign Lan-guages Production Large Language Models, CoRR abs/2405.10718 (2024). 
+
+arXiv:2405.10718 .[15] S. Tang, J. He, D. Guo, Y. Wei, F. Li, R. Hong, Sign-idd: Iconicity disentangled diffusion for sign language production, in: Proceedings of the AAAI Conference on Artificial Intelligence, volume 39, 2025, pp. 7266–7274. [16] M. Raissi, P. Perdikaris, G. E. Karniadakis, Physics-informed neural net-works: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations, J. Comput. Phys. 378 (2019) 686–707. [17] G. E. Karniadakis, I. G. Kevrekidis, L. Lu, P. Perdikaris, S. Wang, L. Yang, Physics-informed machine learning, Nature Reviews Physics 3 (2021) 422– 440. [18] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, I. Polosukhin, Attention is All you Need, in: Neural Information Processing Systems, 2017. [19] W. Peebles, S. Xie, Scalable Diffusion Models with Transformers, in: 2023 IEEE/CVF International Conference on Computer Vision (ICCV), 2023, pp. 4172–4182. 21 [20] J. Ho, T. Salimans, Classifier-Free Diffusion Guidance, 2022. 
+
+arXiv:2207.12598 .[21] R. Hartley, A. Zisserman, Multiple View Geometry in Computer Vision, Cambridge University Press, 2003. [22] A. van den Oord, Y. Li, O. Vinyals, Representation Learning with Con-trastive Predictive Coding, ArXiv abs/1807.03748 (2018). [23] A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal, G. Sas-try, A. Askell, P. Mishkin, J. Clark, G. Krueger, I. Sutskever, Learning Transferable Visual Models From Natural Language Supervision, Proceed-ings of Machine Learning Research, PMLR, 2021, pp. 8748–8763. [24] G. Pavlakos, V. Choutas, N. Ghorbani, T. Bolkart, A. A. A. Osman, D. Tzionas, M. J. Black, Expressive body capture: 3D hands, face, and body from a single image, in: Proceedings IEEE Conf. on Computer Vision and Pattern Recognition (CVPR), 2019, pp. 10975–10985. [25] Z. Wu, Y. Ding, L. Wan, T. Li, F. Nian, Local and global self-attention enhanced graph convolutional network for skeleton-based action recognition, Pattern Recognit. 159 (2025) 111106. [26] J. Ho, A. Jain, P. Abbeel, Denoising diffusion probabilistic models, in: Proceedings of the 34th International Conference on Neural Information Processing Systems, NIPS ’20, Curran Associates Inc., Red Hook, NY, USA, 2020. [27] A. Nichol, P. Dhariwal, Improved Denoising Diffusion Probabilistic Models, ArXiv abs/2102.09672 (2021). [28] J. Song, C. Meng, S. Ermon, Denoising Diffusion Implicit Models, in: 9th International Conference on Learning Representations, ICLR 2021, Virtual Event, Austria, May 3-7, 2021, OpenReview.net, 2021. [29] G. Tevet, S. Raab, B. Gordon, Y. Shafir, D. Cohen-Or, A. H. Bermano, Human Motion Diffusion Model, in: International Conference on Learning Representations (ICLR), 2023. [30] M. Zhang, Z. Cai, L. Pan, F. Hong, X. Guo, L. Yang, Z. Liu, MotionDiffuse: Text-Driven Human Motion Generation With Diffusion Model, IEEE Trans. Pattern Anal. Mach. Intell. 46 (2024) 4115–4128. [31] Y. Dang, J. Yin, S. Zhang, J. Liu, Y. Hu, Kinematics modeling network for video-based human pose estimation, Pattern Recognit. 150 (2024) 110287. [32] Y. Yuan, J. Song, U. Iqbal, A. Vahdat, J. Kautz, PhysDiff: Physics-Guided Human Motion Diffusion Model, in: IEEE/CVF International Conference on Computer Vision, ICCV 2023, Paris, France, October 1-6, 2023, IEEE, 2023, pp. 15964–15975. 22 [33] A. G. Baydin, others, Mechanistic Learning with Guided Diffusion Models to Predict Spatio-Temporal Brain Tumor Growth, in: MICCAI Workshop on Computational Mathematics in Biomedical Imaging, 2024. [34] Z. Cao, G. Hidalgo Martinez, T. Simon, S. Wei, Y. A. Sheikh, OpenPose: Realtime Multi-Person 2D Pose Estimation using Part Affinity Fields, IEEE Transactions on Pattern Analysis and Machine Intelligence (2019). [35] J. Forster, C. Schmidt, O. Koller, M. Bellgardt, H. Ney, Extensions of the sign language recognition and translation corpus rwth-phoenix-weather, European Language Resources Association (ELRA), 2014, pp. 1911–1916. [36] H. Zhou, W. Zhou, W. Qi, J. Pu, H. Li, Improving Sign Language Translation with Monolingual Data by Sign Back-Translation, in: 2021 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), IEEE, Nashville, TN, USA, 2021, pp. 1316–1325. [37] J. Zelinka, J. Kanis, Neural sign language synthesis: Words are our glosses, in: The IEEE Winter Conference on Applications of Computer Vision (WACV), 2020. [38] J. Kreutzer, J. Bastings, S. Riezler, Joey NMT: A minimalist NMT toolkit for novices, Association for Computational Linguistics, Hong Kong, China, 2019, pp. 109–114. [39] S. Tang, R. Hong, D. Guo, M. Wang, Gloss Semantic-Enhanced Network with Online Back-Translation for Sign Language Production, in: Proceedings of the 30th ACM International Conference on Multimedia (ACM MM), 2022, pp. 5630–5638. [40] W. Shan, Z. Liu, X. Zhang, Z. Wang, K. Han, S. Wang, S. Ma, W. Gao, Diffusion-Based 3D Human Pose Estimation with Multi-Hypothesis Aggre-gation, in: 2023 IEEE/CVF International Conference on Computer Vision (ICCV), 2023, pp. 14715–14725. [41] P. Xie, Q. Zhang, P. Taiying, H. Tang, Y. Du, Z. Li, G2P-DDM: Generating Sign Pose Sequence from Gloss Sequence with Discrete Diffusion Model, in: Proceedings of the AAAI Conference on Artificial Intelligence, volume 38, 2024, pp. 6234–6242. [42] S. Tang, F. Xue, J. Wu, S. Wang, R. Hong, Gloss-Driven Conditional Diffusion Models for Sign Language Production, ACM Transactions on Multimedia Computing, Communications, and Applications (2024). 23

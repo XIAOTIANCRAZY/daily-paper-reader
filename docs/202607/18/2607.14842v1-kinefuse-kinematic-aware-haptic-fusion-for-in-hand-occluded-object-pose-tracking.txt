@@ -1,0 +1,266 @@
+Title: KineFuse: Kinematic-Aware Haptic Fusion for In-Hand Occluded-Object Pose Tracking
+
+URL Source: https://arxiv.org/pdf/2607.14842v1
+
+Published Time: Fri, 17 Jul 2026 01:34:52 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# KineFuse: Kinematic-Aware Haptic Fusion for In-Hand Occluded-Object Pose Tracking 
+
+Chanyoung Ahn, Jaesung Lee, Sungwoo Park, and Donghyun Hwang 
+
+Abstract — Dexterous in-hand manipulation requires contin-uous 6D pose tracking, yet the manipulating fingers inevitably occlude the object from the camera. We study how to structure the sparse haptic signals already available on multi-fingered hands—proprioception, proximal force/torque, and binary con-tact—to complement a pretrained visual pose tracker under occlusion. We propose a kinematic-aware finger-level encoder and systematically compare it against four alternative de-signs through three levels of evaluation: per-frame refinement, sequential open-loop tracking, and closed-loop manipulation. Our experiments reveal that (i) per-frame evaluation cannot distinguish encoder quality, while sequential tracking amplifies architectural differences by up to 15 times; (ii) the structured encoder learns task-specific cross-modal gating—using vision exclusively for translation and dedicating one attention head to haptic for rotation—without explicit supervision; and (iii) compact finger-level tokenization (4 tokens) outperforms both flat fusion and joint-level representations, which suppress vision through norm dominance. We validate that improved tracking yields higher success in a downstream reorientation task and provide qualitative real-world demonstrations. Our project page is available at https://cold-young.github.io/ kine-fuse/ .
+
+I. I NTRODUCTION 
+
+Tasks such as soldering or handwriting require placing a tool tip at a precise target pose, demanding accurate real-time 6D tracking during in-hand reorientation [1], [2], [3]. Vision-based 6D pose estimation frameworks such as FoundationPose [4] and BundleSDF [5] provide strong pose estimation backbones, but the in-hand regime exposes a fundamental weakness: the fingers that manipulate the object also occlude it from the camera. Under self-occlusion, short-range depth artifacts, and constrained viewpoints, visual estimates degrade precisely when fine-grained control is most needed [6], [7]. Prior systems address this through multi-camera rigs [8], [9] or visibility-friendly task designs [10], [11], [12], but such solutions restrict hardware or grasp repertoire. A growing body of work therefore combines visual and tactile feedback for in-hand 6D pose estimation [7], [10], [13], [14], [15]. While effective, many such methods rely    
+
+> This work was supported in part by the Industrial Strategic Technol-ogy Development Program (RS-2024-00442029) funded by the Ministry of Trade, Industry and Energy (MOTIE, Korea), in part by the KIST Institutional Program, and in part by the Institute Strategic Development (ISD) Program. In Addition, this work was supported by the National Supercomputing Center with supercomputing resources including technical support (KSC-2025-CRE-0343). (Corresponding author: Donghyun Hwang)
+> All authors are with the Center for Humanoid Research, KIST, Seoul, 02792 South Korea. Sungwoo Park and Jaesung Lee are also with Korea University, Seoul, 02841 South Korea. ( {chanyoung.ahn; jay.lee; sungwoo.park; donghyun }@kist.re.kr ).
+
+Fig. 1: Our KineFuse Framework combines vision with multimodal haptic feedback, such as tactile, force/torque and joint angle, to enable robust 6D pose tracking during dexterous in-hand manipulation under occlusion. on dense vision-based tactile sensors such as GelSight [16] or DIGIT [17], which provide rich contact images but re-quire specialized hardware. By contrast, many multi-fingered hands already provide simpler embodied haptic signals: joint-level proprioception, binary contact, and force/torque (F/T) measurements. These signals are far more accessible, but when used at all they are often fused as a flat vector [18], discarding the kinematic and spatial relationships among sensing sites. Recent work further suggests that even minimal contact signals can improve pose estimation under occlusion when incorporated appropriately [6]. This points to a central question: not merely whether haptics should be added, but how sparse haptic signals should be structured. In this work, we study how structured encoding of sparse embodied haptics—proprioception, proximal F/T, and binary contact—can complement a pretrained visual tracker under occlusion. Our key idea is to preserve the hand’s kinematic structure when encoding haptic observations, rather than arXiv:2607.14842v1 [cs.RO] 16 Jul 2026 treating them as an unstructured vector (Fig. 1). We keep FoundationPose [4] frozen and augment it with a URDF-aware finger-level haptic encoder. Through a systematic comparison of five encoder designs across three evalua-tion levels—per-frame, sequential tracking, and downstream manipulation—we identify when and how structured haptic encoding improves occlusion robustness. In summary, our contributions are: 1) Kinematic-aware haptic encoder and ablation. We propose a URDF-aware finger-level encoder for sparse haptic signals and systematically compare five encoder designs, identifying that compact 4-token finger-level representations with URDF spatial bias outperform both flat fusion and joint-level encodings. 2) Multi-level evaluation revealing gap amplification. 
+
+We evaluate across per-frame, sequential tracking, and downstream manipulation, showing that architectural differences invisible at the per-frame level (1.12 times) amplify to 2 times in tracking and 15 times in manipu-lation—establishing that sequential evaluation is neces-sary for meaningful assessment of fusion architectures. 3) Analysis of learned fusion behavior. We analyze the learned attention patterns and find that the structured encoder learns physically interpretable cross-modal gating: translation relies on vision exclusively while rotation dedicates a specialized attention head to haptic tokens. II. R ELATED WORK 
+
+A. In-Hand Pose Tracking 
+
+Vision-based 6D object pose estimation and tracking have advanced rapidly, with frameworks such as BundleSDF, FoundationPose, and SAM-6D serving as strong perception backbones for robotic manipulation [4], [5], [19]. Building on these advances, several works have addressed in-hand reorientation and dexterous manipulation using vision-based pose tracking [7], [10], [13], [14], [15]. However, the in-hand regime remains especially challeng-ing for vision-only perception. Self-occlusion by the fingers and constrained wrist-mounted viewpoints often degrade pose estimates during contact-rich manipulation [9]. Prior systems mitigate this with multi-camera setups [8], [20], finger-gaiting strategies [9], [10], [12], [21] that periodically expose the object, or task designs that improve visibility [10], [21], [12], but such solutions can restrict the grasp repertoire or hardware configuration. A growing body of work therefore combines vision with tactile or force-related feedback for dexterous manipulation and in-hand pose tracking [6], [7], [22], [23], [24], [25]. Re-cent optimization-based work [6], for example, incorporates binary contact as a geometric constraint in a factor-graph optimizer, showing that even minimal tactile information can improve pose estimation under occlusion. Despite this progress, two limitations remain. First, many methods rely on vision-based tactile sensors such as Gel-Sight [16] and DIGIT [17], leaving lower-dimensional sig-nals, including joint-level proprioception, binary contact, and, when available, proximal force/torque, comparatively underexplored for structured fusion. Second, with some no-table exceptions [7], heterogeneous sensor streams are often fused through straightforward concatenation, which does not explicitly encode the kinematic or spatial relationships among sensing sites on the hand. 
+
+B. Structured Haptic Representations 
+
+Beyond sensor choice, the effectiveness of multimodal in-hand perception also depends on how haptic signals are represented and fused. Existing approaches span several design choices. The simplest approaches concatenate raw sensor readings into a flat vector for a Multi-Layer Percep-tron (MLP) [18], which is lightweight but discards spatial and kinematic relationships among sensing sites. Richer approaches embed hand–object interaction into shared 3D representations such as point clouds with annotated contact regions [15], [22], [23], [26], [27], providing stronger ge-ometric bias at the cost of additional rendering or recon-struction pipelines. A third line of work represents the hand as a kinematic graph and processes it with GNNs [7], [28], [29] or graph transformers [30], [31], leveraging the fact that sensors are physically attached to specific links and joints. Among graph-based approaches, Rezazadeh et al. [7] are the closest precedent: they construct a heterogeneous graph over vision, tactile, and proprioceptive nodes for in-hand object pose estimation. However, like most visuo-haptic frameworks, their method relies on dense vision-based tactile sensing. Recent optimization-based work by Mack et al. [6] shows that low-resolution tactile contact can also improve in-hand pose estimation under occlusion, but does so through factor-graph-based geometric correction rather than learned multimodal fusion. Whether graph-structured encoding re-mains effective in the sparse regime—where only a subset of joints carry force/torque measurements and the remaining joints provide only proprioception—remains unclear. To our knowledge, prior work has not systematically analyzed how the value of structured haptic fusion changes across graded occlusion severity relative to both vision-only and naive fusion baselines. These gaps motivate our focus on structured sparse-haptic encoding for occlusion-robust in-hand pose tracking. III. M ETHOD 
+
+A. Problem Formulation 
+
+We consider 6D object pose tracking during in-hand ma-nipulation with an external RGB-D camera and no external tracking system (see in Fig. 2). At each timestep t, the system receives an RGB-D observation It and a sparse haptic observation ht, and predicts the object pose ˆTt ∈ SE (3) in the camera frame. The haptic input is collected from a J-joint dexterous hand over τ history steps. We represent it as 
+
+ht ∈ RJ×τ ×C , where J is the number of joints and C is the per-joint feature dimension. In our setup, J=16 and τ =4 ; the short temporal window captures short-term variations in force and contact signals during in-hand interaction. All joints provide proprioceptive Fig. 2: KineFuse framework. A shared visual encoder produces L=400 tokens from rendered and observed RGB-D crops; the Finger Graph Encoder maps 16-joint haptic signals to K=4 finger tokens. Both are concatenated and decoded by separate translation and rotation heads. 
+
+Fig. 3: Haptic Graph Encoder. (a) Naive, (b) FingerMLP, (c) 16-token, and (d) KineFuse: intra-finger attention with a block-diagonal mask propagates sparse F/T cues within each finger, cross-attention pools joints into finger tokens, and Graphormer layers with URDF spatial bias capture inter-finger relationships. states, namely joint position q and velocity ˙q. In addi-tion, binary tactile contact is measured at the fingertips, while a subset of phalangeal joints provides 3-axis proximal force/torque (F/T) measurements together with a binary availability flag that indicates whether F/T sensing is present at that joint. Let SFT ⊂ { 1, . . . , J } denote the joints equipped with F/T sensing. In our hand, only four phalangeal joints belong to SFT , while the remaining joints provide proprioception only. This heterogeneous sensing layout—combining joint-level proprioception, fingertip contact sensing, and sparse force measurements at only a subset of joints—defines the sparse haptic regime that motivates our structured encoding approach. We assume a known object CAD model and known hand–eye calibration [32] between the camera and robot base frames. 
+
+B. Visual Pose Estimation 
+
+We build on the FoundationPose refinement network [4] as the visual backbone (see in Fig. 2). Given a current pose hypothesis ˜Tt, the object mesh is rendered at ˜Tt and compared against the observed RGB-D input It in a render-and-compare pipeline. Following FoundationPose, we crop both the rendered and observed inputs around the projected object region and encode them with a shared CNN backbone, producing a sequence of visual tokens vt ∈ RL×D where 
+
+L = 400 (a 20 ×20 spatial grid) and D = 512 in our implementation. 
+
+C. Structured Haptic Encoding 
+
+We compare five haptic encoder designs that progressively introduce kinematic structure (Fig. 3): (a) Naive concatenates all joint features into a single token via linear projection; (b) FingerMLP groups joints by finger and applies per-finger MLPs followed by cross-finger self-attention, producing 4 to-kens without kinematic bias; (c) 16-token applies intra-finger and inter-finger attention at the joint level without pooling, retaining all 16 tokens; (d) KineFuse (Ours) adds intra-finger attention, learned cross-attention pooling (16 →4), and URDF-aware inter-finger graph attention. All variants share the same joint tokenization and fusion architecture (Section III-D); only the haptic encoding differs. We detail our full encoder below. 
+
+Joint tokenization. For each joint j, we flatten its τ -step history into a feature vector x(j) 
+
+> t
+
+∈ R28 and map it into the token space through a shared two-layer MLP with layer normalization. ˆz(j) 
+
+> t
+
+= W2 ϕ
+
+
+
+LN( W1x(j) 
+
+> t
+
+)
+
+
+
+where W1 :
+
+R28 → R512 , W2 : R512 → R512 , LN denotes LayerNorm, and ϕ is GELU. We then add a learnable finger-identity embedding and a learnable within-finger position embedding. z(j) 
+
+> t
+
+= ˆ z(j) 
+
+> t
+
++efinger (j)+ epos (j). This produces J joint-level tokens z(0)  
+
+> t
+
+∈ RJ×512 .
+
+Intra-finger attention. To propagate sparse force and contact cues within each finger, we apply two self-attention layers with a finger-restricted mask. z(1)  
+
+> t
+
+=IntraAttn( z(0)  
+
+> t
+
+; Mfinger ) where Mfinger blocks cross-finger attention. Each joint can attend only to the four joints of its own finger, allowing force and contact information available at distal sensing sites to propagate to proximal joints that lack direct force sensing. 
+
+Finger-level pooling. We compress the 16 joint tokens into 4 finger tokens using learned cross-attention. For each finger, a learnable query attends over that finger’s four joint tokens and produces a single summary token. ft =FingerPool( z(1)  
+
+> t
+
+) ∈ R4×512 .
+
+Inter-finger graph attention. The finger tokens are then processed by two Graphormer-style layers [30] aug-mented with URDF-derived spatial biases, following the embodiment-aware bias design of GET-Zero [31] ht =InterAttn( ft; B). where B ∈ R4×4×H is a learned multi-head attention bias. For each finger pair, we compute a small set of hand-geometry features from the URDF, including hop distance, opposition relationship, and adjacency, and map them through an MLP to per-head bias terms. The final haptic representation is ht ∈ R4×512 .
+
+D. Visuo-Haptic Fusion 
+
+We fuse the two modalities by concatenating the visual and haptic tokens along the sequence dimension: 
+
+zt = [ vt; ht ] ∈ R(L+4) ×512 . (1) The fused token sequence is processed by two single-layer transformer encoders, one for translation and one for rota-tion: 
+
+ztrans  
+
+> t
+
+= TransHead( zt), (2) 
+
+zrot  
+
+> t
+
+= RotHead( zt). (3) We then mean-pool each sequence and project to the output space: 
+
+∆ˆ tt = tanh  Wtrans mean( ztrans  
+
+> t
+
+) ⊙ nt, (4) 
+
+∆ˆ rt = Wrot mean( zrot  
+
+> t
+
+), (5) where ∆ˆ tt ∈ R3 is the translation update, nt is a per-axis normalizer that bounds the maximum translation step size, and ∆ˆ rt ∈ R6 is the rotation update in the 6D representa-tion [33]. Both updates are predicted in the egocentric frame of the current hypothesis. The refined pose is obtained by composition: ˆTt = ∆ ˆTt ◦ ˜Tt.At inference we apply two successive refinement itera-tions: the output of the first pass serves as ˜Tt for a second pass, allowing the model to correct residual errors. During tracking, the initial hypothesis is set to the previous frame’s estimate, ˜Tt = ˆTt−1.Although the codebase supports a gated dual-head variant with a haptic-only prediction branch, we found that the confidence gate consistently saturated toward the haptic-only head, blocking visual gradients and collapsing to unimodal prediction. All reported results therefore use the direct fusion output without gating. 
+
+E. Training 
+
+Two-stage training. We train the model in two stages. In Stage 1, we pretrain the haptic encoder with a haptic-only pose prediction objective, ensuring that the haptic tokens carry a meaningful sparse-haptic representation before fusion. In Stage 2, we combine pretrained FoundationPose vision weights with the Stage 1 haptic encoder and fine-tune the full visuo-haptic model. During the first three warmup epochs of Stage 2, the visual backbone is frozen; afterward, all parameters are optimized jointly. The haptic branch uses a 2.5 times learning rate relative to the visual backbone. 
+
+Training pairs. Following the FoundationPose refinement protocol, we perturb the ground-truth pose T ∗ 
+
+> t
+
+with sampled egocentric noise—rotation uniformly drawn from [1 ◦, 10 ◦]
+
+and translation from [0 .002 , 0.01] m—to obtain a pose hy-pothesis ˜Tt. The rendered crop is generated from ˜Tt, while the observed RGB-D image and haptic signals correspond to the actual scene. The model predicts the residual pose delta that refines ˜Tt toward T ∗ 
+
+> t
+
+.
+
+Data and augmentation. Training data are collected in IsaacLab [34] from in-hand reorientation trajectories under both clean and physically occluded settings. We apply syn-thetic rectangular occlusion to the observed RGB-D input and domain randomization to the force channels, including multiplicative scaling, additive offset, Gaussian noise, and stochastic dropout. 
+
+Losses. The total training objective is 
+
+L = Lpose + λADD LADD + λattr Lattr + λpen Lpen . (6) Here, Lpose denotes the MSE loss on the predicted ego-centric translation and rotation deltas. The term LADD is the standard Average Distance of Distinguishable model points (ADD) loss computed on the transformed object points. The remaining two terms provide auxiliary geometric supervision: Lattr encourages hand–object proximity around the intended contact regions, while Lpen penalizes mesh interpenetration. These auxiliary losses follow prior object– hand geometric supervision [22]. The coefficients λADD ,
+
+λattr , and λpen balance the relative contributions of the corresponding loss terms. IV. E XPERIMENTS 
+
+We design our experiments to answer four questions: 1) How does structured sparse haptic fusion compare to vision-only and naive fusion across occlusion severity? 2) Does improved pose tracking remain robust under manipulation-relevant trajectories? 3) Which aspects of the haptic encoder matter most—its structure, token count, or both? 4) Which haptic modalities contribute most— proprioception, F/T, or contact? Fig. 4: Illustration of robotic hand platform capable of kines-thetic feedback at each finger. (a), (b), and (c) show the three-axis F/T sensor embedded into the robotic hand platform for kinesthetic feedback, the robotic hand platform, and the robotic finger that includes tactile sensors respectively. 
+
+Fig. 5: Tool Reorientation Task. The policy reorients a grasped tool to align its tip with a target point. We evaluate whether improved pose tracking under occlusion translates to higher task success. 
+
+Fig. 6: Tracking drift. Position and angular error over 149 tracking steps at 30% occlusion. KineFuse (V+H) stabilizes after step 20, while V-only (FP) diverges continuously. 
+
+A. Experimental Setup 
+
+Implementation details. All models, including the V-only FoundationPose baseline, are fine-tuned with identical training schedules, datasets, and augmentation pipelines; only the haptic encoder differs. We report position error in centimeters (cm), angular error in degrees, and ADD in centimeters. Task success is measured as the mean count of successful tip-target alignments (within 2 cm position and 15 degrees orientation) per episode of 300 steps. The per-axis translation normalizer is set to [0.01, 0.01, 0.01]m, bounding the maximum single-step translation update. 
+
+Hardware. We use a four-fingered dexterous hand plat-form [35] with 16 degrees of freedom (4 joints per finger) in detailed Fig. 4. Each joint provides encoder-based position and velocity readings. The four fingertip joints additionally carry 3-axis proximal force/torque sensors and binary contact 
+
+Fig. 7: Model errors in pose-tolerance space. Each model’s mean tracking error is overlaid on the RL policy’s noise-tolerance curve. KineFuse operates within the viable region; V-only and 16-token fall outside it. indicators. An RGB-D camera (RealSense D435i for real-world) is mounted at the wrist. The manipulated object is a pencil shape with a known CAD model. 
+
+Simulation. Our manipulation goal is that reorients a grasped tool to align its tip to target region (see Fig. 5). All training and quantitative evaluation are conducted in IsaacLab (Isaac Sim) [34]. We collect two datasets: clean 
+
+sequences ( ∼2,000 frames) of RL-driven in-hand reorienta-tion without deliberate occlusion, and occluded sequences (∼1,000 frames) with physical occluder primitives inserted between the camera and object. Ground-truth 6D poses are available for every frame (Fig. 9 (a)). 
+
+Occlusion protocol. To evaluate robustness across graded occlusion severity, we apply synthetic rectangular masks to the RGB-D input at evaluation time, occluding approx-imately 0% , 10% , 30% , 50% , 70% , and 90% of the image area centered around the object region (Fig. 9 (b)). This provides controlled, reproducible occlusion conditions in-dependent of the physical occluder placement used during training (Fig. 9). 
+
+Baselines and models. We compare the following models in Fig 3, all built on the same frozen FoundationPose visual backbone and trained on the same combined dataset with identical augmentation. 
+
+Metrics. For pose estimation, we report position er-ror (cm), angular error (degree), and ADD (cm), the average distance between object model points transformed by the pre-dicted and ground-truth poses. For downstream manipulation, we report task success rate and mean successes per episode from a separately trained RL reorientation policy evaluated with estimated (rather than ground-truth) pose observations. 
+
+B. Pose Estimation across Occlusion Severity 
+
+Our main experiment evaluates all models across five occlusion levels. Table II and Fig. 8 report the results. 
+
+Per-frame refinement. The results shows that all models achieve comparable per-frame accuracy (ADD < 0.011 cm), with a best-to-worst ratio of only 1.12 times. The visual Fig. 8: Qualitative tracking comparison under 30% occlusion. Top: KineFuse (V+H) maintains accurate pose overlay through step 35. Bottom: V-only (FP) diverges by step 20 as the occluded region grows. Insets show the rendered hypothesis (A) and observed crop (B) fed to the refiner. Attention allocation percentages (green text) confirm that KineFuse uses 100% vision for translation and 75/25% vision/haptic for rotation throughout. 
+
+Fig. 9: Occlusion Level Settings. (a) Physical occlusion in simulation: objects of increasing size are placed between the camera and the manipulated object. (b) Synthetic rectangular occlusion applied to the observed RGB-D crop at varying ratios (0.0–0.9). Both settings are used during training; evaluation sweeps the occlusion ratio to measure robustness under progressive visual degradation. backbone dominates single-step refinement, leaving little room for haptic encoders to differentiate. This motivates sequential evaluation. 
+
+Sequential open-loop tracking. When pose estimates are chained across frames (Table I, Fig. 8), architectural differences amplify dramatically. KineFuse achieves 4.04 cm mean position error (2 times lower than V-only’s 8.11 cm) and maintains constant angular error at 47.6 degrees ± 0.1 degree regardless of occlusion level, while V-only fluctuates between 54.9 and 79.4 degrees. Note that the reorienta-tion task spans a full SO(3) range (up to 180 degrees), making 47.6 degrees a meaningful reduction from the V-only baseline’s 54.9–79.4 degrees range. At low occlusion (0–20% ), all models perform comparably, as the visual backbone provides sufficient pose information. As occlusion increases beyond 40% , vision-only tracking degrades sharply while haptic-augmented models maintain lower error. Among TABLE I: Open-loop sequential tracking under occlusion (3 seeds ± std). Pose at frame t initializes frame t+1 , so errors accumulate. KineFuse achieves the lowest position error at every occlusion level and maintains constant angular error (47.6 degrees). KineFuse is the only model that maintains constant angular error (47.6 degrees) regardless of occlusion level.                                                                         
+
+> Occlusion Ratio Model Metric 0% 10% 30% 50% 70% 90% V-only Pos 8.30 ±.51 6.80 ±.25 9.12 ±.54 7.59 ±.45 9.68 ±.73 7.14 ±.44
+> Ang 59.9 ±3.2 64.2 ±3.4 57.7 ±3.4 60.6 ±3.5 54.9 ±1.3 79.4 ±3.7
+> Naive Pos 8.30 ±.04 7.76 ±.18 9.13 ±.21 10.1 ±.17 7.01 ±.20 5.57 ±.19
+> Ang 48.0 ±1.1 47.3 ±1.1 47.9 ±1.5 47.7 ±1.3 50.8 ±1.2 53.7 ±1.4
+> FingerMLP Pos 5.01 ±.23 5.46 ±.32 5.35 ±.28 6.07 ±.34 4.84 ±.24 6.50 ±.62
+> Ang 49.2 ±4.2 52.8 ±5.1 49.7 ±3.8 50.9 ±4.3 47.0 ±1.8 67.6 ±4.2
+> 16-token Pos 5.84 ±.08 5.84 ±.08 5.81 ±.08 5.79 ±.08 5.80 ±.08 5.79 ±.08
+> Ang 69.2 ±1.3 69.3 ±1.3 69.3 ±1.3 69.3 ±1.3 69.3 ±1.3 69.2 ±1.3
+> KineFuse Pos 3.68 ±.14 3.49 ±.10 3.47 ±.12 4.17 ±.06 4.33 ±.06 5.11 ±.07
+> Ang 47.7 ±2.7 47.7 ±2.7 47.6 ±2.7 47.7 ±2.7 47.6 ±2.7 47.6 ±2.7
+
+fusion models, our structured encoder consistently outper-forms both the naive baseline and the 16-token variant, with the gap widening at higher occlusion. This confirms two points: (i) sparse haptics become complementary to vision precisely when visual estimates degrade, and (ii) structured encoding of these signals yields additional gains over naive concatenation. Fig. 8 provides a qualitative comparison: KineFuse main-tains accurate pose alignment through 35 tracking steps at 30% occlusion, while the vision-only tracker diverges by step 20. 
+
+C. Downstream Manipulation 
+
+Accurate pose tracking is only valuable if it improves task performance. We evaluate this by deploying a separately trained RL policy for in-hand reorientation, replacing its ground-truth pose observation with estimated poses from our TABLE II: Downstream manipulation success (success/episode, RL policy, 3 seeds ± std). GT uses ground-truth pose (upper bound).              
+
+> Pose Source Occlusion Ratio 0% 10% 30% 50% 70% 90% GT 21.25 —————V-only
+
+0.46 ±.16 0.63 ±.06 0.83 ±.24 1.58 ±.34 1.97 ±1.0 1.52 ±.18  
+
+> Naive V+H
+
+1.54 ±.47 1.40 ±.55 1.86 ±.58 1.53 ±.53 1.75 ±.40 2.00 ±.29  
+
+> FingerMLP
+
+1.63 ±.06 0.61 ±.14 0.79 ±.67 1.48 ±.19 5.04 ±2.1 2.45 ±.38  
+
+> 16-token
+
+0.27 ±.04 0.23 ±.03 0.33 ±.05 0.30 ±.04 0.29 ±.05 0.30 ±.10  
+
+> KineFuse
+
+4.61 ±1.3 4.47 ±1.4 4.72 ±.42 4.47 ±.83 5.10 ±.28 3.81 ±.85 
+
+Fig. 10: Real-world qualitative results. tracker. The policy is held fixed; only the pose source varies. 
+
+Manipulation with estimated pose. When deployed in a closed-loop manipulation pipeline, KineFuse tracking achieves higher success than V-only in both RL policies, consistent with its superior per-frame accuracy. However, cumulative tracking drift remains the primary bottleneck, reducing overall success to 9% of the ground-truth upper bound (See Figure. 6). Addressing drift through temporal regularization or re-initialization strategies is left to future work. By cross-referencing Fig. 7 and Table. II, we can trace ma-nipulation failures directly to pose error magnitude: when V-only position error exceeds the tolerance threshold identified in Fig. 7, task success drops correspondingly. Our model’s lower pose error keeps it within the policy’s operating range across a wider span of occlusion conditions. 
+
+D. Ablation Studies 
+
+Structural vs. informational contribution. A key ques-tion is whether haptic signals contribute through their run-TABLE III: Pose tracking error.                          
+
+> Step Trans. Error (mm) Rot. Error (deg) V-only KineFuse V-only KineFuse 011.9 1.4 6.7 2.5
+> 67 78.2 17.4 57.7 30.8
+> 135 108.2 35.9 130.3 63.5
+> 202 95.3 58.1 177.4 86.6
+> 269 96.6 85.4 94.3 131.5
+
+time content or through the structural bias they impose during training. To disentangle these, we zero all haptic channels at inference. The result—nearly identical tracking to the full model, yet 2.3 times better than V-only provides direct evidence that the contribution is structural: the kinematic topology of the haptic encoder acts as an inductive bias that reshapes how the fusion transformer organizes visual attention, and this reorganization persists after haptic re-moval. This finding has practical implications: once trained with haptic data, the model can be deployed in scenarios where haptic sensors are temporarily unavailable (e.g., sensor failure, new end-effector) without performance degradation. 
+
+E. Real-World Demonstration 
+
+We demonstrate simple tracking performance on a physi-cal setup using the same dexterous hand, a RealSense D435i camera, and a primitive tool object (see in Fig. 1). Since ground-truth poses are unavailable in the real-world setting, we report proxy metrics: temporal jitter (standard de-viation of frame-to-frame position differences) and tracking failure count (frames where position jumps exceed). Fig. 10 shows representative frames. In addition, the results of Pose tracking error from AprilTag [36] is in Table. III. V. C ONCLUSION 
+
+We studied how structuring sparse haptic signals affects vision-haptic fusion for in-hand pose tracking under oc-clusion. Three findings emerge: (i) per-frame evaluation cannot distinguish encoder quality, but sequential tracking amplifies differences by up to 15 times in downstream manipulation; (ii) the structured encoder learns task-specific gating—translation uses vision exclusively while rotation dedicates one attention head to haptic tokens—without ex-plicit supervision; and (iii) this benefit is structural rather than informational, persisting even when haptic input is zeroed at inference. 
+
+Limitations and future work. Our evaluation is con-ducted on a single pencil-shaped object in simulation, with only qualitative real-world demonstration. We acknowledge this limits generalizability claims. However, we emphasize two architectural properties that support broader applicabil-ity: (i) the haptic encoder operates exclusively on hand-side signals (proprioception, F/T, contact) and encodes no object-specific features, making it object-agnostic by design; (ii) the URDF-aware spatial bias is derived from hand kinematics, not object geometry, and thus transfers to any object grasped by the same hand. Extending quantitative evaluation to diverse objects and real-world settings with ground-truth tracking remains our most important next step. Additionally, the modular perception-policy pipeline accumulates drift that the downstream policy cannot correct; joint end-to-end training could address this bottleneck. REFERENCES [1] A. Gordon, H. Forssberg, R. Johansson, and G. Westling, “The integration of haptically acquired size information in the programming of precision grip,” Experimental brain research , vol. 83, no. 3, pp. 483–488, 1991. [2] N. Navarro-Guerrero, S. Toprak, J. Josifovski, and L. Jamone, “Visuo-haptic object perception for robots: an overview,” Autonomous Robots ,vol. 47, no. 4, pp. 377–403, 2023. [3] A. Bhardwaj, M. Mittal, V. Patil, and M. Hutter, “Viserdex: Visual sim-to-real for robust dexterous in-hand reorientation,” Proceedings of Robotics: Science and Systems (RSS) , 2026. [4] B. Wen, W. Yang, J. Kautz, and S. Birchfield, “Foundationpose: Uni-fied 6d pose estimation and tracking of novel objects,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2024, pp. 17 868–17 879. [5] B. Wen, J. Tremblay, V. Blukis, S. Tyree, T. M¨ uller, A. Evans, D. Fox, J. Kautz, and S. Birchfield, “Bundlesdf: Neural 6-dof tracking and 3d reconstruction of unknown objects,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) ,2023, pp. 606–617. [6] L. Mack, F. Gr¨ uninger, B. A. Richardson, R. Lendway, K. J. Kuchen-becker, and J. Stueckler, “Visuo-tactile object pose estimation for a multi-finger robot hand with low-resolution in-hand tactile sensing,” in Proceedings of the IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2025, pp. 12 401–12 407. [7] A. Rezazadeh, S. Dikhale, S. Iba, and N. Jamali, “Hierarchical graph neural networks for proprioceptive 6d pose estimation of in-hand objects,” in Proceedings of the IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2023, pp. 2884–2890. [8] O. M. Andrychowicz, B. Baker, M. Chociej, R. Jozefowicz, B. Mc-Grew, J. Pachocki, A. Petron, M. Plappert, G. Powell, A. Ray et al. ,“Learning dexterous in-hand manipulation,” International Journal of Robotics Research , vol. 39, no. 1, pp. 3–20, 2020. [9] T. Chen, M. Tippur, S. Wu, V. Kumar, E. Adelson, and P. Agrawal, “Visual dexterity: In-hand reorientation of novel and complex object shapes,” Science Robotics , vol. 8, no. 84, p. eadc9244, 2023. [10] J. Wang, Y. Yuan, H. Che, H. Qi, Y. Ma, J. Malik, and X. Wang, “Lessons from learning to spin “pens”,” in Conference on Robot Learning (CoRL) , 2024. [11] H. Qi, B. Yi, S. Suresh, M. Lambeta, Y. Ma, R. Calandra, and J. Malik, “General in-hand object rotation with vision and touch,” in Conference on Robot Learning (CoRL) . PMLR, 2023, pp. 2549–2564. [12] M. Yang, chenghua lu, A. Church, Y. Lin, C. J. Ford, H. Li, E. Psomopoulou, D. A. Barton, and N. F. Lepora, “Anyrotate: Gravity-invariant in-hand object rotation with sim-to-real touch,” in 
+
+Conference on Robot Learning (CoRL) , 2024. [Online]. Available: https://openreview.net/forum?id=8Yu0TNJNGK [13] Y. Tu, J. Jiang, S. Li, N. Hendrich, M. Li, and J. Zhang, “Posefusion: Robust object-in-hand pose estimation with selectlstm,” in Proceedings of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . IEEE, 2023, pp. 6839–6846. [14] Z. Wan, Y. Ling, S. Yi, L. Qi, W. W. Lee, M. Lu, S. Yang, X. Teng, P. Lu, X. Yang et al. , “Vint-6d: A large-scale object-in-hand dataset from vision, touch and proprioception,” in Proceedings of the International Conference on Machine Learning (ICML) .[15] S. Suresh, H. Qi, T. Wu, T. Fan, L. Pineda, M. Lambeta, J. Malik, M. Kalakrishnan, R. Calandra, M. Kaess et al. , “Neuralfeels with neu-ral fields: Visuotactile perception for in-hand manipulation,” Science Robotics , vol. 9, no. 96, p. eadl0628, 2024. [16] W. Yuan, S. Dong, and E. H. Adelson, “Gelsight: High-resolution robot tactile sensors for estimating geometry and force,” Sensors , vol. 17, no. 12, p. 2762, 2017. [17] M. Lambeta, P.-W. Chou, S. Tian, B. Yang, B. Maloon, V. R. Most, D. Stroud, R. Santos, A. Byagowi, G. Kammerer et al. , “Digit: A novel design for a low-cost compact high-resolution tactile sensor with application to in-hand manipulation,” IEEE Robotics and Automation Letters (RA-L) , vol. 5, no. 3, pp. 3838–3845, 2020. [18] T. Lin, Y. Zhang, Q. Li, H. Qi, B. Yi, S. Levine, and J. Malik, “Learn-ing visuotactile skills with two multifingered hands,” in Proceedings of the IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2025, pp. 5637–5643. [19] J. Lin, L. Liu, D. Lu, and K. Jia, “Sam-6d: Segment anything model meets zero-shot 6d object pose estimation,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) ,2024, pp. 27 906–27 916. [20] T. Chen, J. Xu, and P. Agrawal, “A system for general in-hand object re-orientation,” Conference on Robot Learning (CoRL) , 2021. [21] H. Qi, A. Kumar, R. Calandra, Y. Ma, and J. Malik, “In-hand object rotation via rapid motor adaptation,” in Conference on Robot Learning (CoRL) , ser. Proceedings of Machine Learning Research. PMLR, 14– 18 Dec 2023, pp. 1722–1732. [22] H. Li, M. Jia, T. Akbulut, Y. Xiang, G. Konidaris, and S. Sridhar, “V-hop: Visuo-haptic 6d object pose tracking,” Proceedings of Robotics: Science and Systems (RSS) , 2025. [23] S. Dikhale, K. Patel, D. Dhingra, I. Naramura, A. Hayashi, S. Iba, and N. Jamali, “Visuotactile 6d pose estimation of an in-hand object using vision and tactile sensor data,” IEEE Robotics and Automation Letters (RA-L) , vol. 7, no. 2, pp. 2148–2155, 2022. [24] M. Oller, M. P. i Lisbona, D. Berenson, and N. Fazeli, “Manipulation via membranes: High-resolution and highly deformable tactile sensing and control,” in Conference on Robot Learning (CoRL) . PMLR, 2023, pp. 1850–1859. [25] W. Hu, B. Huang, W. W. Lee, S. Yang, Y. Zheng, and Z. Li, “Dexterous in-hand manipulation of slender cylindrical objects through deep reinforcement learning with tactile sensing,” Robotics and Autonomous Systems , vol. 186, p. 104904, 2025. [26] D. Watkins-Valls, J. Varley, and P. Allen, “Multi-modal geometric learning for grasping and manipulation,” in Proceedings of the IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2019, pp. 7339–7345. [27] P. Falco, S. Lu, A. Cirillo, C. Natale, S. Pirozzi, and D. Lee, “Cross-modal visuo-tactile object recognition using robotic active exploration,” in Proceedings of the IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2017, pp. 5273–5280. [28] L. Yang, B. Huang, Q. Li, Y.-Y. Tsai, W. W. Lee, C. Song, and J. Pan, “Tacgnn: Learning tactile-based in-hand manipulation with a blind robot using hierarchical graph neural network,” IEEE Robotics and Automation Letters (RA-L) , vol. 8, no. 6, pp. 3605–3612, 2023. [29] L. Ramp´ aˇ sek, M. Galkin, V. P. Dwivedi, A. T. Luu, G. Wolf, and D. Beaini, “Recipe for a general, powerful, scalable graph trans-former,” Advances in Neural Information Processing Systems , vol. 35, pp. 14 501–14 515, 2022. [30] C. Ying, T. Cai, S. Luo, S. Zheng, G. Ke, D. He, Y. Shen, and T.-Y. Liu, “Do transformers really perform badly for graph representation?” 
+
+Advances in neural information processing systems , vol. 34, pp. 28 877–28 888, 2021. [31] A. Patel and S. Song, “Get-zero: Graph embodiment transformer for zero-shot embodiment generalization,” Proceedings of the IEEE International Conference on Robotics and Automation (ICRA) , pp. 14 262–14 269, 2025. [32] ´E. Marchand, F. Spindler, and F. Chaumette, “Visp for visual servoing: a generic software platform with a wide class of robot control skills,” 
+
+IEEE Robotics & Automation Magazine , vol. 12, no. 4, pp. 40–52, 2006. [33] Y. Zhou, C. Barnes, J. Lu, J. Yang, and H. Li, “On the continuity of rotation representations in neural networks,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2019, pp. 5745–5753. [34] M. Mittal, P. Roth, J. Tigue, A. Richard, O. Zhang, P. Du, A. Serrano-Munoz, X. Yao, R. Zurbr¨ ugg, N. Rudin et al. , “Isaac lab: A gpu-accelerated simulation framework for multi-modal robot learning,” 
+
+arXiv preprint arXiv:2511.04831 , 2025. [35] S. Park and D. Hwang, “Three-axis flat and lightweight force/torque sensor for enhancing kinesthetic sensing capability of robotic hand,” 
+
+IEEE Transactions on Industrial Electronics , vol. 71, no. 10, pp. 12 707–12 717, 2024. [36] E. Olson, “Apriltag: A robust and flexible visual fiducial system,” in 
+
+Proceedings of the IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2011, pp. 3400–3407.
