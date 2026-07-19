@@ -1,0 +1,319 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-19T21:20:19.770578+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 1,
+    "deep_cap": 7,
+    "deep_selected": 1,
+    "quick_candidates": 6,
+    "quick_skim_target": 12,
+    "quick_selected": 6
+  },
+  "deep_dive": [
+    {
+      "id": "2607.13539v1",
+      "source": "arxiv",
+      "title": "ThinkBLOX: 3D Indoor Scene Generation with Progressive Reasoning",
+      "abstract": "While traditional graphics methods often synthesize 3D indoor scenes autoregressively or hierarchically, recent vision-language model (VLM)-based generators predominantly adopt a one-shot paradigm where the full layout is planned at once. This one-shot approach often requires global re-optimization or complete reconstruction during interactive editing (e.g., inserting or moving objects) and can lead to physically or semantically poorly organized arrangements. To address these challenges, we propose ThinkBLOX, a VLM-based progressive reasoning framework that iteratively designs and refines 3D scenes. ThinkBLOX treats layout generation as a state-conditioned, step-by-step reasoningand-action process. To power this, we construct the ThinkBLOX-Data-200K dataset, containing 224,757 procedural placement pairs annotated with multi-view scene context, explicit Chain-of-Thought (CoT) rationales, and structured JSON layouts. Through supervised fine-tuning (SFT) on this dataset, the VLM learns to bridge the reasoning-action gap under incremental updates. Furthermore, recognizing that scene synthesis is inherently a multisolution task where SFT suffers from reward conflict, we introduce Tier-Decoupled GDPO. This reinforcement learning scheme organizes heterogeneous rewards into distinct tiers, stabilizing policy optimization across physical validity, semantic plausibility, and reasoning-action consistency. Extensive experiments show that ThinkBLOX significantly outperforms recent one-shot and iterative baselines in physical plausibility, semantic alignment, and interactive editability. Additionally, we show that it supports diverse applications, including both global and local generation and rearrangement of 3D scenes.",
+      "authors": [
+        "Yuan Xiao",
+        "Can Wang",
+        "Xiangyu Kong",
+        "Jing Liao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.GR"
+      ],
+      "published": "2026-07-15T07:42:47+00:00",
+      "link": "https://arxiv.org/pdf/2607.13539v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "VLM-based progressive reasoning for 3D scene generation",
+      "llm_evidence_cn": "基于VLM的渐进式推理三维场景生成",
+      "llm_evidence": "基于VLM的渐进式推理三维场景生成",
+      "canonical_evidence": "基于VLM的渐进式推理三维场景生成",
+      "llm_tldr_en": "ThinkBLOX proposes a VLM-based progressive reasoning framework for 3D indoor scene generation, iteratively designing and refining layouts, overcoming limitations of one-shot generation.",
+      "llm_tldr_cn": "针对现有基于视觉语言模型（VLM）的三维场景生成方法多采用一次性规划导致编辑困难的问题，本文提出ThinkBLOX，一种基于VLM的渐进式推理框架。它将布局生成视为状态条件的逐步推理与行动过程，并构建了ThinkBLOX-Data-200K数据集。实验表明该方法能生成物理和语义上更合理的室内场景，并支持交互式编辑。",
+      "llm_tldr": "针对现有基于视觉语言模型（VLM）的三维场景生成方法多采用一次性规划导致编辑困难的问题，本文提出ThinkBLOX，一种基于VLM的渐进式推理框架。它将布局生成视为状态条件的逐步推理与行动过程，并构建了ThinkBLOX-Data-200K数据集。实验表明该方法能生成物理和语义上更合理的室内场景，并支持交互式编辑。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "vision language model 3d scene generation",
+      "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.12752v2",
+      "source": "arxiv",
+      "title": "Hallo4D: Multi-Modal Hallucination Mitigation for Consistent Spatio-Temporal Generation",
+      "abstract": "While recent advances in 3D generation have enabled impressive visual synthesis, existing methods often rely on 2D diffusion supervision without explicit mechanisms for geometric consistency, leading to spatial hallucinations such as duplicated structures and misaligned geometry. These issues become more severe in 4D generation, where maintaining consistency across viewpoints and temporal evolution introduces additional challenges, including jitter, identity flicker, and structural drift. We present \\textbf{Hallo4D}, a unified and model-agnostic framework for mitigating spatiotemporal hallucinations in 3D and 4D content generation. Hallo4D introduces a generation-detection-correction paradigm that leverages large multimodal language models (LMMs) to identify and summarize spatial and temporal inconsistencies from multi-view and multi-frame renderings. These insights guide a consensus-driven image-space consistency optimization, where an LMM-based selector evaluates candidate corrections through multi-model voting, without requiring retraining or architectural modifications. To further improve temporal consistency and optimization efficiency, Hallo4D incorporates motion-aware keyframe sampling, LMM-guided initialization, and appearance alignment. We additionally introduce exposure-aware optimization and visibility pruning to enhance robustness under challenging viewpoints. Extensive experiments demonstrate that Hallo4D consistently outperforms strong baselines across diverse 3D and 4D generation settings, providing a scalable and generalizable solution for consistency-aware content generation.",
+      "authors": [
+        "Hongbo Wang",
+        "Huaibo Huang",
+        "Jie Cao",
+        "Jin Liu",
+        "Haoyang Tong",
+        "Ran He"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-07-14T13:19:06+00:00",
+      "link": "https://arxiv.org/pdf/2607.12752v2",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "mitigates spatiotemporal hallucinations in 3D/4D generation using large language models",
+      "llm_evidence_cn": "使用大语言模型缓解3D/4D生成中的时空幻觉",
+      "llm_evidence": "使用大语言模型缓解3D/4D生成中的时空幻觉",
+      "canonical_evidence": "使用大语言模型缓解3D/4D生成中的时空幻觉",
+      "llm_tldr_en": "Hallo4D uses a generation-detection-correction paradigm with large multimodal language models to improve consistency in 3D and 4D content generation.",
+      "llm_tldr_cn": "该文提出Hallo4D框架，采用生成-检测-纠正范式，利用多模态大语言模型缓解3D和4D内容生成中的时空幻觉，如重复结构、几何错位、抖动等问题。通过检测和纠正不连续内容，实现跨视角和时间一致的生成。对基于语言模型的3D场景生成具有直接推动作用。",
+      "llm_tldr": "该文提出Hallo4D框架，采用生成-检测-纠正范式，利用多模态大语言模型缓解3D和4D内容生成中的时空幻觉，如重复结构、几何错位、抖动等问题。通过检测和纠正不连续内容，实现跨视角和时间一致的生成。对基于语言模型的3D场景生成具有直接推动作用。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "large language model 3d scene generation",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.09985v1",
+      "source": "arxiv",
+      "title": "UniPose9D: Universal Category-Agnostic Object Pose Estimation",
+      "abstract": "Object pose estimation is a fundamental problem in 3D vision. Although recent state-of-the-art approaches achieve strong performance, they often overfit to existing benchmarks and exhibit limited generalization to novel categories and unseen scenes. We propose UniPose9D, a category-agnostic foundation model for 9D object pose estimation: given an instance mask/ROI and either an RGB-D observation or an RGB image with predicted depth, the model estimates rotation, translation, and metric size without category labels, CAD models, mean-shape priors, or reference views. Specifically, UniPose9D samples point pairs from the observed object geometry and uses DINOv2 and PointNet features to predict NOCS coordinates for each pair. To improve accuracy, we introduce a point-pair-based RANSAC N-hop Kabsch--Umeyama algorithm with an adaptive threshold. We further employ flow matching to address symmetric ambiguities and construct a large-scale training set by curating and aligning pose annotations from existing public datasets. Experiments across six datasets show that a single unified model can match or surpass specialist methods while generalizing to unseen objects and in-the-wild scenarios. Our code and model are available on https://github.com/qq456cvb/UniPose9D.",
+      "authors": [
+        "Yang You",
+        "Yi Du",
+        "Cole Harrison",
+        "Leonidas Guibas"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-10T21:24:23+00:00",
+      "link": "https://arxiv.org/pdf/2607.09985v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "category-agnostic 9D object pose estimation",
+      "llm_evidence_cn": "类别无关的9D物体姿态估计",
+      "llm_evidence": "类别无关的9D物体姿态估计",
+      "canonical_evidence": "类别无关的9D物体姿态估计",
+      "llm_tldr_en": "UniPose9D estimates rotation, translation, and size without category labels, applicable to articulated objects' kinematic parameters prediction.",
+      "llm_tldr_cn": "该文提出通用类别无关的9D物体姿态估计模型，无需类别标签、CAD模型或形状先验，直接从RGB-D或带深度的RGB图像预测旋转、平移和尺寸。其点对采样和NOCS坐标预测框架可用于估计铰接物体部件的相对位姿，为运动学参数预测提供基础。",
+      "llm_tldr": "该文提出通用类别无关的9D物体姿态估计模型，无需类别标签、CAD模型或形状先验，直接从RGB-D或带深度的RGB图像预测旋转、平移和尺寸。其点对采样和NOCS坐标预测框架可用于估计铰接物体部件的相对位姿，为运动学参数预测提供基础。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.10370v1",
+      "source": "arxiv",
+      "title": "Neural Motion Blending Across Arbitrary Character Topologies",
+      "abstract": "Motion blending in character animation enables the synthesis of new motions by interpolating between existing examples. Current methods are typically restricted to fixed skeleton topologies, requiring identical or near-identical skeletal structures across characters. We present a novel framework for motion blending across heterogeneous skeletons. The proposed architecture combines a semantic encoder, which extracts per-frame latent representations of the motion state, with a diffusion-based decoder, which reconstructs character-specific motion conditioned on this latent code. At inference, blended motions are obtained by interpolating the latent representations of two input motions. We train and evaluate the method on the Truebones Zoo dataset using motions defined on both same and distinct skeleton topologies, demonstrating the ability to achieve smooth and plausible blending in a variety of scenarios.",
+      "authors": [
+        "Luca Cazzola",
+        "Giulia Martinelli",
+        "Nicola Conci"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.GR"
+      ],
+      "published": "2026-07-11T15:46:13+00:00",
+      "link": "https://arxiv.org/pdf/2607.10370v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "motion blending across skeleton topologies for kinematic parameters",
+      "llm_evidence_cn": "跨骨骼拓扑的运动混合用于运动学参数",
+      "llm_evidence": "跨骨骼拓扑的运动混合用于运动学参数",
+      "canonical_evidence": "跨骨骼拓扑的运动混合用于运动学参数",
+      "llm_tldr_en": "Proposes a neural framework for motion blending across heterogeneous skeletons, using semantic encoder and diffusion decoder, enabling interpolation of kinematic parameters between motions.",
+      "llm_tldr_cn": "提出一个跨异构骨骼的运动混合神经框架，使用语义编码器和扩散解码器，实现运动间运动学参数的插值，可直接应用于铰接物体的运动生成。",
+      "llm_tldr": "提出一个跨异构骨骼的运动混合神经框架，使用语义编码器和扩散解码器，实现运动间运动学参数的插值，可直接应用于铰接物体的运动生成。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.10754v1",
+      "source": "arxiv",
+      "title": "TriCons-Pose: Triangle-Invariant Geometric Consistency Learning for Category-Level Object Pose Estimation",
+      "abstract": "Category-level object pose estimation is a crucial yet challenging task in both academia and industry, and has achieved remarkable success by leveraging keypoint-based correspondence paradigms. However, most existing methods increasingly rely on stronger feature learning while overlooking whether the established correspondences are geometrically stable across diverse perturbations. This often results in fragile pose recovery under intra-class shape variations and occlusions. To tackle this challenge, we develop a novel Triangle-Invariant Geometric Consistency Learning for Category-Level Object Pose Estimation (TriCons-Pose) to anchor stable keypoints and aggregate pose-invariant cues, yielding reliable canonical mapping and accurate pose estimation. Specifically, a Structure-Consistent Keypoint Detector (SCKD) is designed to identify robust keypoints by enforcing cross-view structural consistency via normalized pairwise distance matching. Moreover, we propose a Pose-Invariant Geometric Aggregator (PIGA) to augment keypoint representations by injecting triangle-based pose-invariant descriptors into a local-to-global attention mechanism. The proposed framework is optimized using standard objective functions while incorporating an additional geometry consistency loss. Extensive experiments on REAL275, CAMERA25, and HouseCat6D datasets demonstrate the effectiveness of the proposed approach.",
+      "authors": [
+        "Zuzhi Yang",
+        "Shuai Wang",
+        "Mounir Kaaniche",
+        "Ziwei Li",
+        "Zhiming Cheng",
+        "Zhidong Zhao",
+        "Chenggang Yan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-12T13:05:12+00:00",
+      "link": "https://arxiv.org/pdf/2607.10754v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "geometric consistency learning for object pose",
+      "llm_evidence_cn": "物体姿态几何一致性学习",
+      "llm_evidence": "物体姿态几何一致性学习",
+      "canonical_evidence": "物体姿态几何一致性学习",
+      "llm_tldr_en": "TriCons-Pose uses triangle-invariant geometric consistency for category-level pose estimation, indirectly useful for understanding articulated objects from observations.",
+      "llm_tldr_cn": "该文提出三角形不变几何一致性学习方法，用于类别级物体姿态估计，通过稳定关键点和聚合姿态不变线索提升姿态恢复的鲁棒性。虽未直接处理铰接物体，但其几何推理方法可迁移至铰接物体理解，实现从观测中推断运动学参数。",
+      "llm_tldr": "该文提出三角形不变几何一致性学习方法，用于类别级物体姿态估计，通过稳定关键点和聚合姿态不变线索提升姿态恢复的鲁棒性。虽未直接处理铰接物体，但其几何推理方法可迁移至铰接物体理解，实现从观测中推断运动学参数。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.11397v1",
+      "source": "arxiv",
+      "title": "WALA Learning Executable Latent Actions from Action-Labeled Demonstrations and Action-Free Videos",
+      "abstract": "Generalizable robot policies typically rely on action-labeled robot demonstrations, which are expensive to collect and difficult to scale. In contrast, large-scale human and robot videos contain rich physical interactions but often lack executable robot action labels. We present WALA, a framework for learning executable latent actions from both action-labeled demonstrations and action-free videos. WALA first pretrains a semantic-geometric latent action model from videos by modeling the evolution between current observations and sparsely sampled future observations. Instead of reconstructing raw pixels, WALA predicts future deltas in the DINOv3 feature space and dense depth space, preserving task-relevant semantic and geometric structure while reducing sensitivity to appearance details. During policy training, the pretrained encoder provides stable latent action targets, and the decoder serves as a trainable latent world model. The latent actions generated by the vision-language backbone are jointly supervised by robot action prediction, latent action target matching, and future dynamics prediction. This enables action-labeled demonstrations to provide executable control supervision, while action-free videos contribute dynamics supervision without requiring robot action annotations. Experiments show that WALA achieves strong performance on RoboTwin, sets a new state-of-the-art result on RoboCasa with 75.2% average success, and improves both policy performance and generalization in real-world manipulation tasks.",
+      "authors": [
+        "Jiahao Liu",
+        "Zhongpu Xia",
+        "Shuai Tian",
+        "Huangrui Li",
+        "Yuhang Zheng",
+        "Ning Ma",
+        "Xin Fu",
+        "Xiaotian Liu",
+        "Jing Li",
+        "Yixian Li",
+        "ShangQing Zhou",
+        "Zebin Xing",
+        "Linbo Wang",
+        "Chaoyue Li",
+        "Haoran Li",
+        "Dongbin Zhao"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-13T11:02:04+00:00",
+      "link": "https://arxiv.org/pdf/2607.11397v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Learning latent actions from visual observations, relevant to learning kinematic parameters",
+      "llm_evidence_cn": "从视觉观测学习潜在动作，与运动学参数学习相关",
+      "llm_evidence": "从视觉观测学习潜在动作，与运动学参数学习相关",
+      "canonical_evidence": "从视觉观测学习潜在动作，与运动学参数学习相关",
+      "llm_tldr_en": "WALA pretrains a semantic-geometric latent action model from videos by predicting future feature and depth deltas, enabling executable action learning from both labeled and unlabeled data.",
+      "llm_tldr_cn": "机器人策略学习需要大量有动作标签的数据，而大规模视频数据缺乏可执行动作标签。WALA提出从有标签演示和无标签视频中学习可执行潜在动作的框架。它先通过预测未来观测在DINOv3特征空间和深度空间的变化，预训练语义-几何潜在动作模型，再迁移到机器人动作。实验表明该方法能有效利用无标签视频提升策略泛化性。",
+      "llm_tldr": "机器人策略学习需要大量有动作标签的数据，而大规模视频数据缺乏可执行动作标签。WALA提出从有标签演示和无标签视频中学习可执行潜在动作的框架。它先通过预测未来观测在DINOv3特征空间和深度空间的变化，预训练语义-几何潜在动作模型，再迁移到机器人动作。实验表明该方法能有效利用无标签视频提升策略泛化性。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.12752v1",
+      "source": "arxiv",
+      "title": "Hallo4D: Multi-Modal Hallucination Mitigation for Consistent Spatio-Temporal Generation",
+      "abstract": "While recent advances in 3D generation have enabled impressive visual synthesis, existing methods often rely on 2D diffusion supervision without explicit mechanisms for geometric consistency, leading to spatial hallucinations such as duplicated structures and misaligned geometry. These issues become more severe in 4D generation, where maintaining consistency across viewpoints and temporal evolution introduces additional challenges, including jitter, identity flicker, and structural drift. We present \\textbf{Hallo4D}, a unified and model-agnostic framework for mitigating spatiotemporal hallucinations in 3D and 4D content generation. Hallo4D introduces a generation-detection-correction paradigm that leverages large multimodal language models (LMMs) to identify and summarize spatial and temporal inconsistencies from multi-view and multi-frame renderings. These insights guide a consensus-driven image-space consistency optimization, where an LMM-based selector evaluates candidate corrections through multi-model voting, without requiring retraining or architectural modifications. To further improve temporal consistency and optimization efficiency, Hallo4D incorporates motion-aware keyframe sampling, LMM-guided initialization, and appearance alignment. We additionally introduce exposure-aware optimization and visibility pruning to enhance robustness under challenging viewpoints. Extensive experiments demonstrate that Hallo4D consistently outperforms strong baselines across diverse 3D and 4D generation settings, providing a scalable and generalizable solution for consistency-aware content generation.",
+      "authors": [
+        "Hongbo Wang",
+        "Huaibo Huang",
+        "Jie Cao",
+        "Jin Liu",
+        "Haoyang Tong",
+        "Ran He"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-07-14T13:19:06+00:00",
+      "link": "https://arxiv.org/pdf/2607.12752v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "mitigates spatiotemporal hallucinations in 3D/4D generation using large multimodal language model",
+      "llm_evidence_cn": "使用大语言模型缓解3D/4D生成中的时空幻觉，提升一致性",
+      "llm_evidence": "使用大语言模型缓解3D/4D生成中的时空幻觉，提升一致性",
+      "canonical_evidence": "使用大语言模型缓解3D/4D生成中的时空幻觉，提升一致性",
+      "llm_tldr_en": "Hallo4D introduces a generation-detection-correction framework leveraging large multimodal language models to mitigate spatial and temporal hallucinations in 3D and 4D generation, addressing issues like duplicated structures and jitter.",
+      "llm_tldr_cn": "该工作针对3D/4D内容生成中常见的空间幻觉（如重复结构）和时间不一致（如抖动）问题，提出Hallo4D统一框架。它采用生成-检测-纠正范式，利用大型多模态语言模型识别并修正幻觉。该方法模型无关，可适用于多种生成模型。实验表明Hallo4D显著提升了生成内容的时空一致性，为高质量动态3D生成提供了有效后处理方案。",
+      "llm_tldr": "该工作针对3D/4D内容生成中常见的空间幻觉（如重复结构）和时间不一致（如抖动）问题，提出Hallo4D统一框架。它采用生成-检测-纠正范式，利用大型多模态语言模型识别并修正幻觉。该方法模型无关，可适用于多种生成模型。实验表明Hallo4D显著提升了生成内容的时空一致性，为高质量动态3D生成提供了有效后处理方案。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
