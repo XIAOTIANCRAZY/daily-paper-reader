@@ -6,41 +6,61 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-19
-- 运行时间：2026-07-19 21:22:38 UTC
+- 最新运行日期：2026-07-20
+- 运行时间：2026-07-20 21:54:43 UTC
 - 运行状态：成功
-- 本次总论文数：7
-- 精读区：1
-- 速读区：6
+- 本次总论文数：13
+- 精读区：2
+- 速读区：11
 
 ### 今日简报（AI）
-今日精选7篇AI前沿，聚焦3D室内场景生成与多模态幻觉消除。最值得关注的是《ThinkBLOX》的渐进式推理3D场景生成（9.0分），以及《Hallo4D》的多模态幻觉缓解方案。建议重点追踪3D生成中的逻辑推理方法，并留意多模态模型的一致性改进。
-- 详情：[/202607/19/README](/202607/19/README)
+1) 今日精选2篇精读与11篇速读论文，聚焦3D场景图预测及外中心手部姿态预测两大方向。  
+2) 最值得关注：3D场景图从部分观察生成层级模型（8.0分），以及利用外中心演示进行视觉-语言引导的3D手部姿态预测（8.0分），均代表3D理解与交互的前沿突破。  
+3) 建议优先阅读这两篇精读论文，并速览单目几何与视图合成相关研究（FoundationGeo、MetaView、DiffGI），以搭建从感知到生成的完整技术链。
+- 详情：[/202607/20/README](/202607/20/README)
 
 ### 精读区论文标签
-1. [ThinkBLOX: 3D Indoor Scene Generation with Progressive Reasoning](/202607/19/2607.13539v1-thinkblox-3d-indoor-scene-generation-with-progressive-reasoning)  
-   标签：评分：9.0/10、query:d-scn-gen
-   evidence：基于VLM的渐进式推理三维场景生成
+1. [3D Scene Graph Prediction: Generating Hierarchical Models from Partially Observed Environments](/202607/20/2607.10879v1-3d-scene-graph-prediction-generating-hierarchical-models-from-partially-observed-environments)  
+   标签：评分：8.0/10、query:d-scn-gen
+   evidence：从部分观测生成层次化3D场景图，预测房间布局和可穿越性
+2. [Exo2EgoPose: Leveraging Exocentric Demonstrations for Vision-Language guided Egocentric 3D Hand Pose Forecasting](/202607/20/2607.15890v1-exo2egopose-leveraging-exocentric-demonstrations-for-vision-language-guided-egocentric-3d-hand-pose-forecasting)  
+   标签：评分：8.0/10、query:d-artic-kin
+   evidence：视觉-语言引导的第一人称3D手部姿态预测，从观测中理解铰接物体
 
 ### 速读区论文标签
-1. [Hallo4D: Multi-Modal Hallucination Mitigation for Consistent Spatio-Temporal Generation](/202607/19/2607.12752v2-hallo4d-multi-modal-hallucination-mitigation-for-consistent-spatio-temporal-generation)  
+1. [FoundationGeo: Learning Spatial Pixel-Wise Fields for Monocular Metric Geometry](/202607/20/2607.11588v3-foundationgeo-learning-spatial-pixel-wise-fields-for-monocular-metric-geometry)  
+   标签：评分：7.0/10、query:d-artic-kin
+   evidence：学习空间像素级场用于单目度量几何，可实现3D几何估计
+2. [MetaView: Monocular Novel View Synthesis with Scale-Aware Implicit Geometry Priors](/202607/20/2607.12000v1-metaview-monocular-novel-view-synthesis-with-scale-aware-implicit-geometry-priors)  
    标签：评分：7.0/10、query:d-scn-gen
-   evidence：使用大语言模型缓解3D/4D生成中的时空幻觉
-2. [UniPose9D: Universal Category-Agnostic Object Pose Estimation](/202607/19/2607.09985v1-unipose9d-universal-category-agnostic-object-pose-estimation)  
+   evidence：单目新视角合成，结合隐式几何先验
+3. [DiffGI: Differentiable Geometry Images for High-Fidelity Thin-Shell 3D Generation](/202607/20/2607.13365v1-diffgi-differentiable-geometry-images-for-high-fidelity-thin-shell-3d-generation)  
+   标签：评分：7.0/10、query:d-scn-gen
+   evidence：可微分几何图像用于高保真薄壳3D生成
+4. [BODIESReg: An Open-Source Pipeline for Registering 3D Body Scans Using Pose-Aligned Initialization](/202607/20/2607.15463v1-bodiesreg-an-open-source-pipeline-for-registering-3d-body-scans-using-pose-aligned-initialization)  
+   标签：评分：7.0/10、query:d-artic-kin
+   evidence：三维人体扫描配准用于运动学参数
+5. [Vision-Language-Motion Maps: An Open-Vocabulary, Uncertainty-Aware, Queryable Motion Attribute for 3D Scene Maps](/202607/20/2607.16173v1-vision-language-motion-maps-an-open-vocabulary-uncertainty-aware-queryable-motion-attribute-for-3d-scene-maps)  
+   标签：评分：7.0/10、query:d-scn-gen
+   evidence：视觉语言模型用于带运动属性的三维场景地图
+6. [Slot-RAE: Streamlining Object-Centric Learning via Direct Representation Auto-Encoders](/202607/20/2607.11196v1-slot-rae-streamlining-object-centric-learning-via-direct-representation-auto-encoders)  
    标签：评分：6.0/10、query:d-artic-kin
-   evidence：类别无关的9D物体姿态估计
-3. [Neural Motion Blending Across Arbitrary Character Topologies](/202607/19/2607.10370v1-neural-motion-blending-across-arbitrary-character-topologies)  
-   标签：评分：6.0/10、query:d-artic-kin
-   evidence：跨骨骼拓扑的运动混合用于运动学参数
-4. [TriCons-Pose: Triangle-Invariant Geometric Consistency Learning for Category-Level Object Pose Estimation](/202607/19/2607.10754v1-tricons-pose-triangle-invariant-geometric-consistency-learning-for-category-level-object-pose-estimation)  
-   标签：评分：6.0/10、query:d-artic-kin
-   evidence：物体姿态几何一致性学习
-5. [WALA Learning Executable Latent Actions from Action-Labeled Demonstrations and Action-Free Videos](/202607/19/2607.11397v1-wala-learning-executable-latent-actions-from-action-labeled-demonstrations-and-action-free-videos)  
-   标签：评分：6.0/10、query:d-artic-kin
-   evidence：从视觉观测学习潜在动作，与运动学参数学习相关
-6. [Hallo4D: Multi-Modal Hallucination Mitigation for Consistent Spatio-Temporal Generation](/202607/19/2607.12752v1-hallo4d-multi-modal-hallucination-mitigation-for-consistent-spatio-temporal-generation)  
+   evidence：对象中心学习用于场景分解，可应用于理解铰接物体
+7. [Compos3D: Interactive Part-Based Composition for Creative Control in Generative 3D Models](/202607/20/2607.12193v1-compos3d-interactive-part-based-composition-for-creative-control-in-generative-3d-models)  
    标签：评分：6.0/10、query:d-scn-gen
-   evidence：使用大语言模型缓解3D/4D生成中的时空幻觉，提升一致性
+   evidence：基于文本提示的交互式部件组合，实现3D模型的创意控制
+8. [Hallo4D: Multi-Modal Hallucination Mitigation for Consistent Spatio-Temporal Generation](/202607/20/2607.12752v1-hallo4d-multi-modal-hallucination-mitigation-for-consistent-spatio-temporal-generation)  
+   标签：评分：6.0/10、query:d-scn-gen
+   evidence：使用大型多模态语言模型实现一致的4D场景生成
+9. [EgoHTR: Egocentric 4D Demonstrations of Human Terrain Traversal](/202607/20/2607.13472v1-egohtr-egocentric-4d-demonstrations-of-human-terrain-traversal)  
+   标签：评分：6.0/10、query:d-artic-kin
+   evidence：第一人称四维人体运动数据集，用于理解铰接体
+10. [M$^\text{4}$World: A Multi-view Multimodal Driving World Model for Interactive Object Manipulation and Minute-long Streaming](/202607/20/2607.14005v1-mtext4world-a-multi-view-multimodal-driving-world-model-for-interactive-object-manipulation-and-minute-long-streaming)  
+   标签：评分：6.0/10、query:d-scn-gen
+   evidence：多视图多模态驾驶世界模型，支持交互式物体操作
+11. [MotionForesight: Re-purposing Video Models for Future 3D Scene-Flow Prediction](/202607/20/2607.16192v1-motionforesight-re-purposing-video-models-for-future-3d-scene-flow-prediction)  
+   标签：评分：6.0/10、query:d-artic-kin
+   evidence：预测未来3D物体轨迹，可用于铰接运动理解
 
 
 <div class="dpr-home-promo-card">
