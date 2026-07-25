@@ -1,0 +1,350 @@
+Title: Hybrid Machine Learning for Articulation Angle Estimation of Truck-Semitrailer Combinations
+
+URL Source: https://arxiv.org/pdf/2607.16758v1
+
+Published Time: Tue, 21 Jul 2026 00:34:25 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Copyright Notice 
+
+© 2026 IEEE. Personal use of this material is permitted. Permission from IEEE must be obtained for all other uses, in any current or future media, including reprinting/republishing this material for advertising or promotional purposes, creating new collective works, for resale or redistribution to servers or lists, or reuse of any copyrighted component of this work in other works. Accepted to be published in: Proceedings of the 2026 International Conference on Intelligent Transportation Systems (ITSC) September 15 – 18, Naples, Italy arXiv:2607.16758v1 [cs.CV] 18 Jul 2026 Hybrid Machine Learning for Articulation Angle Estimation of Truck-Semitrailer Combinations 
+
+Qixuan Zhang 1,2, Jonas Boettcher 1, Simon F. G. Ehlers 2 and Marvin Stuede 1
+
+Abstract —Accurate articulation angle estimation of trucks with trailers is critical for autonomous driving and advanced driver assistance systems (ADAS). Existing methods either require manual initialization, additional sensors, or prior knowl-edge and signals from trailers, or they lack real-world valida-tion, limiting practical deployment. This paper presents multiple learning-based models to directly estimate articulation angles from visual and kinematic inputs, eliminating the need for dedicated driving maneuvers for initialization, bounding box annotations, trailer-mounted sensor signals, or prior knowledge of trailer parameters. Two learning-based models are integrated with a kinematic model within an extended Kalman filter (EKF) framework, and an adaptive weighting scheme based on uncertainty quantification is applied for measurements involving visual input. Extensive real-world experiments with different trailer types demonstrate the approaches’ robustness and generalization under out-of-domain conditions, including new trailers, varying colors, and lighting conditions. Results show that the hybrid method achieves accurate and reliable articulation angle estimation while maintaining reduced imple-mentation requirements and practical deployment advantages. 
+
+I. I NTRODUCTION 
+
+Among the key state variables governing the dynamics of articulated vehicles, the articulation angle between a truck and its semi-trailer is of particular importance, as it directly affects vehicle maneuverability, lateral stability, and collision risk. Therefore, accurate estimation of this angle is critical for numerous applications, including autonomous driving, trailer tracking, motion prediction, and active safety systems. In ADAS implementations, articulation angle estimation can be used to adapt the field-of-view of a camera-mirror-system (CMS) or to display the current configuration of the whole vehicle to the driver. Such functionality enables early hazard warnings and enhances overall operational safety. However, in most commercial truck platforms, direct mea-surement of the articulation angle is rarely available, as it requires dedicated hardware typically installed at the coupling point between the truck and the trailer. Alternatively, previous studies have estimated the articulation angle using additional sensors such as LIDAR or ultrasonic sensors [1]–[5]. Such solutions increase system cost, installation complexity, and maintenance effort, thereby limiting their applicability in series-production vehicles. Consequently, estimating the ar-ticulation angle using only sensors and signals already avail-           
+
+> 1Authors are with ZF CV Systems Hannover GmbH, D-30453 Hannover, Germany,
+
+marvin.stuede@zf.com ,
+
+jonas.boettcher2@zf.com 2Authors are with the Leibniz University Hannover, Institute of Mechatronic Systems, D-30823 Garbsen, Germany, simon.ehlers@imes.uni-hannover.de ,
+
+qixuan.zhang@stud.uni-hannover.de 
+
+able on the truck, such as kinematic sensors and rear-facing mirror replacement cameras, presents a practical and scalable alternative that can be seamlessly integrated into existing vehicle architectures. Moreover, performing the estimation without relying on additional trailer-mounted sensors or prior knowledge of the trailer configuration is essential for enabling rapid adaptation to previously unseen trailers. Existing research on articulation angle estimation based on kinematic inputs can roughly be divided into model-based, learning-based, and hybrid approaches. Model-based methods formulate vehicle dynamics through linear or non-linear tire models to estimate system states [6]. While physically interpretable, this requires extensive parameter identification, which limits scalability to diverse truck–trailer configurations. In contrast, learning-based methods map kine-matic inputs directly to articulation angle estimates, often employing recurrent neural networks to exploit temporal dependencies [7], [8]. However, their performance may degrade in out-of-distribution (OOD) conditions [8], [9]. To overcome these limitations, hybrid approaches integrate physical models with data-driven components. Examples include systems combining lateral dynamic vehicle mod-els with neural observers in EKF frameworks [6], [8], or architectures coupling Kalman filters with gated recurrent unit networks for adaptive measurement fusion [7]. Such combinations further enable adaptive weighting of inputs based on the similarity between training and inference con-ditions [9]. Physics-informed neural networks have also been applied to predict dynamic states continuously over time [10], offering a balance between model fidelity and data adaptability. However, purely kinematic-based methods often require an initialization procedure for the articulation angle, such as zero-initialization during a straight-driving phase, which limits their applicability when the vehicle starts with a large initial articulation angle. These challenges motivate the development of more robust estimation methods capable of improving accuracy and generalization across operating conditions. With the increasing adoption of CMS in modern trucks, rear-facing cameras offer an appealing alternative by pro-viding absolute articulation angle measurements derived di-rectly from visual information. Unlike kinematic models, camera-based approaches do not rely on initialization and can thus deliver immediate state estimates, improving robust-ness during start-up and under diverse operating conditions. Traditional methods rely on geometric markers mounted on the trailer to infer the angle from camera pose [11]–[13] or employ visual simultaneous localization and mapping (VSLAM) and template matching techniques [13]–[15]. Deep learning-based vision methods have demonstrated improved robustness and generalization. Convolutional neural network (CNN) architectures have been applied to process mirror-mounted camera images from simulated and real datasets for direct articulation angle estimation [16]–[18], while models based on CNN and LSTM architectures are also used in related domains such as train–car coupling [19]. Furthermore, several studies integrate image-based approaches with kine-matic models within a Kalman filtering framework in order to enhance prediction accuracy [13], [15]. In summary, existing methods remain constrained by their reliance on additional sensors or external geometric markers mounted on the trailer [1]–[5], [11]–[13], [19], the absence of initial articulation angle measurements [6]–[8], [13]– [15], assumptions of planar trailer surfaces or the need for bounding box annotations [17], [18], and limited real-world validation [16]. Motivated by these limitations, this paper addresses the stable and accurate online estimation of the articulation angle for truck–trailer combinations. The pro-posed framework fuses camera data, captured within a typical CMS field of view, with kinematic measurements solely from onboard sensors of truck in a hybrid manner, enabling the usage with different semi-trailers. Multiple learning-based and hybrid approaches are implemented and compared. The contributions of this paper are the following: 1) Multiple CNN-based and Transformer-based models are proposed to directly estimate the articulation angle from either pure visual input or fused visual and kinematic signals, eliminating the need for dedicated driving maneuvers for initialization, bounding box annotations, trailer-mounted sensor signals, or prior knowledge of trailer parameters. 2) Applying for the first time an adaptive weighting scheme based on [9] to dynamically integrate visual estimation with a kinematic model within an EKF framework for articulation angle estimation. 3) Extensive real-world experiments are conducted with four different trailers, demonstrating the method’s gen-eralization capabilities under out-of-domain conditions, including new trailer types, exterior colors, and lighting variations. Results demonstrate that the hybrid approaches achieve ac-curate articulation angle estimation while significantly en-hancing robustness and generalization under out-of-domain conditions compared with purely learning-based methods or kinematic models with mismatched geometric trailer param-eters. The remainder of this paper is structured as follows. Sec-tion II presents the approaches adopted in this work, includ-ing the kinematic modeling of articulated truck-semitrailer combinations, learning-based models, and the hybrid model under the EKF framework. Section III describes the test vehicle, as well as the data collection and preprocessing procedures. Section IV presents the experimental setup and results. Finally, conclusions are drawn in Section V. II. M ETHODS 
+
+This section first introduces the kinematic modeling of the truck–semitrailer combination. It then presents several learning-based models, including a monocular vision model with single-frame input, a model using single-frame kine-matic and visual inputs, and a model using temporal se-quential kinematic and visual inputs. Finally, a hybrid model based on the EKF is described, together with a method for dynamically adjusting the observation noise. 
+
+A. Kinematic Model of the Truck-Semitrailer Combination 
+
+To avoid complex parameter identification, a longitudinal kinematic model of the truck–semitrailer system is estab-lished solely for the estimation of the articulation angle. The longitudinal kinematics of the truck-semitrailer combination are represented by 
+
+− ˙ψ + l′
+
+l ˙ψ cos θ + vl sin θ + ˙θ = 0 (1) in which θ is the articulation angle between truck and semitrailer, ˙ψ is the yaw rate of the truck, v is the longitudinal velocity of the truck, l and l′ are the length from kingpin to the middle axles of trailer and to the rear axle of truck. The kinematic assumption requires a low lateral velocity of truck and semitrailer. 
+
+B. Learning-based Model with Visual Input 
+
+For the image input It ∈ R224 ×224 ×3, a CNN-based regression model ResNet18/50-ArticNet is developed. Owing to its strong representation capability, stable optimization behavior enabled by residual connections, the model employs a ResNet-18/50 [20] encoder as a feature extractor EResNet18 (·)
+
+or EResNet50 (·) to get feature maps FIt ∈ Rh×w×c (w, h and 
+
+c denote the width, height, and number of channels of the feature map, respectively) as 
+
+FI = EResNet18 (I) (2) followed by a global average pooling (GAP) for each channel to get feature vector f It ∈ R1×c. Finally, a multilayer perceptron (MLP) is employed to predict the articulation angle 
+
+θt = (ReLU( f It W hidden )) W final . (3) For clarity, the ResNet18/50-ArticNet are referred to as ResNet18 and ResNet50 in the following, as only the task-specific decision layer is modified. 
+
+C. Learning-based Model with Visual and Kinematic Input 
+
+To combine both kinematic and visual information, amultimodal regression model is developed, referred to as Visual Kinematic Transformer (VKiT), based on a cross-attention mechanism [21]. As shown in Figure 1 left, the model consists of a multimodal encoder and an MLP in eq. 3 as regressor. Multi-head self attention  
+
+> Cross Attention Encoder ResNet 18 Encoder
+
+VKiT Cross Attention Encoder SVKiT Cross Attention Encoder  
+
+> Cross Attention Flatten Linear  Linear Norm MLP Linear  MLP Pool Norm ReLu Linear ReLu Linear Fig. 1. Overall framework of VKiT and SVKiT. Both methods share the same cross attention encoder module.
+
+The image input It−1 is processed by a ResNet18 encoder 
+
+EResNet18 (·) to extract the feature maps FIt−1 ∈ Rh×w×c, then it is flattened into a sequence of tokens ˆF It−1 ∈ Rhw ×c.The kinematic input vector kt−1 =  vt−1 ˙ψt−1 Tt−1
+
+
+
+passes through two linear layers W kin 1 and W kin 2 with ReLU activation to obtain a kinematic feature embedding, in which T is the time interval between two consecutive time steps. 
+
+f Kt−1 = ReLU (ReLU( kt−1W kin 1 )W kin 2 ) ∈ R1×c′
+
+. (4) The embedding f Kt−1 is used to obtain the query Q ∈
+
+R1×d, while ˆF It−1 is utilized to obtain the key K ∈ Rhw ×d
+
+and value V ∈ Rhw ×d in a cross-attention module: 
+
+Q = f KW Q,
+
+K = ˆF IW K,
+
+V = ˆF IW V.
+
+(5) The fused representation is then combined with Q via a residual connection to obtain the final multimodal feature 
+
+f F = LayerNorm softmax QK ⊤
+
+√d
+
+!
+
+V + Q
+
+!
+
+∈ R1×d.
+
+(6) The whole pipeline of embedding and fusion is summarized as the cross-attention-encoder EVKiT (·) (see Fig. 1 middle) as 
+
+f Ft−1 = EVKiT (It−1, kt−1). (7) The fused feature vector f Ft−1 is passed through the MLP as defined in eq. 3 with f = f Ft−1 to predict the articulation angle θt.
+
+D. Learning-based Model with Sequential Visual and Kine-matic Input 
+
+Since only the longitudinal kinematic vectors are available as input, the lateral kinematic information is missing. In principle, the lateral kinematics can be inferred from adynamics model. To provide the model with information about the system’s past behavior and implicitly guide it to learn the dynamics and lateral kinematics internally, the VKiT model is extended to handle sequential inputs, resulting in the Sequential Visual Kinematic Transformer (SVKiT) model (see Fig. 1 right). Specifically, a sliding time window approach is adopted, feeding the model with a sequence of past s discrete time steps of kinematic vectors, denoted as SKt =
+
+{kt−1, kt−2, . . . , kt−s}, along with the corresponding se-quence of images, denoted as SIt = {It−1, It−2, . . . , It−s}.This allows the model to leverage temporal information to better estimate the articulation angle. The SVKiT model employs the same cross-attention-encoder EVKiT (·) as VKiT to encode the historical sequence of s discrete time steps, resulting in s fused feature vectors 
+
+SFt =
+
+
+
+f ⊤ 
+
+> Ft−1
+
+f ⊤ 
+
+> Ft−2
+
+. . . f ⊤
+
+> Ft−s
+
+⊤
+
+∈ Rs×d. These vectors are treated as s tokens and are added to learnable positional embeddings Sposition ∈ Rs×d [22]. The sequence of tokens is then processed by two multi-head self-attention blocks with residual connection and layer normalization A(·)
+
+[21] to integrate information across the temporal dimension as sequence of historical information 
+
+Shistory = A (A(LayerNorm( SF + Sposition ))) ∈ Rs×d. (8) Finally, the outputs are average-pooled [22] to obtain a fused representation of the historical information f St ∈
+
+R1×d, which is passed through the same MLP regressor as defined in eq. 3 with f = f St to predict the articulation angle 
+
+θt.
+
+E. Hybrid Model based on Extended Kalman Filter 
+
+The hybrid model allows the kinematic model to provide physical constraints and prior knowledge to the learning-based model, while the learning-based model can supply an initial state estimate to the kinematic model. By leveraging the strengths of both approaches, the hybrid model can achieve more accurate and robust state estimation. An EKF is employed to integrate learning-based models ResNet18 and VKiT as measurement with the kinematic model defined in eq. 1 as the prediction. They are referred to as EKF-ResNet18 
+
+and EKF-VKiT , respectively. The initial articulation angle θ0
+
+is estimated by the visual (observation) model. The prediction of the EKF with state space xt = θt and control inputs 
+
+ut =   ˙ψt vt
+
+⊤ is formulated as follows: 
+
+ˆx− 
+
+> t
+
+= g(ˆ xt−1, ut−1), (9) 
+
+Gt = ∂g ∂x ˆxt−1,ut−1
+
+, (10) 
+
+P − 
+
+> t
+
+= GtPt−1G⊤ 
+
+> t
+
++ Q. (11) Here, Q is the noise covariance of state transition function 
+
+g(·), P is covariance of state x, G is derivative of g(·), ˆxis the estimated state. □− denote quantities in the prediction step. The update with observation zt, which is estimated by a learning-based model, is formulated as follows: 
+
+Ht = ∂h ∂x ˆx−
+
+> t
+
+, (12) 
+
+Kt = P − 
+
+> t
+
+H⊤ 
+
+> t
+
+(HtP − 
+
+> t
+
+H⊤ 
+
+> t
+
++ Rt)−1, (13) 
+
+ˆxt = ˆ x− 
+
+> t
+
++ Kt(zt − h(ˆ x− 
+
+> t
+
+)) , (14) 
+
+Pt = P − 
+
+> t
+
+− KtHtP − 
+
+> t
+
+. (15) Here, K is the Kalman gain, H is the derivative of the observation function h(·), and R is the measurement noise covariance. 
+
+F. Soft-Measurement 
+
+The performance and generalization capability of learning-based models are highly sensitive to the quality and diversity of the training dataset. Environmental factors such as lighting conditions, weather variations, and differences in vehicle appearance can introduce significant noise, thereby degrading model accuracy. In addition, the kinematic model itself can suffer from significant prediction errors when the distance l
+
+from king-pin to trailer rear axles is inaccurately specified, which is often the case in practical scenarios involving different trailers. Under such conditions, assuming a fixed observation noise covariance R is insufficient, as it cannot ac-commodate the varying reliability of the measurement model across operating conditions. Therefore, creating a dynamic noise covariance Rt is essential to balance the contributions of the learning-based and kinematic models. To address this issue, the soft-measurement method in [9] is extended to the measurement involving visual inputs (VKiT and ResNet18). ResNet50 and SVKiT are not suitable for the Soft Measure-ment method due to issues with the dimensionality of the input embedding representations. Firstly, feature vectors f I
+
+or f F for every sample in the training set with n samples are extracted and subjected to Principal Component Analysis (PCA) to reduce their dimensionality to f I, re ∈ R1×r or 
+
+f F, re ∈ R1×r with r < d and r < c . The reduced feature vectors f I, re or f F, re and PCA transformations Presnet18 (·) or 
+
+Pvkit (·) are stored offline. During online inference, feature vectors ˆf I or ˆf F are derived from the input signals and transformed using the previously computed PCA parameters: 
+
+ˆf I, re = Presnet18 ( ˆf I),
+
+ˆf F, re = Pvkit ( ˆf F). (16) 
+
+ˆf I, re or ˆf F, re are utilized to estimate the confidence of the model’s prediction by comparing ˆf I, re or ˆf F, re to the distribution of training samples in the reduced feature space 
+
+{f I, re i }ni=1 or {f F, re i }ni=1 . The L2 distances {dDi }ni=1 be-tween ˆf I, re and every f I, re i or between ˆf F, re and every 
+
+f F, re i are calculated, then the k nearest distances {ddj }kj=1 
+
+are found via 
+
+dkk = 1
+
+k
+
+> k
+
+X
+
+> j=1
+
+ddj (17) to calculate the noise covariance as 
+
+R = (1 + γ(τ − 1) 2)R0 (18) with 
+
+τ =
+
+( dmax −dkk 
+
+> dmax
+
+, if dmax > d kk
+
+0, otherwise . (19) 
+
+R0 and γ are hyperparameters to adjust the scale, dmax is the threshold of average of k nearst distances dkk , which deter-mines under which conditions the model becomes completely unreliable. The process noise covariance Q, the nominal measurement noise covariance R0, and the confidence scaling factor γ are empirically tuned on the calibration scenario. During calibration, the confidence value τ is first fixed to 
+
+τ = 1 , such that the observation noise reduces to a constant 
+
+R = R0. Under this condition, Q and R0 are tuned such that the EKF output closely follows the observation curve, ef-fectively aligning the EKF estimates with the measurements. Subsequently, the confidence is set to τ = 0 , corresponding to the lowest observation reliability. The parameter γ is then adjusted to increase the observation noise R, ensuring that the EKF primarily relies on the prediction model in low-confidence situations. III. T EST VEHICLE AND DATASET 
+
+The experimental setup comprises a Daimler Actros semi-truck (see Fig. 2) coupled with four distinct trailers differing in geometry and dimensions. Image data is recorded using two fisheye cameras ( Sensing SG3S-ISX031C , 1920 ×1536 px resolution, 30 fps, 195 ◦ horz. field-of-view). The cameras are mounted above the nearside and offside side mirrors, with their optical axes oriented perpendicularly to the corre-sponding vehicle sides. These locations correspond to typical mounting positions for camera-mirror systems, providing an 
+
+Fisheye cameras Incremental rotary encoder Rubber wheel          
+
+> Fig. 2. The test vehicle used for image and ground truth dataset collection. Right fisheye camera (original image) Undistorted and cropped image
+> Final image
+> (Scale and concat.) Left fisheye camera (likewise processing) Fig. 3. Processing steps of the fisheye camera images. The relevant region of each input image is first undistorted using the calibrated Kannala-Brandt intrinsics model [23]. From the undistored output, the lower area of the image on the vehicle-facing side is extracted and scaled to 50 % of its original width. The left and right views are then concatenated to form a single image of size 224 px ×224 px.
+
+unobstructed view of the trailer and its surroundings. While the fisheye cameras are not standard mirror-replacement units, a side-mirror-like perspective is recovered through geometric undistortion of the captured images (see Fig. 3). The ground-truth articulation angle corresponding to the recorded trailer pose images is measured using a rotary encoder. The encoder, fitted with a rubber contact wheel mounted near the fifth wheel, measures the trailer’s rotation by contacting its lower surface. To correct signal offsets after trailer attachment and deviations caused by wheel slippage, the encoder output is compensated using a kinematic model via an EKF. This method was validated on different station-ary scenarios in the relevant articulation angle range. SAE J1939 CAN data (including vehicle speed, yaw rate, etc .) and articulation-angle sensor measurements are recorded at 
+
+10 Hz . Image data is aquired at 30 Hz but synchronized and down-sampled to match the lower signal rate during post-processing. The datasets are recorded on a test track featuring open spaces, parking lots, and highway-like segments. IV. E XPERIMENTS 
+
+In this section, a series of experiments are designed to test and evaluate the approaches presented in Section II. The results of experiments are then presented. 
+
+A. Experimental Setup 
+
+To evaluate model performance introduced in Sec. II, three experiments are designed targeting different aspects of generalization. Experiment I investigates robustness to variations in trailer color and pattern. Experiment II evaluates performance under different lighting conditions. Experiment III tests generalization to previously unseen trailer types. Table I summarizes the experimental settings for each case and exhibits a visual overview of each dataset. The solely learning-based models, namely ResNet18, ResNet50, VKiT, and SVKiT, as well as the hybrid approaches EKF-ResNet18 and EKF-VKiT, are evaluated across all three experimental settings. For all three experiments, the hybrid models EKF-ResNet18 and EKF-VKiT employ the default geometric parameter l of trailer T1 and T2 in the kinematic model. This                              
+
+> TABLE I OVERVIEW OF EXPERIMENTAL SETTINGS
+> ID Train Set Test Set # samples (Train/Test) IT1; Sunny
+> T2; Light rain
+> 8,996 /
+> 10 ,420
+> II T2; Light rain
+> T2; Night/Dawn
+> 8,336 /
+> 25 ,071
+> III T1 (as in I), T3; Sunny
+> T4; Sunny 20 ,679 /
+> 12 ,677
+> Trailer Configuration Trailer ID Trailer Type l
+> T1 Box Trailer (white) 7.6m T2 Box Trailer (blue) 7.6m T3 Skeletal Trailer 7.5m T4 Flatbed Trailer 4.8m
+
+setting is intended to simulate a realistic deployment scenario, where rapid adaptation to different trailers is required without prior recalibration of model parameters. In Experiment III, where trailer T4 is used for testing, the employed default parameter l corresponds to 1.58 times its true geometric value. This introduces a substantial model mismatch in the kinematic component. The learning-based models are trained based on MSE loss function utilizing the AdamW optimizer [24] with weight decay. Online data augmentations for images are employed during training, including random color jittering, random gamma adjustment, random Gaussian noise, and random erasing. The dataset is randomly split into 80% training and 20% validation sets. The distributions of ground truth in both subsets are approximately the same. The training employs early stopping based on validation loss, with empirically optimized hyperparameters for stable convergence. For the SVKiT model, a learning rate warmup is also employed to stabilize self-attention training [21]. In Experiments I and II, the encoder structures of all learning-based models (ResNet18 and ResNet50 backbones) are initialized with ImageNet-1k-pretrained weights [25] and subsequently fine-tuned on the target dataset to accelerate convergence. For Experiment III, a staged fine-tuning strategy is adopted. The models trained in Experiment I on the T1 trailer are used for initialization. Based on this initialization, the networks are further fine-tuned on a mixed dataset con-sisting of T1 and T3 trailers to enhance adaptation capability to unseen trailer types. 
+
+B. Results of Experiments 
+
+Given the substantial imbalance in the distribution of ar-ticulation angles during data collection, with limited samples exceeding ±45° in some datasets, the quantitative results TABLE II PERFORMANCE COMPARISON                                             
+
+> Models Exp. I Exp. II Exp. III RMSE MAE RMSE MAE RMSE MAE ResNet18 1.57 ◦1.16 ◦2.88 ◦2.06 ◦1.89 ◦1.39 ◦
+> ResNet50 1.04 ◦0.74 ◦4.41 ◦2.86 ◦3.08 ◦1.81 ◦
+> VKiT 3.09 ◦1.43 ◦3.04 ◦1.80 ◦2.04 ◦1.12 ◦
+> SVKiT 2.75 ◦2.06 ◦4.47 ◦3.07 ◦2.13 ◦1.43 ◦
+> EKF-ResNet18 1.19 ◦0.93 ◦1.46 ◦0.95 ◦2.46 ◦1.78 ◦
+> EKF-VKiT 1.02 ◦0.79 ◦2.69 ◦1.46 ◦2.64 ◦1.63 ◦
+
+presented in Table II are evaluated exclusively on test samples within the ±45° range for all three experiments. It can be observed that all models except SVKiT and VKiT achieve strong performance in experiment I, with the mean absolute error (MAE) being close to 1.0◦, VKiT shows slightly higher MAE and markedly higher root mean squared error (RMSE), which is primarily attributed to multiple out-liers occurring in a specific scenario, as illustrated in Fig. 4, where samples with large prediction errors in the VKiT are associated with higher estimated uncertainty, which is represented by the k-NN distance dk defined in eq. 17. Within the hybrid framework, these high-uncertainty observations are down-weighted, causing the state estimate to rely more heavily on the kinematic model, thereby improving over-all robustness and accuracy. The hybrid model EKF-VKiT achieves significantly higher accuracy than the standalone learning-based observation model VKiT. In experiment II, the test set corresponds to a night and dawn scenario with extremely low ambient illumination. Streetlights are present, and their relative intensity and angles vary across samples, causing significant lighting changes. Table II shows that the extreme illumination conditions in experiment II lead to a noticeable performance degradation in MAE and RMSE across all models. Among the solely learning-based models, VKiT achieves the best performance in terms of MAE, however, its RMSE is slightly higher than that of ResNet18, indicating the presence of more pronounced outliers. EKF-ResNet18 and EKF-VKiT demonstrate supe-rior overall performance in both RMSE and MAE compared to the other models. Since ResNet18 and VKiT tend to produce higher uncertainty estimates when large prediction errors occur, the EKF is able to down-weight these unreliable observations. Consequently, the filter effectively suppresses the influence of outliers, leading to improved robustness and overall estimation accuracy. Since image-based data augmentation is employed during model training, the higher-than-expected performance ob-served in experiment II is investigated with respect to its potential attribution to the applied augmentation strategy. Notably, the training data in experiment II were recorded exclusively during daytime. To this end, an ablation study is performed in which data augmentation is omitted during training. In comparison to learning-based models trained without data augmentation, all learning-based models exhibit a pronounced performance gain in experiment II with approx-−20              
+
+> 0
+> 20
+> 40
+> 60
+> θt (degrees)
+> Ground Truth VKiT EKF-VKiT
+> 050 100 150 200 250
+> t(s)
+> 0246
+> dk 500
+> Squared error of VKiT
+> Fig. 4. Scenario trajectories of the EKF-VKiT model in experiment I. In this scenario, the VKiT model exhibits a relatively high number of outlier estimation errors, which are associated with increased dkvalues. The EKF effectively mitigates these outliers through the fusion of model-based predictions and visual measurements. −20
+> 0
+> 20
+> θt (degrees)
+> Ground Truth ResNet18 EKF-ResNet18
+> 050 100 150
+> t(s)
+> 0515
+> dk
+> 0100
+> Squared error of ResNet18
+> Fig. 5. Scenario trajectories of the EKF-ResNet18 model in Experiment III. Shown are ResNet18 and EKF-ResNet18 as examples; all models provide accurate initial angle estimates even for arbitrary starting angles.
+
+imately 60%–80% reductions in both MAE and RMSE. In addition the estimated observation uncertainty for ResNet18 and VKiT in both hybrid models exhibits an overall increase when data augmentation is not applied. In Experiment III, most solely learning-based models achieve MAE values of approximately 1.5◦. Exception is ResNet50, whose MAE value is noticeably higher, reaching 
+
+1.81 ◦. Evaluations on different trailer types with significantly mismatched geometric parameters show a noticeable degra-dation in the performance of both hybrid models. However, due to the corrective mechanism of the hybrid models with soft-measurement, the overall estimation accuracy remains within an acceptable range, relative to the corresponding kinematic prediction models within the EKF, EKF-VKiT and EKF-ResNet18 achieve RMSE reductions of 59.9% and 62.7%, and MAE reductions of 60.7% and 57.2%, respec-tively. Moreover, all models can handle scenarios with arbi-trary initial articulation angles, without a straight-driving initialization. Fig.5 illustrates a representative scenario in which the articulated truck starts with an articulation angle of approximately −10 ◦. ResNet18 and EKF-ResNet18 are shown as example models, both providing accurate initial angle estimates. V. C ONCLUSION 
+
+This paper presents learning-based and hybrid approaches for articulation angle estimation of truck–semitrailer systems using only signals from existing onboard truck sensors, eliminating the need for additional sensors or optical mark-ers. Models are trained and extensively evaluated on mul-tiple OOD real-world datasets. Hybrid models demonstrate high estimation accuracy and strong robustness under differ-ent challenging conditions. Unlike conventional methods, it needs no straight-driving initialization and works at arbitrary initial angles. Data augmentation during training enhances generalization, and the model is further evaluated under extremely low-light conditions. Results show augmentation improves performance and reduces uncertainty. Moreover, the proposed methods can be rapidly adapted to different trailer types. When trailer geometric parameters are un-known, predefined nominal values can be employed. Even in cases where these predefined parameters deviate substantially from the true values (e.g., by a factor of 1.5), the hy-brid model exhibits only moderate performance degradation and maintains robust estimation capability. However, both the kinematic model and the learning-based model perform poorly on samples with large angles, so their complemen-tarity for these samples is limited. Moreover, the distance computations for a large number of samples in the soft-measurement approach incur high computational cost, which may affect real-time performance during online estimation. Solely learning-based models perform frame-wise predictions without autoregressive propagation, avoiding temporal error accumulation. Therefore, the EKF continuously corrects the kinematic prediction through the observation model, which is expected to alleviate long-term drift accumulation, although explicit long-term error propagation is not separately ana-lyzed in this work. In future work, the geometric parameters of the trailer could be incorporated into the EKF state space, samples with lower observation uncertainty could then be utilized to dynamically update the nominal parameter values, thereby further improving adaptability to previously unseen trailers. REFERENCES [1] A. H. Korayem, A. Pazooki, L. Durali, A. Khajepour, B. Fidan, A. V. Ponnuswami, and S. P. Khaligh, “Hitch angle estimation of a towing vehicle with arbitrary configuration,” IEEE Transactions on intelligent transportation systems , vol. 23, no. 7, pp. 7535–7546, 2021. [2] V. Josef, “Trailer backing-up assistant using ultrasound sensors based control units to safely back-up the car with trailer,” in 2016 17th International Conference on Mechatronics-Mechatronika (ME) . IEEE, 2016, pp. 1–6. [3] K. Olutomilayo and D. R. Fuhrmann, “Estimation of trailer-vehicle articulation angle using 2d point-cloud data,” in 2019 IEEE Radar Conference (RadarConf) . IEEE, 2019, pp. 1–6. [4] O. Ljungqvist, N. Evestedt, D. Axehill, M. Cirillo, and H. Pettersson, “A path planning and path-following control framework for a general 2-trailer with a car-like tractor,” Journal of field robotics , vol. 36, no. 8, pp. 1345–1377, 2019. [5] Z. Leng and M. A. Minor, “Curvature-based ground vehicle control of trailer path following considering sideslip and limited steering actuation,” IEEE Transactions on Intelligent Transportation Systems ,vol. 18, no. 2, pp. 332–348, 2016. [6] Z. Ziaukas, M. Wielitzka, T. Ortmaier, and J.-P. Kobler, “Simultaneous estimation of steering and articulation angle in a truck-semitrailer combination solely based on trailer signals,” in 2019 American Control Conference (ACC) . IEEE, 2019, pp. 2509–2514. [7] S. Han, K. Yoon, G. Park, and K. Huh, “Hybrid state observer design for estimating the hitch angles of tractor-multi unit trailer,” IEEE Transactions on Intelligent Vehicles , vol. 8, no. 2, pp. 1449–1458, 2022. [8] T. Jahn, Z. Ziaukas, J.-P. Kobler, M. Wielitzka, and T. Ortmaier, “Neural observer for nonlinear state and input estimation in a truck-semitrailer combination,” IFAC-PapersOnLine , vol. 53, no. 2, pp. 14 306–14 311, 2020. [9] J.-H. Ewering, Z. Ziaukas, S. F. Ehlers, and T. Seel, “Reliable state estimation in a truck-semitrailer combination using an artificial neural network-aided extended kalman filter,” in 2024 European Control Conference (ECC) . IEEE, 2024, pp. 456–463. [10] H. Zeipel, T.-L. Habich, T. Seel, and S. F. Ehlers, “Fast and ac-curate prediction of vehicle dynamics using physics-informed neural networks,” Authorea Preprints , 2024. [11] W. Liu, J. Zhang, W. Wang, and Z. Sun, “Vision-based vehicle articulation angle estimation using corner point detection of calibration plate,” in Intelligent Transportation Engineering . IOS Press, 2025, pp. 2–13. [12] C. Fuchs, B. Knopp, D. Z¨ obel, and D. Paulus, “Model-based evalu-ation of practical sensor noise impacts in articulated vehicle driving scenarios,” in 2017 IEEE Intelligent Vehicles Symposium (IV) . IEEE, 2017, pp. 577–582. [13] C. de Saxe and D. Cebon, “Measurement of articulation angle by image template matching,” Proceedings of the Institution of Mechanical Engineers, Part D: Journal of Automobile Engineering , vol. 233, no. 14, pp. 3801–3815, 2019. [14] ——, “Camera-based articulation angle sensing for heavy goods vehi-cles,” IEEE Transactions on Vehicular Technology , vol. 70, no. 8, pp. 7522–7535, 2021. [15] C. De Saxe and D. Cebon, “A visual template-matching method for articulation angle measurement,” in 2015 IEEE 18th International Conference on Intelligent Transportation Systems . IEEE, 2015, pp. 626–631. [16] T. Thawainin, T. Flegel, and D. Bevly, “Surveying cnns for estimating trailer articulation angle using monocular cameras,” in 2025 IEEE/ION Position, Location and Navigation Symposium (PLANS) . IEEE, 2025, pp. 654–663. [17] A. Dahal, J. Hossen, C. Sumanth, G. Sistu, K. Malhan, M. Amasha, and S. Yogamani, “Deeptrailerassist: Deep learning based trailer detection, tracking and articulation angle estimation on automotive rear-view camera,” in Proceedings of the IEEE/CVF International Conference on Computer Vision Workshops , 2019, pp. 0–0. [18] M. Bahramgiri, S. Nooshabadi, K. T. Olutomilayo, and D. R. Fuhrmann, “Hitch angle estimation for trailer backup system—an object detection and tracking approach,” IEEE Transactions on Instru-mentation and Measurement , vol. 71, pp. 1–15, 2022. [19] W. Liu, W. Wang, and Z. Sun, “Supervised articulation angles estima-tion for multi-articulated vehicles based on panoramic camera system,” in 2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . IEEE, 2024, pp. 9381–9387. [20] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for image recognition,” in Proceedings of the IEEE conference on computer vision and pattern recognition , 2016, pp. 770–778. [21] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, and I. Polosukhin, “Attention is all you need,” 
+
+Advances in neural information processing systems , vol. 30, 2017. [22] A. Dosovitskiy, “An image is worth 16x16 words: Transformers for image recognition at scale,” arXiv preprint arXiv:2010.11929 , 2020. [23] J. Kannala and S. S. Brandt, “A generic camera model and calibration method for conventional, wide-angle, and fish-eye lenses,” IEEE trans-actions on pattern analysis and machine intelligence , vol. 28, no. 8, pp. 1335–1340, 2006. [24] I. Loshchilov and F. Hutter, “Decoupled weight decay regularization,” 
+
+arXiv preprint arXiv:1711.05101 , 2017. [25] A. Paszke, S. Gross, F. Massa, A. Lerer, J. Bradbury, G. Chanan, T. Killeen, Z. Lin, N. Gimelshein, L. Antiga et al. , “Pytorch: An imperative style, high-performance deep learning library,” Advances in neural information processing systems , vol. 32, 2019.

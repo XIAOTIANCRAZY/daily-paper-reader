@@ -6,61 +6,68 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-20
-- 运行时间：2026-07-20 21:54:43 UTC
+- 最新运行日期：2026-07-25
+- 运行时间：2026-07-25 20:59:17 UTC
 - 运行状态：成功
-- 本次总论文数：13
-- 精读区：2
-- 速读区：11
+- 本次总论文数：16
+- 精读区：8
+- 速读区：8
 
 ### 今日简报（AI）
-1) 今日精选2篇精读与11篇速读论文，聚焦3D场景图预测及外中心手部姿态预测两大方向。  
-2) 最值得关注：3D场景图从部分观察生成层级模型（8.0分），以及利用外中心演示进行视觉-语言引导的3D手部姿态预测（8.0分），均代表3D理解与交互的前沿突破。  
-3) 建议优先阅读这两篇精读论文，并速览单目几何与视图合成相关研究（FoundationGeo、MetaView、DiffGI），以搭建从感知到生成的完整技术链。
-- 详情：[/202607/20/README](/202607/20/README)
+今日精选16篇论文，聚焦视频驱动的3D动态场景建模与物理仿真。强烈推荐10分精读《BoxTwin》与9分《MotionForesight》，前者从视频中学习弹塑性物体动力学，后者将视频模型迁移至未来3D场景流预测。建议优先精读这两篇，以把握AI从视频中提取物理规律的前沿方法。
+- 详情：[/202607/25/README](/202607/25/README)
 
 ### 精读区论文标签
-1. [3D Scene Graph Prediction: Generating Hierarchical Models from Partially Observed Environments](/202607/20/2607.10879v1-3d-scene-graph-prediction-generating-hierarchical-models-from-partially-observed-environments)  
-   标签：评分：8.0/10、query:d-scn-gen
-   evidence：从部分观测生成层次化3D场景图，预测房间布局和可穿越性
-2. [Exo2EgoPose: Leveraging Exocentric Demonstrations for Vision-Language guided Egocentric 3D Hand Pose Forecasting](/202607/20/2607.15890v1-exo2egopose-leveraging-exocentric-demonstrations-for-vision-language-guided-egocentric-3d-hand-pose-forecasting)  
-   标签：评分：8.0/10、query:d-artic-kin
-   evidence：视觉-语言引导的第一人称3D手部姿态预测，从观测中理解铰接物体
+1. [BoxTwin: Learning Elastoplastic Articulated Object Dynamics from Videos](/202607/25/2607.17132v1-boxtwin-learning-elastoplastic-articulated-object-dynamics-from-videos)  
+   标签：评分：10.0/10、query:d-artic-kin
+   evidence：从视频学习铰接物体的运动学和物理属性
+2. [MotionForesight: Re-purposing Video Models for Future 3D Scene-Flow Prediction](/202607/25/2607.16192v1-motionforesight-re-purposing-video-models-for-future-3d-scene-flow-prediction)  
+   标签：评分：9.0/10、query:d-artic-kin
+   evidence：从单目视频预测被操作物体（抽屉、盖子）的未来3D轨迹，直接针对铰接运动预测
+3. [Scene-SAM3D: Multi-View Scene Asset Generation Without Fine-Tuning](/202607/25/2607.16805v1-scene-sam3d-multi-view-scene-asset-generation-without-fine-tuning)  
+   标签：评分：9.0/10、query:d-scn-gen
+   evidence：无需微调的多视图三维场景资产生成
+4. [HarmoHOI: Harmonizing Appearance and 3D Motion for Multi-view Hand-Object Interaction Synthesis](/202607/25/2607.17097v1-harmohoi-harmonizing-appearance-and-3d-motion-for-multi-view-hand-object-interaction-synthesis)  
+   标签：评分：9.0/10、query:d-artic-kin
+   evidence：生成手-物体交互的三维运动参数
+5. [Text2Villa: Hierarchical Generation of 3D Indoor Environments with Physics-Aware Analysis-by-Synthesis](/202607/25/2607.17145v1-text2villa-hierarchical-generation-of-3d-indoor-environments-with-physics-aware-analysis-by-synthesis)  
+   标签：评分：9.0/10、query:d-scn-gen
+   evidence：基于文本的层次化三维场景生成，结合物理感知约束
+6. [Agentic Real2Sim: Physics-based World Modeling with Vision-Language Agents](/202607/25/2607.19190v1-agentic-real2sim-physics-based-world-modeling-with-vision-language-agents)  
+   标签：评分：9.0/10、query:d-scn-gen
+   evidence：使用视觉语言代理推断物理参数并创建可模拟的三维场景
+7. [Agentic Real2Sim: Physics-based World Modeling with Vision-Language Agents](/202607/25/2607.19190v2-agentic-real2sim-physics-based-world-modeling-with-vision-language-agents)  
+   标签：评分：9.0/10、query:d-scn-gen
+   evidence：使用视觉语言智能体进行3D场景构建和物理世界建模
+8. [Engine-Native Editable 3D World Reconstruction with Objects and Lighting](/202607/25/2607.20889v1-engine-native-editable-3d-world-reconstruction-with-objects-and-lighting)  
+   标签：评分：9.0/10、query:d-scn-gen
+   evidence：使用视觉语言模型进行三维场景解析与重建
 
 ### 速读区论文标签
-1. [FoundationGeo: Learning Spatial Pixel-Wise Fields for Monocular Metric Geometry](/202607/20/2607.11588v3-foundationgeo-learning-spatial-pixel-wise-fields-for-monocular-metric-geometry)  
+1. [Hybrid Machine Learning for Articulation Angle Estimation of Truck-Semitrailer Combinations](/202607/25/2607.16758v1-hybrid-machine-learning-for-articulation-angle-estimation-of-truck-semitrailer-combinations)  
+   标签：评分：8.0/10、query:d-artic-kin
+   evidence：从视觉和运动学输入估计卡车-挂车铰接角度
+2. [FlexiAvatar: Unified 3D Gaussian Human Avatars Under Arbitrary Body Visibility](/202607/25/2607.19100v1-flexiavatar-unified-3d-gaussian-human-avatars-under-arbitrary-body-visibility)  
+   标签：评分：8.0/10、query:d-artic-kin
+   evidence：通过单目视频重建可动画化人体化身，从视觉数据学习运动学参数
+3. [GS-Agent: Creating 4D Physical Worlds With Generative Simulation](/202607/25/2607.21522v1-gs-agent-creating-4d-physical-worlds-with-generative-simulation)  
+   标签：评分：8.0/10、query:d-scn-gen
+   evidence：基于语言模型智能体的4D物理世界自然语言创建
+4. [RynnBrain 1.1: Towards More Capable and Generalizable Embodied Foundation Model](/202607/25/2607.17977v1-rynnbrain-11-towards-more-capable-and-generalizable-embodied-foundation-model)  
    标签：评分：7.0/10、query:d-artic-kin
-   evidence：学习空间像素级场用于单目度量几何，可实现3D几何估计
-2. [MetaView: Monocular Novel View Synthesis with Scale-Aware Implicit Geometry Priors](/202607/20/2607.12000v1-metaview-monocular-novel-view-synthesis-with-scale-aware-implicit-geometry-priors)  
-   标签：评分：7.0/10、query:d-scn-gen
-   evidence：单目新视角合成，结合隐式几何先验
-3. [DiffGI: Differentiable Geometry Images for High-Fidelity Thin-Shell 3D Generation](/202607/20/2607.13365v1-diffgi-differentiable-geometry-images-for-high-fidelity-thin-shell-3d-generation)  
-   标签：评分：7.0/10、query:d-scn-gen
-   evidence：可微分几何图像用于高保真薄壳3D生成
-4. [BODIESReg: An Open-Source Pipeline for Registering 3D Body Scans Using Pose-Aligned Initialization](/202607/20/2607.15463v1-bodiesreg-an-open-source-pipeline-for-registering-3d-body-scans-using-pose-aligned-initialization)  
+   evidence：具身基础模型包含三维接地与接触点预测，可用于铰接物体理解
+5. [Imitation of Arm Gestures by the Semi-Humanoid Robot NICO](/202607/25/2607.18197v1-imitation-of-arm-gestures-by-the-semi-humanoid-robot-nico)  
    标签：评分：7.0/10、query:d-artic-kin
-   evidence：三维人体扫描配准用于运动学参数
-5. [Vision-Language-Motion Maps: An Open-Vocabulary, Uncertainty-Aware, Queryable Motion Attribute for 3D Scene Maps](/202607/20/2607.16173v1-vision-language-motion-maps-an-open-vocabulary-uncertainty-aware-queryable-motion-attribute-for-3d-scene-maps)  
-   标签：评分：7.0/10、query:d-scn-gen
-   evidence：视觉语言模型用于带运动属性的三维场景地图
-6. [Slot-RAE: Streamlining Object-Centric Learning via Direct Representation Auto-Encoders](/202607/20/2607.11196v1-slot-rae-streamlining-object-centric-learning-via-direct-representation-auto-encoders)  
-   标签：评分：6.0/10、query:d-artic-kin
-   evidence：对象中心学习用于场景分解，可应用于理解铰接物体
-7. [Compos3D: Interactive Part-Based Composition for Creative Control in Generative 3D Models](/202607/20/2607.12193v1-compos3d-interactive-part-based-composition-for-creative-control-in-generative-3d-models)  
+   evidence：从RGB图像中学习关节角度等运动学参数
+6. [PhysCoRe: Physics-Corrected Residual World Models for Material-Aware Deformable Dynamics](/202607/25/2607.20653v1-physcore-physics-corrected-residual-world-models-for-material-aware-deformable-dynamics)  
+   标签：评分：7.0/10、query:d-artic-kin
+   evidence：从视觉观测推断每点弹性参数，方法可推广至铰接系统
+7. [CR-Refiner: An Object-Centric Optimal Transport Reranker for Edit-Conditioned 3D Scene Retrieval](/202607/25/2607.19115v1-cr-refiner-an-object-centric-optimal-transport-reranker-for-edit-conditioned-3d-scene-retrieval)  
    标签：评分：6.0/10、query:d-scn-gen
-   evidence：基于文本提示的交互式部件组合，实现3D模型的创意控制
-8. [Hallo4D: Multi-Modal Hallucination Mitigation for Consistent Spatio-Temporal Generation](/202607/20/2607.12752v1-hallo4d-multi-modal-hallucination-mitigation-for-consistent-spatio-temporal-generation)  
-   标签：评分：6.0/10、query:d-scn-gen
-   evidence：使用大型多模态语言模型实现一致的4D场景生成
-9. [EgoHTR: Egocentric 4D Demonstrations of Human Terrain Traversal](/202607/20/2607.13472v1-egohtr-egocentric-4d-demonstrations-of-human-terrain-traversal)  
+   evidence：使用冻结LLM的免训练重排序器用于编辑条件3D场景检索
+8. [KineBench: Benchmarking Embodied World Models via IDM-Free Kinematic Grounding](/202607/25/2607.19876v1-kinebench-benchmarking-embodied-world-models-via-idm-free-kinematic-grounding)  
    标签：评分：6.0/10、query:d-artic-kin
-   evidence：第一人称四维人体运动数据集，用于理解铰接体
-10. [M$^\text{4}$World: A Multi-view Multimodal Driving World Model for Interactive Object Manipulation and Minute-long Streaming](/202607/20/2607.14005v1-mtext4world-a-multi-view-multimodal-driving-world-model-for-interactive-object-manipulation-and-minute-long-streaming)  
-   标签：评分：6.0/10、query:d-scn-gen
-   evidence：多视图多模态驾驶世界模型，支持交互式物体操作
-11. [MotionForesight: Re-purposing Video Models for Future 3D Scene-Flow Prediction](/202607/20/2607.16192v1-motionforesight-re-purposing-video-models-for-future-3d-scene-flow-prediction)  
-   标签：评分：6.0/10、query:d-artic-kin
-   evidence：预测未来3D物体轨迹，可用于铰接运动理解
+   evidence：面向具身世界模型运动学基础的基准
 
 
 <div class="dpr-home-promo-card">
