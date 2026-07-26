@@ -1,0 +1,1580 @@
+Title: Efficient Tracking and Understanding Object Transformations
+
+URL Source: https://arxiv.org/pdf/2607.19743v1
+
+Published Time: Thu, 23 Jul 2026 00:24:23 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# Efficient Tracking and Understanding Object Transformations 
+
+Yihong Sun Cornell University 
+
+yihong@cs.cornell.edu 
+
+Bharath Hariharan Cornell University 
+
+bharathh@cs.cornell.edu 
+
+Abstract 
+
+Tracking objects through state transformations is essen-tial for understanding real-world dynamics. However, ex-isting methods are computationally expensive. Tubelet-Graph [34] recently showed impressive capabilities, but its inference cost ( ∼4.4 seconds per object-frame on VOST) precludes any real-time deployment possibilities. We ob-serve that TubeletGraph’s overhead arises from building a spatiotemporal partition of the input video: (1) entity seg-mentation is computed densely for every frame regardless of whether a transformation occurs, and (2) every entity in the scene is tracked, scaling cost with scene complexity rather than the number of transformations of interest. To address both, we propose FluxGraph, a reactive variant that uses SAM2’s internal multi-mask disagreement as a lightweight trigger for transformation detection, and removes the need for tracking all entities in the given video. FluxGraph is 
+
+∼3.3 × faster than TubeletGraph on VOST while improv-ing tracking performance and preserving state graph qual-ity. Furthermore, we also observe consistent speedups of 3.7–10.7 × across VSCOS, M 3-VOS, and DAVIS17 while maintaining performance. Code is publicly available at https://github.com/YihongSun/FluxGraph. 
+
+1. Introduction 
+
+Real-world objects frequently undergo state transforma-tions that dramatically alter their appearance: an apple sliced into pieces or a butterfly emerging from a chrysalis. Tracking objects through these transformations is thus crit-ical for downstream applications such as robotic manipu-lation [20, 21], wildlife monitoring [24], and video under-standing [50]. TubeletGraph [34] recently introduced the Track Any State task — simultaneously tracking objects through transformations and detecting and describing the underlying state changes (Figure 2). By partitioning the input video into a set of spatiotemporal object tracks and reasoning about individual candidate tracks, TubeletGraph recovers missing objects after transformation and constructs a state graph describing each observed change. 0 1 2 3 4 5
+
+> Time per object mask (s)
+> 50
+> 55
+> 60
+> 65
+> 70
+> 75
+> 80
+> 85
+> Tracking Jaccard  TubeletGraph
+> FluxGraph (ours)
+> SAM2.1
+> VOST
+> VSCOS
+> M3-VOS
+> DAVIS17
+
+Figure 1. Performance vs efficiency. Each line shows a dataset; each marker denotes a method. FluxGraph achieves 3.3 − 10 .7×
+
+speedups over TubeletGraph [34] while matching performance. 
+
+However, constructing a spatiotemporal partition of the input video is prohibitive. A closer look at TubeletGraph re-veals two compounding bottlenecks. First, entity segmen-tation is invoked on every frame of the video in order to account for any object that may appear in later frames, re-gardless of its relevance to the prompt object. Second, every object is tracked, which makes the computational cost scale with the number of objects in the video, in addition to the video length and the number of transformations. Both bot-tlenecks share a common root cause: TubeletGraph [34] is 
+
+eager . It exhaustively partitions the video upfront so that any later transformation can be found through cheap re-trieval, regardless of whether transformations are actually occurring. In a complex kitchen scene with many static ob-jects and a single transformation, TubeletGraph pays the full cost of partitioning the entire video — nearly all of which is spent on regions and frames that are irrelevant. This raises a natural question: is the spatiotemporal partition necessary for recovering object transformations? 
+
+Here, we offer our key insight : SAM2 [30]’s internal multi-mask outputs already implicitly encode where related ob-jects — including products of a transformation — are likely to emerge. We thus need not eagerly partition the entire scene; but simply look for where SAM2 itself is uncertain. 1arXiv:2607.19743v1 [cs.CV] 22 Jul 2026 Predicted State Graph  Banana half     
+
+> Input Frame + Prompt Object Predicted Object Tracks
+> Banana
+> Banana piece
+> Banana peel
+> Cut
+> t=6s
+> Separate
+> t=8s
+> Peel
+> t=11s Figure 2. Given a video and a prompt mask, the goal is to track the object and construct a state graph for each detected transformation and resulting effect. For this example, FluxGraph achieves a 5.28 ×speedup over TubeletGraph [34] while matching performance.
+
+Building on this insight, we propose FluxGraph, an ef-ficient variant of TubeletGraph that replaces the eager spa-tiotemporal partition with a reactive trigger. Concretely, we use disagreement among SAM2’s three candidate masks as a lightweight per-frame signal: when the masks agree, no transformation is suggested and all down-stream process-ing is skipped; when they disagree, we invoke entity seg-mentation to propose new candidate tracks only within the disagreement regions. To remove potential false-positives, we track each candidate backwards and check whether it is consistent with the original prompt object. Together, these two design choices eliminate TubeletGraph’s two bottle-necks and yield significant speedups with no loss in tracking quality (Figure 1). Our contributions are as follows: 1. We identify and characterize the two computational bot-tlenecks of TubeletGraph, and propose FluxGraph, a re-active variant that uses SAM2’s multi-mask disagree-ment as a lightweight transformation trigger. 2. Across four benchmarks (VOST [35], VSCOS [48], M3-VOS [4], DAVIS17 [28]), FluxGraph achieves 3.3– 10.7 × speedups over TubeletGraph while matching or slightly improving tracking and state graph quality. 
+
+2. Related Work 
+
+Object Tracking. Object tracking [31] and semi-supervised video object segmentation [27, 28, 42] aim to segment a target object across a video given a first-frame mask. Recent benchmarks address increasingly challeng-ing settings, including long videos [16], occlusions and crowded scenes [9, 12], and complex object motion [8]. Modern trackers predict consistent object tracks via appearance-driven matching, ranging from online feature finetuning [2, 3, 23], template matching [17, 37, 45], to memory-attention [5, 6, 25, 26, 46, 47]. Recently, SAM2 [30] extends Segment Anything [18] to video via memory-attention and has become the de facto base tracker. Extensions further improve long-video robustness [10], fast-motion handling [44], and distractor resolution [36]. While these trackers achieve impressive results on standard benchmarks, they struggle when object appearance changes drastically due to state transformations, and none specifi-cally target efficiency under transformation conditions. 
+
+Understanding Object Transformations. Tracking and understanding objects undergoing transformations has been an active area of research. VOST [35] and VSCOS [48] target appearance-altering transformations from human–object interactions in ego-centric video [7, 13], while M3-VOS [4] focuses on phase transitions (gas/liquid/solid). ReVOS [4] combines forward and re-verse memory to improve tracking through transformations. Beyond tracking, DTTO [39] provides box-level annota-tions for transforming objects, while HowToChange [43] and WhereToChange [22] localize transformation stages and spatially-progressing state change regions, respectively. SPARTA [21] builds on these to enable real-world robotic manipulation tasks such as spreading, mashing, and slicing. TubeletGraph [34] jointly tracks objects through transfor-mations and constructs a state graph naming each change, but at significant computational cost. Our work directly addresses this cost while preserving TubeletGraph’s joint tracking and reasoning capability. 
+
+Efficient Video Understanding. Reducing the cost of video systems is a long-standing goal, as the cost of per-frame processing scales poorly with video length and res-olution. SkipConv [14] and EvNet [11] exploit tempo-ral redundancy by skipping computation on regions with minimal changes between frames, while Delta Distilla-tion [15] learns to estimate inter-frame feature deltas from a key-frame teacher. Additionally, prior works [19, 38, 40] leverage lightweight heuristics to select the most informa-tive frames for downstream applications and achieve large speedups. Similarly, video-language models [32, 33, 50] compress per-frame visual observation into compact spa-tiotemporal summaries for downstream reasoning. 2Reverse Track IoU = 0.0002  REJECT                    
+
+> CF
+> Input Frame + Prompt
+> Object
+> Frame@t=2s Frame@t=3s Frame@t=5s Frame@t=8s
+> Reverse Track IoU = 0.7617 ACCEPT Candidate #1: ACCEPTED
+> CF SKIP SKIP
+> SAM2 [fwd]
+> SAM2 [fwd]
+> SAM2 [rev]
+> SAM2 [rev]
+> (a)
+> Initial track: PROMPT
+> Candidate #2: SKIPPED
+> (b)
+> Aluminum foil sheet
+> Dispense
+> t=3s
+> Foil box Aluminum foil box
+> Frame@t=0s Frame@t=2s Frame@t=3s Frame@t=5s Frame@t=8s
+> SAM2 [fwd]
+
+Figure 3. Overview of FluxGraph. (a) Given an input video and a prompt object ( aluminum foil box , magenta), FluxGraph first propagates the prompt forward through the entire video via SAM2 [30] to obtain the primary track P (in magenta) and two alternative mask hypotheses 
+
+{m1 
+
+> s
+
+, m 2 
+
+> s
+
+} (in cyan and yellow). Note that any overlapping region between the alternative masks and the primary track is omitted for clarity. Any frame where the alternatives agree with the primary is skipped (SKIP, e.g. t=2 s and t=8 s), while frames with meaningful untracked disagreement trigger an entity segmentation query via CropFormer [29] (CF, e.g. t=3 s and t=5 s). Each entity that overlaps with the disagreement region is then added as a candidate, propagated forward, and then propagated backward in time to compare against the prompt track P . Candidate #1 (the emerging aluminum foil sheet , blue) yields a high reverse-track IoU ( 0.7617 ) and is accepted. Candidate #2 (the unrelated actor hands , green) yields a near-zero reverse-track IoU and is rejected as an unrelated entity. (b) The accepted candidate is merged with the prompt track, and the resulting prediction is summarized by a VLM into a state graph: the aluminum foil box 
+
+is dispensed at t=3 s, producing the persisting foil box together with the newly emerged aluminum foil sheet. 
+
+In the object tracking domain, efficiency efforts have largely focused on reducing the cost of SAM2 [30]. Effi-cientTAM [41] replaces SAM2’s hierarchical encoder with a plain ViT and a compressed memory module, while Ed-geTAM [51] accelerates the image encoder and memory at-tention, respectively. While effective, these works speed up the per-frame cost of the tracker itself , and are largely orthogonal to the source of overhead in TubeletGraph [34], which arises from invoking entity segmentation densely and tracking every scene entity. In contrast, FluxGraph targets to reduce the pipeline-level overhead of transformation-aware tracking by skipping expensive operations on frames and regions where minimal disagreement in SAM2’s own predictions indicates that no transformation is occurring. 33. Method 
+
+FluxGraph is a reactive variant of TubeletGraph built via a single insight: SAM2’s internal multi-mask outputs already encode where, and when, an object transformation is likely to introduce new components. We start with an overview of TubeletGraph and its bottlenecks in Sec. 3.1, and then present the two components of FluxGraph: reactive candi-date discovery via multi-mask disagreement (Sec. 3.2) and candidate filtering via reverse tracking (Sec. 3.3). 
+
+3.1. Preliminaries 
+
+Task. Track Any State [34] takes as input a video V =
+
+{It}Tt=1 and a binary mask M1 for a prompt object in I1.The output is two-fold: a set of tracks T = {T 1, . . . , T n}
+
+that follow the prompt object through any state changes (al-lowing for fragmentation into multiple parts), and a set of state changes S, where each s ∈ S is represented as a tuple 
+
+(t, T pre , T post , D ) specifying the transformation time, pre-and post-condition tracks, and a textual description. For ex-ample, in Figure 3, the aluminum foil box fragments at t=3 s
+
+into a persisting foil box and a newly emerged aluminum foil sheet , with the dispense action linking the two. 
+
+TubeletGraph pipeline. Given M1, TubeletGraph [34] first computes an entity segmentation E1 of the initial frame 
+
+I1 via CropFormer [29], and then tracks every entity in E1
+
+forward via SAM2 [30]. At each subsequent frame t, Crop-Former is invoked and any entity not yet covered by an ex-isting track is added as an emergent candidate track. The result is a spatiotemporal partition that covers nearly every pixel of the video. Every emergent object is then filtered via two priors: spatial proximity , requiring sufficient over-lap with SAM2’s multi-mask predictions for the prompt ob-ject, and semantic consistency , measured via FC-CLIP [49] feature similarity to the prompt. Surviving candidates are merged with the prompt track, and a VLM is queried at each transformation event to produce the final state graph. 
+
+Bottlenecks. While effective, constructing the spa-tiotemporal partition comes at a high computational cost. First, entity segmentation is invoked on every frame to de-tect newly-emerged objects, even when no transformation is occurring. Second, every object is tracked forward via SAM2, with cost scaling linearly in the number of entities rather than the number of transformations of interest. On VOST [35], these two components together account for over 98% of TubeletGraph’s ∼4.4 s/obj-frame inference cost. Reducing both motivates the central designs of FluxGraph. 
+
+3.2. Reactive Candidate Discovery 
+
+We first track the prompt object M1 and produce the pri-mary prediction track P = {p1, p 2, . . . , p T } along with SAM2’s two alternative mask hypotheses {m1
+
+> s
+
+, m 2
+
+> s
+
+} at each frame s (Figure 3(a), top). These alternative masks are at the core of our reactive trigger. May 23, 2026 
+
+Abstract 
+
+This document represents the output from the file “sample.tex” once compi 
+
+favorite L ATEXcompiler. This file should serve as a good example of the basic 
+
+“.tex” file as well as many of the most basic commands needed for typesetti 
+
+involving mathematical symbols and expressions. For more of a description 
+
+command works, please consult the links found on our course webpage. 
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6
+
+> s
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+# 1 Equations 
+
+# 1.1 Binomial Theorem 
+
+Theorem 1 (Binomial Theorem) For any nonnegative integer n, we have 
+
+(1 + x)n =
+
+> n
+
+X
+
+> i=0
+
+✓n
+
+i
+
+◆
+
+xi
+
+# 1.2 Taylor Series 
+
+The Taylor series expansion for the function ex is given by 
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6
+
+> s
+
+# 1.3 Sets 
+
+Theorem 2 For any sets A, B and C, we have 
+
+(A [ B)   (C   A) = A [ (B   C)
+
+Proof: 
+
+(A [ B)   (C   A) = (A [ B) \ (C   A)c
+
+= (A [ B) \ (C \ Ac)c
+
+= (A [ B) \ (Cc [ A)
+
+= A [ (B \ Cc)
+
+= A [ (B   C)
+
+1
+
+This document represents the output from the file “sample.tex” once 
+
+favorite L ATEXcompiler. This file should serve as a good example of the 
+
+“.tex” file as well as many of the most basic commands needed for typ 
+
+involving mathematical symbols and expressions. For more of a descr 
+
+command works, please consult the links found on our course webpage 
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6
+
+> s
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+# 1 Equations 
+
+# 1.1 Binomial Theorem 
+
+Theorem 1 (Binomial Theorem) For any nonnegative integer n, w 
+
+(1 + x)n =
+
+> n
+
+X
+
+> i=0
+
+✓n
+
+i
+
+◆
+
+xi
+
+# 1.2 Taylor Series 
+
+The Taylor series expansion for the function ex is given by 
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6
+
+> s
+
+# 1.3 Sets 
+
+Theorem 2 For any sets A, B and C, we have 
+
+(A [ B)   (C   A) = A [ (B   C)
+
+Proof: 
+
+(A [ B)   (C   A) = (A [ B) \ (C   A)c
+
+= (A [ B) \ (C \ Ac)c
+
+= (A [ B) \ (Cc [ A)
+
+= A [ (B \ Cc)
+
+= A [ (B   C)
+
+1
+
+Abstract 
+
+This document represents the output from the file “sam 
+
+favorite L ATEXcompiler. This file should serve as a good e 
+
+“.tex” file as well as many of the most basic commands 
+
+involving mathematical symbols and expressions. For m 
+
+command works, please consult the links found on our co 
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+# 1 Equations 
+
+# 1.1 Binomial Theorem 
+
+Theorem 1 (Binomial Theorem) For any nonnegative 
+
+(1 + x)n =
+
+> n
+
+X
+
+> i=0
+
+✓n
+
+i
+
+◆
+
+xi
+
+# 1.2 Taylor Series 
+
+The Taylor series expansion for the function ex is given by 
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e
+
+# 1.3 Sets 
+
+Theorem 2 For any sets A, B and C, we have 
+
+(A [ B)   (C   A) = A [ (B
+
+Proof: 
+
+(A [ B)   (C   A) = (A [ B)
+
+= (A [ B)
+
+= (A [ B)
+
+= A [ (B \
+
+= A [ (B  
+
+1
+
+# May 23, 2026 
+
+Abstract 
+
+This document represents the output from the file “sample.tex” once com 
+
+favorite L ATEXcompiler. This file should serve as a good example of the basi 
+
+“.tex” file as well as many of the most basic commands needed for typeset 
+
+involving mathematical symbols and expressions. For more of a descriptio 
+
+command works, please consult the links found on our course webpage. 
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6
+
+> s
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+# 1 Equations 
+
+# 1.1 Binomial Theorem 
+
+Theorem 1 (Binomial Theorem) For any nonnegative integer n, we ha 
+
+(1 + x)n =
+
+> n
+
+X
+
+> i=0
+
+✓n
+
+i
+
+◆
+
+xi
+
+# 1.2 Taylor Series 
+
+The Taylor series expansion for the function ex is given by 
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6
+
+> s
+
+# 1.3 Sets 
+
+Theorem 2 For any sets A, B and C, we have 
+
+(A [ B)   (C   A) = A [ (B   C)
+
+Proof: 
+
+(A [ B)   (C   A) = (A [ B) \ (C   A)c
+
+= (A [ B) \ (C \ Ac)c
+
+= (A [ B) \ (Cc [ A)
+
+= A [ (B \ Cc)
+
+= A [ (B   C)
+
+1
+
+“.tex” file as well as many of the most basic commands needed for typesetting documents 
+
+involving mathematical symbols and expressions. For more of a description on how each 
+
+command works, please consult the links found on our course webpage. 
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6 
+
+> s
+
+(
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2 
+
+> s
+
+(
+
+# 1 Equations 
+
+# 1.1 Binomial Theorem 
+
+Theorem 1 (Binomial Theorem) For any nonnegative integer n, we have 
+
+(1 + x)n =
+
+> n
+
+X
+
+> i=0
+
+✓n
+
+i
+
+◆
+
+xi
+
+# 1.2 Taylor Series 
+
+The Taylor series expansion for the function ex is given by 
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6 
+
+> s
+
+(
+
+# 1.3 Sets 
+
+Theorem 2 For any sets A, B and C, we have 
+
+(A [ B)   (C   A) = A [ (B   C)
+
+Proof: 
+
+(A [ B)   (C   A) = (A [ B) \ (C   A)c
+
+= (A [ B) \ (C \ Ac)c
+
+= (A [ B) \ (Cc [ A)
+
+= A [ (B \ Cc)
+
+= A [ (B   C)
+
+1
+
+Abstract 
+
+This document represents the output from the file “sample.tex” once compiled usi 
+
+favorite L ATEXcompiler. This file should serve as a good example of the basic struct 
+
+“.tex” file as well as many of the most basic commands needed for typesetting doc 
+
+involving mathematical symbols and expressions. For more of a description on ho 
+
+command works, please consult the links found on our course webpage. 
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6
+
+> s
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+# 1 Equations 
+
+# 1.1 Binomial Theorem 
+
+Theorem 1 (Binomial Theorem) For any nonnegative integer n, we have 
+
+(1 + x)n =
+
+> n
+
+X
+
+> i=0
+
+✓n
+
+i
+
+◆
+
+xi
+
+# 1.2 Taylor Series 
+
+The Taylor series expansion for the function ex is given by 
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6
+
+> s
+
+# 1.3 Sets 
+
+Theorem 2 For any sets A, B and C, we have 
+
+(A [ B)   (C   A) = A [ (B   C)
+
+Proof: 
+
+(A [ B)   (C   A) = (A [ B) \ (C   A)c
+
+= (A [ B) \ (C \ Ac)c
+
+= (A [ B) \ (Cc [ A)
+
+= A [ (B \ Cc)
+
+= A [ (B   C)
+
+1
+
+Abstract 
+
+This document represents the output from the file “sample.tex” once compiled using you 
+
+favorite L ATEXcompiler. This file should serve as a good example of the basic structure of a 
+
+“.tex” file as well as many of the most basic commands needed for typesetting document 
+
+involving mathematical symbols and expressions. For more of a description on how each 
+
+command works, please consult the links found on our course webpage. 
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6
+
+> s
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+# 1 Equations 
+
+# 1.1 Binomial Theorem 
+
+Theorem 1 (Binomial Theorem) For any nonnegative integer n, we have 
+
+(1 + x)n =
+
+> n
+
+X
+
+> i=0
+
+✓n
+
+i
+
+◆
+
+xi
+
+# 1.2 Taylor Series 
+
+The Taylor series expansion for the function ex is given by 
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6
+
+> s
+
+# 1.3 Sets 
+
+Theorem 2 For any sets A, B and C, we have 
+
+(A [ B)   (C   A) = A [ (B   C)
+
+Proof: 
+
+(A [ B)   (C   A) = (A [ B) \ (C   A)c
+
+= (A [ B) \ (C \ Ac)c
+
+= (A [ B) \ (Cc [ A)
+
+= A [ (B \ Cc)
+
+= A [ (B   C)
+
+1
+
+Abstract 
+
+This document represents the output from the file “sample.tex” once compiled using y 
+
+favorite L ATEXcompiler. This file should serve as a good example of the basic structure 
+
+“.tex” file as well as many of the most basic commands needed for typesetting docume 
+
+involving mathematical symbols and expressions. For more of a description on how e 
+
+command works, please consult the links found on our course webpage. 
+
+## c1
+
+> s
+
+# 1 Lists 
+
+## 1. First Point (Bold Face) 
+
+## 2. Second Point (Italic) 
+
+## 3. Third Point (Large Font) 
+
+## (a) First Subpoint (Small Font) 
+
+## (b) Second Subpoint (Tiny Font) 
+
+## (c) Third Subpoint (Huge Font) 
+
+## • Bullet Point (Sans Serif) 
+
+##   Circle Point (Small Caps) 
+
+# 2 Equations 
+
+# 2.1 Binomial Theorem 
+
+## Theorem 1 (Binomial Theorem) For any nonnegative integer n, we have 
+
+## (1 + x)n =
+
+> n
+
+## X
+
+> i=0
+
+## ✓n
+
+## i
+
+## ◆
+
+## xi
+
+# 2.2 Taylor Series 
+
+## The Taylor series expansion for the function ex is given by 
+
+## ex = 1 + x + x2
+
+## 2 + x3
+
+## 6 + · · · = X
+
+> n 0
+
+## xn
+
+## n!
+
+## 1
+
+Abstract 
+
+This document represents the output from the file 
+
+favorite L ATEXcompiler. This file should serve as a go 
+
+“.tex” file as well as many of the most basic comma 
+
+involving mathematical symbols and expressions. F
+
+command works, please consult the links found on ou 
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5
+
+> s
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c
+
+# 1 Equations 
+
+# 1.1 Binomial Theorem 
+
+Theorem 1 (Binomial Theorem) For any nonnega 
+
+(1 + x)n =
+
+> n
+
+X
+
+> i=0
+
+✓n
+
+i
+
+# 1.2 Taylor Series 
+
+The Taylor series expansion for the function ex is given 
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3
+
+> s
+
+# 1.3 Sets 
+
+Theorem 2 For any sets A, B and C, we have 
+
+(A [ B)   (C   A) = A
+
+Proof: 
+
+(A [ B)   (C   A) = (A [
+
+= (A [
+
+= (A [
+
+= A [
+
+= A [
+
+1
+
+This document represents the output from the file “sample.tex” once compil 
+
+favorite L ATEXcompiler. This file should serve as a good example of the basic s 
+
+“.tex” file as well as many of the most basic commands needed for typesettin 
+
+involving mathematical symbols and expressions. For more of a description 
+
+command works, please consult the links found on our course webpage. 
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6
+
+> s
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+# 1 Equations 
+
+# 1.1 Binomial Theorem 
+
+Theorem 1 (Binomial Theorem) For any nonnegative integer n, we have 
+
+(1 + x)n =
+
+> n
+
+X
+
+> i=0
+
+✓n
+
+i
+
+◆
+
+xi
+
+# 1.2 Taylor Series 
+
+The Taylor series expansion for the function ex is given by 
+
+ps m1 
+
+> s
+
+m2 
+
+> s
+
+c2
+
+> s
+
+e1 
+
+> s
+
+e2 
+
+> s
+
+e3 
+
+> s
+
+e4 
+
+> s
+
+e5 
+
+> s
+
+e6
+
+> s
+
+# 1.3 Sets 
+
+Theorem 2 For any sets A, B and C, we have 
+
+(A [ B)   (C   A) = A [ (B   C)
+
+Proof: 
+
+(A [ B)   (C   A) = (A [ B) \ (C   A)c
+
+= (A [ B) \ (C \ Ac)c
+
+= (A [ B) \ (Cc [ A)
+
+= A [ (B \ Cc)
+
+= A [ (B   C)
+
+1             
+
+> Predicted Tracks Entity Segmentation
+> Figure 4. Efficient candidate selection. Given primary mask ps,alternative masks {m1
+> s, m 2
+> s}, and tracked additional component masks from transformation c1
+> s(left), we perform entity segmenta-tion (right) and select entities (in red) with sufficient coverage by alternative hypothesis m2
+> sand not covered by psand c1
+> s.
+
+Multi-mask disagreement as a transformation signal. 
+
+A key observation we offer is that when a state transforma-tion produces a new, separate object, SAM2 often captures it as an alternative mask hypothesis rather than the primary prediction. This is a natural consequence of SAM2’s multi-head design and winner-takes-all training objective, which encourages the alternative heads to produce meaningful hy-potheses. Therefore, a large disagreement between ps and 
+
+{m1
+
+> s
+
+, m 2
+
+> s
+
+} suggests that SAM2 is uncertain about where the prompt object is located — a signal that a state transforma-tion may have occurred at frame s. This is visible at t=3 s in Figure 3(a), where the alternative masks (cyan and yellow) latch onto the newly dispensed foil sheet. This insight translates to two complementary heuristics that decide whether a frame may contain a transformation of interest. Formally, suppose at a particular frame s, the prompt object is predicted with primary mask ps, alternative masks {m1
+
+> s
+
+, m 2
+
+> s
+
+}, and additional component masks from transformation {c1
+
+> s
+
+, ..., c ns }, we skip all down-stream analy-sis if either of the following conditions is met. 
+
+Heuristic 1: Low alternative mask disagreement. If both alternative masks are nearly identical to the primary: 
+
+∀k ∈ { 1, 2} : |ps ∩ mks ||ps ∪ mks | > τ agree , (1) then SAM2 is confident in a single segmentation hypoth-esis and no new candidate region is suggested. Shown in Figure 3(a) ( t=2 s), the foil has not yet been dispensed and both alternative hypotheses collapse onto the primary track. 
+
+Heuristic 2: Small residual area. Even when alter-native masks differ from the primary, the differing region may fall entirely within already-tracked regions of previ-ously found candidates. Let Ns = ps ∪ c1 
+
+> s
+
+∪ ... ∪ cns denote the union of all masks currently tracked. If the residual area of each alternative mask after removing Ns is small relative to the primary mask: 
+
+∀k ∈ { 1, 2} : |mks \ N s| < τ res · | ps|, (2) 4then no meaningful untracked region is present and no new candidate region is suggested. Consequently, we perform entity segmentation when 
+
+both conditions fail — i.e. when uncertainty in the SAM2 prediction points to an untracked region. 
+
+Candidate region extraction. For each frame s with en-tity segmentation Es = CF (Is), we identify potential candi-date regions as shown in Figure 4. For each entity ejs ∈ E s,we compute its coverage by the alternative masks restricted to untracked regions: cov (ejs) = max 
+
+> k∈{ 1,2}
+
+|ejs ∩ (mks \ N s)||ejs| , (3) and add ejs as a candidate if cov (ejs) > τ new . Intuitively, this selects entities that are covered by SAM2’s own alternative hypotheses but lie outside regions already accounted for by existing tracks — exactly where a missed transformation product would appear. In Figure 3(a), this step produces Candidate #1 (the foil sheet, blue) at t=3 s and Candidate #2 (the actor’s hands, green) at t=5 s.
+
+3.3. Candidate Filtering via Reverse Tracking 
+
+After identifying candidates, we propagate each one for-ward to the end of the video using SAM2, yielding a set of candidate tracks C = {C1, C 2, . . . }. However, not every candidate corresponds to a genuine product of the transfor-mation — some may be unrelated objects that happen to share space with the alternative multi-mask predictions, as illustrated by Candidate #2 in Figure 3(a). In TubeletGraph, this disambiguation is handled by com-bining the proximity prior with a semantic consistency check via FC-CLIP [49]. In FluxGraph, we replace this se-mantic check with a purely geometric one that requires no additional model: reverse tracking .
+
+Reverse tracking. Concretely, for each candidate track C = {cs, c s+1 , . . . , c T } initialized at frame s, we track cs backwards in time from frame s to frame 1 (via SAM2 [rev] in Figure 3(a)). This yields a reverse track 
+
+ˆC = {ˆcs−1, ˆcs−2, . . . , ˆc1}. We then compute the mean IoU between the reverse track and the prompt object track over all frames prior to s:
+
+Srev (C, P ) = 1
+
+s − 1
+
+> s−1
+
+X
+
+> t=1
+
+|ˆct ∩ pt||ˆct ∪ pt| . (4) The intuition is straightforward: if a candidate region is a genuine transformation product of the prompt object, prop-agating it backward should align with the original prompt object. This is precisely the behavior observed for Can-didate #1 in Figure 3(a), whose reverse track lands on the foil box and yields Srev = 0.7617 ; in contrast, Candi-date #2’s reverse track stays on the actor’s hands, yield-ing Srev = 0 .0002 . We therefore retain only candidates for which Srev (C, P ) > τ rev , and discard the rest. The fi-nal tracking result T is formed by combining the surviving candidate tracks with the original prompt track P with VLM prompting, exactly as in TubeletGraph— visualized as the merged tubes in Figure 3(b). 
+
+3.4. TubeletGraph vs. FluxGraph 
+
+Table 1 summarizes the key differences between Tubelet-Graph and FluxGraph. The central shift is from an eager 
+
+strategy — partitioning the entire video upfront — to a re-active one that queries entity segmentation and initiates new tracks only when SAM2’s internal hypothesis suggests its necessity. This eliminates the two primary bottlenecks of TubeletGraph: the majority of the per-frame entity segmen-tation is avoided by a lightweight heuristic check, and the number of tracked objects at any time is bounded by the number of detected candidates rather than the total number of scene entities. Furthermore, the semantic consistency check requiring FC-CLIP is replaced entirely by reverse tracking, which reuses SAM2 and introduces no additional model dependency. The state graph construction via VLM querying remains unchanged from TubeletGraph.           
+
+> Aspect TubeletGraph FluxGraph
+> Entity queries Every frame Selected frames only Tracking scaling # entities in video # detected candidates Candidate discovery Object emergence Multi-mask disagreement Candidate filtering Proximity + FC-CLIP Reverse tracking
+> Table 1. Comparison of TubeletGraph and FluxGraph.
+
+4. Experiments 
+
+4.1. Experimental Setup 
+
+Datasets. Following TubeletGraph [34], we evaluate on four object tracking benchmarks. VOST [35] validation set contains 70 ego-centric videos from EPIC-Kitchens [7] and Ego4D [13] focusing on objects under transformations. Similarly, VSCOS [48] val contains 98 ego-centric videos focused on state-changing object tracking. M 3-VOS [4] val contains 479 videos depicting object phase transitions. In addition, we evaluate on DAVIS17 [28] as a sanity check for transformation-free videos. We evaluate state graph on VOST-TAS [34], an extension of the VOST validation set with 57 video instances and 108 transformations. 
+
+Metrics. For tracking, we follow VOST [35] and re-port Jaccard J over the entire video and Jtr over the last 25% of frames (where transformations have typically com-pleted). For state graph evaluation, we follow Tubelet-Graph [34] and report semantic accuracy of predicted action verbs ( SV ) and resulting object descriptions ( SO ), temporal localization precision and recall ( TP , TR), spatiotemporal recall HST (correct temporal match with all resulting objects 5Dataset Method Detect J J tr 
+
+Time per comp-mask (s) MPS Transform. Entity Seg. Track FC-CLIP Total VOST val SAM2.1 [30] 48.4 32.4 – 0.283 – 0.283 3.53 TubeletGraph [34] ✓ 50.9 36.7 1.097 3.228 0.067 4.392 0.23 FluxGraph ✓ 52.8 36.8 0.300 1.031 – 1.331 0.75 
+
+VSCOS val SAM2.1 [30] 72.0 66.9 – 0.264 – 0.264 3.79 TubeletGraph [34] ✓ 75.9 72.2 1.030 2.551 0.065 3.646 0.27 FluxGraph ✓ 75.3 70.7 0.109 0.686 – 0.795 1.26 
+
+M3-VOS val SAM2.1 [30] 71.3 59.3 – 0.280 – 0.280 3.57 TubeletGraph [34] ✓ 74.1 64.1 1.166 1.997 0.062 3.225 0.31 FluxGraph ✓ 73.7 63.8 0.129 0.740 – 0.869 1.15 
+
+DAVIS17 val SAM2.1 [30] 85.7 83.0 – 0.304 – 0.304 3.29 TubeletGraph [34] ✓ 85.6 82.6 1.213 3.558 0.034 4.805 0.21 FluxGraph ✓ 85.8 83.2 0.071 0.379 – 0.450 2.22   
+
+> Table 2. Per-component inference cost. Time per comp-mask is reported for entity segmentation, tracking, and semantic filtering via FC-CLIP [49]. MPS reflects total masks produced per second across all tracked objects. SAM2 [30] timings are in gray as reference.
+
+matched at IoU > 0.5), and overall recall H (additionally requiring correct semantic descriptions). To evaluate effi-ciency, we use the total number of object component masks (comp-masks) predicted as normalization, since the system may need to keep track of multiple objects that emerge at various points in time. We report wall-clock time per comp-mask broken down to separate modules where applicable, along with total mask per second (MPS). All timings are measured on a single NVIDIA RTX A6000 GPU. 
+
+Implementation Details. FluxGraph shares its back-bone models with TubeletGraph: SAM2.1-L [30] for track-ing, CropFormer-Hornet3X [29] for entity segmentation, and GPT-4.1 [1] (sampling temperature 0) for state graph construction. We select τagree = 0 .75 , τres = 0 .1, τnew = 0 .3
+
+and τrev = 0 .1 by sweeping on VOST training split, and ap-ply to all other datasets without further tuning. 
+
+4.2. Computational Efficiency 
+
+We first jointly evaluate FluxGraph’s computational ef-ficiency and tracking quality against TubeletGraph [34] and the base SAM2.1 [30] tracker. Table 2 reports per-component inference cost, overall mask per second (MPS), and tracking performance across all four benchmarks. 
+
+FluxGraph achieves consistent speedups. On VOST, FluxGraph reduces inference cost from 4.39 seconds per comp-mask to 1.33, bringing the MPS from 0.23 to 0.75 (∼3.3 × speedup). Similar time reductions are also ob-served on VSCOS (3.65 to 0.80, ∼4.6 ×), M 3-VOS (3.23 to 0.87, ∼3.7 ×), and DAVIS17 (4.81 to 0.45, ∼10.7 ×). In terms of per-component inference costs, the entity seg-mentation cost collapses dramatically and sees an average 
+
+∼9.8 × reduction across four benchmarks. At the same time, the tracking cost shows a similar trend, dropping by 
+
+∼3× on VOST and nearly 10 × on DAVIS17. These re-ductions confirm the superiority of the FluxGraph’s reactive design, where unnecessary cost of entity segmentation and object tracking is significantly reduced. 
+
+Efficiency gains come at no trade-off to tracking quality. On VOST, FluxGraph achieves J = 52 .8 versus 50.9 for TubeletGraph— a +1 .9 improvement despite run-ning ∼3.3 × faster. On VSCOS and M 3-VOS, FluxGraph is within 0.6 J of TubeletGraph with no statistically meaning-ful gap. We attribute the VOST gain to the reactive nature of candidate discovery: by focusing only on regions flagged by SAM2’s own uncertainty, FluxGraph introduces fewer false positives than TubeletGraph’s exhaustive partition. 
+
+Graceful behavior on transformation-free videos. 
+
+The DAVIS17 result is particularly informative as a san-ity check. Since DAVIS17 contains no object transforma-tions, the multi-mask disagreement signal rarely fires and almost no CropFormer queries are made. As a result, Flux-Graph costs only 0.45 seconds per component mask (a mere 
+
+1.5× overhead over SAM2.1) — compared to a 16 × cost for TubeletGraph at 4.81 seconds. Moreover, tracking qual-ity is preserved on DAVIS, confirming that FluxGraph pays for transformation handling only when transformations ac-tually occur, without inducing any quality regression on transformation-free videos. 
+
+4.3. Tracking and State-Graph Performance 
+
+We evaluate FluxGraph against a set of trackers and report tracking results across three transformation benchmarks (VOST, VSCOS, M 3-VOS), as well as evaluate state graph construction on VOST-TAS in Table 3 . 6Tracking State Graph Method Detect VOST VSCOS M3-VOS Sem. Acc. Temp. Loc. Overall 
+
+Transf. J J tr J J tr J J tr SV SO TP TR HST H
+
+Cutie [6] 41.1 25.5 70.9 67.1 74.5 64.7 - - - - - -ReVOS [4] 41.0 25.3 - - 75.6 66.5 - - - - - -SAM2 [30] 46.1 29.4 72.5 67.1 71.3 59.8 - - - - - -SAM2Long [10] 46.4 29.1 73.0 68.6 70.2 58.7 - - - - - -SAM2.1 [30] 48.4 32.4 72.0 66.9 71.3 59.3 - - - - - -DAM4SAM [36] 48.8 33.6 71.3 66.0 72.2 61.3 - - - - - -SAMURAI [44] 49.8 34.0 71.8 66.9 72.6 61.6 - - - - - -TubeletGraph [34] ✓ 50.9 36.7 75.9 72.2 74.1 64.1 81.8 72.3 43.1 20.4 12.0 6.5 FluxGraph ✓ 52.8 36.8 75.3 70.7 73.7 63.8 77.3 82.9 36.7 20.4 12.0 9.3                                                                        
+
+> Table 3. Quantitative results for object tracking on VOST [35], VSCOS [48] and M 3-VOS [4] and state graph on VOST-TAS [34].
+> Reactive Rev. Time / mask (s) MPS JJtr
+> Discovery Track Entity Seg. Track VOST  ✓–––37.8 25.4
+> ✓1.014 1.068 0.48 53.1 37.3
+> ✓✓0.300 1.031 0.75 52.8 36.8 VSCOS  ✓–––72.0 65.9
+> ✓0.981 1.004 0.50 75.2 70.4
+> ✓✓0.109 0.686 1.26 75.3 70.7 M3-VOS  ✓–––67.8 57.7
+> ✓1.152 0.999 0.46 73.4 63.4
+> ✓✓0.129 0.740 1.15 73.7 63.8 DAVIS  ✓–––80.3 72.7
+> ✓1.195 0.388 0.63 85.6 82.7
+> ✓✓0.071 0.379 2.22 85.8 83.2
+> Table 4. Ablation study on FluxGraph components.
+
+Tracking under transformations. FluxGraph outper-forms all trackers on VOST ( J = 52 .8, +3 .0 over SAMU-RAI) while uniquely providing state graph predictions. In addition, FluxGraph demonstrates competitive performance compared to TubeletGraph, with FluxGraph within 0.6 J of TubeletGraph and ∼3–5 × faster. 
+
+State graph performance. FluxGraph matches Tubelet-Graph’s spatiotemporal recall ( HST = 12 .0) and tempo-ral recall ( TR = 20 .4), effectively preserving the set of correctly-localized transformations. Notably, FluxGraph achieves a higher overall recall ( H = 9.3 vs. 6.5 for TubeletGraph), and substantially improves the semantic ac-curacy of resulting object descriptions ( SO = 82 .9 vs. 72.3 for TubeletGraph). We attribute the improved object-description accuracy to FluxGraph’s tighter candidate pro-posals: because the reactive trigger restricts entity segmen-tation to multi-mask disagreement regions, the resulting ob-ject masks are more clearly localized, providing a sharper visual prompt for the VLM. 
+
+4.4. Ablation Study 
+
+We ablate the two core components of FluxGraph— the re-active candidate discovery heuristic (Sec. 3.2) and reverse tracking (Sec. 3.3) — by separately removing each. Results across all four benchmarks are reported in Table 4. 
+
+Reverse tracking is essential for tracking quality. 
+
+Without reverse tracking, FluxGraph admits any candidate proposed by the multi-mask trigger, resulting in a substan-tial quality collapse: J drops from 52.8 to 37.8 on VOST, 75.3 to 72.0 on VSCOS, 73.7 to 67.8 on M 3-VOS , and 85.8 to 80.3 on DAVIS17. Reverse tracking is therefore neces-sary in maintaining tracking quality, effectively replacing the proximity and semantic priors of TubeletGraph. 
+
+Reactive discovery is a strong efficiency–quality tradeoff. Comparing FluxGraph with and without reactive candidate discovery, we see that skipping all down-stream analysis when possible reduces total inference time substan-tially: on VOST, MPS improves from 0.48 to 0.75; on VS-COS from 0.50 to 1.26; on M 3-VOS from 0.46 to 1.15; and on DAVIS17 from 0.63 to 2.22. Across all four datasets, tracking quality changes by less than 0.3 J when it is en-abled. This heuristic therefore delivers the bulk of Flux-Graph’s efficiency gain at negligible quality cost. 
+
+Where the residual cost goes. Even with both com-ponents enabled, the tracking term remains the largest sin-gle contributor to FluxGraph’s cost (e.g. 1.03 s/comp-mask on VOST out of 1.33 total). This is attributed to the cost of tracking false-positive candidates, which is necessary for reasoning about their removal from the final prediction. 7Input Frame + Prompt Object  Predicted Object Tracks         
+
+> Detached blue foam
+> Split
+> t=9s
+> Flying blue foam
+> Explode
+> t=13s
+> Fallen blue foam
+> Collapse
+> t=14s
+> Fallen blue foam
+> Collapse
+> t=15s
+> SAM2.1 SAMURAI TubeletGraph Ours Ground Truth
+> Input Frame + Prompt Object Predicted Object Tracks
+> Predicted State Graph Torn cabbage piece
+> Separate
+> t=4s
+> Torn cabbage piece
+> Cabbage
+> Fragmented blue foam
+> Torn cabbage piece Tear
+> t=12s
+> Torn cabbage chunk Torn cabbage piece
+> Split
+> t=6s
+> Tear
+> t=14s
+> Blue foam
+> Predicted State Graph
+
+Figure 5. Qualitative results. We showcase FluxGraph’s tracking and state graph predictions on top, with comparisons against baselines at an ending frame at the bottom. 
+
+4.5. Qualitative Results 
+
+Figure 5 showcases two challenging transformation scenar-ios: a cabbage torn into pieces, and an expansive blue foam splits and collapses mid-air. On both, FluxGraph reliably detects each transformation and produces a clean track for every emerging component. In contrast, SAM2.1 [30] and SAMURAI [44] fail to recover any of the resulting com-ponents, while TubeletGraph [34] recovers only a limited fraction. These results further confirm the efficacy of multi-mask disagreement as a lightweight transformation trigger. 
+
+5. Conclusion 
+
+In this work, we proposed FluxGraph, an efficient, reactive variant of TubeletGraph [34] for tracking objects through transformations and constructing state graphs describing each observed change. Building on the observation that SAM2’s internal multi-mask outputs already encode where related objects are likely to emerge, FluxGraph replaces TubeletGraph’s eager spatiotemporal partition with a reac-tive trigger based on multi-mask disagreement, and replaces the proximity and semantic check with model-free reverse tracking. Across four benchmarks, FluxGraph achieves 3.3–10.7 × speedups over TubeletGraph while matching tracking and state graph quality. 
+
+Limitations and Broader Impacts. Beyond the lim-itations inherited from TubeletGraph (e.g. only first-order transformations can be detected), FluxGraph introduces two additional caveats. First, fast transformations that produce minimal multi-mask disagreement may evade the reactive trigger, leading to missed detections that TubeletGraph’s ex-haustive partition would catch. Second, FluxGraph’s core insight depends on SAM2’s alternative heads that produce meaningful hypotheses; future trackers that do not expose such internal uncertainty would require a different trig-ger signal. Finally, deployment in surveillance or human-monitoring contexts should carefully consider the rights of bystanders, particularly in the ego-centric settings where these benchmarks are sourced. 8References 
+
+[1] Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ah-mad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al. Gpt-4 technical report. arXiv preprint arXiv:2303.08774 ,2023. 6 [2] Goutam Bhat, Felix J¨ aremo Lawin, Martin Danelljan, An-dreas Robinson, Michael Felsberg, Luc Van Gool, and Radu Timofte. Learning what to learn for video object segmenta-tion. In Computer Vision–ECCV 2020: 16th European Con-ference, Glasgow, UK, August 23–28, 2020, Proceedings, Part II 16 , pages 777–794. Springer, 2020. 2 [3] Sergi Caelles, Kevis-Kokitsi Maninis, Jordi Pont-Tuset, Laura Leal-Taix´ e, Daniel Cremers, and Luc Van Gool. One-shot video object segmentation. In Proceedings of the IEEE conference on computer vision and pattern recogni-tion , pages 221–230, 2017. 2 [4] Zixuan Chen, Jiaxin Li, Liming Tan, Yejie Guo, Junxuan Liang, Cewu Lu, and Yong-Lu Li. M3-vos: Multi-phase, multi-transition, and multi-scenery video object segmenta-tion. arXiv preprint arXiv:2412.13803 , 2024. 2, 5, 7 [5] Ho Kei Cheng and Alexander G Schwing. Xmem: Long-term video object segmentation with an atkinson-shiffrin memory model. In European Conference on Computer Vi-sion , pages 640–658. Springer, 2022. 2 [6] Ho Kei Cheng, Seoung Wug Oh, Brian Price, Joon-Young Lee, and Alexander Schwing. Putting the object back into video object segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pages 3151–3161, 2024. 2, 7 [7] Dima Damen, Hazel Doughty, Giovanni Maria Farinella, Antonino Furnari, Evangelos Kazakos, Jian Ma, Davide Moltisanti, Jonathan Munro, Toby Perrett, Will Price, et al. Rescaling egocentric vision: Collection, pipeline and chal-lenges for epic-kitchens-100. International Journal of Com-puter Vision , pages 1–23, 2022. 2, 5 [8] Henghui Ding, Chang Liu, Shuting He, Xudong Jiang, and Chen Change Loy. Mevis: A large-scale benchmark for video segmentation with motion expressions. In Proceed-ings of the IEEE/CVF international conference on computer vision , pages 2694–2703, 2023. 2 [9] Henghui Ding, Chang Liu, Shuting He, Xudong Jiang, Philip HS Torr, and Song Bai. Mose: A new dataset for video object segmentation in complex scenes. In Proceed-ings of the IEEE/CVF international conference on computer vision , pages 20224–20234, 2023. 2 [10] Shuangrui Ding, Rui Qian, Xiaoyi Dong, Pan Zhang, Yuhang Zang, Yuhang Cao, Yuwei Guo, Dahua Lin, and Jiaqi Wang. Sam2long: Enhancing sam 2 for long video seg-mentation with a training-free memory tree. arXiv preprint arXiv:2410.16268 , 2024. 2, 7 [11] Matthew Dutson, Yin Li, and Mohit Gupta. Event neural net-works. In European Conference on Computer Vision , pages 276–293. Springer, 2022. 2 [12] Heng Fan, Liting Lin, Fan Yang, Peng Chu, Ge Deng, Sijia Yu, Hexin Bai, Yong Xu, Chunyuan Liao, and Haibin Ling. Lasot: A high-quality benchmark for large-scale single ob-ject tracking. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 5374–5383, 2019. 2 [13] Kristen Grauman, Andrew Westbury, Eugene Byrne, Zachary Chavis, Antonino Furnari, Rohit Girdhar, Jackson Hamburger, Hao Jiang, Miao Liu, Xingyu Liu, et al. Ego4d: Around the world in 3,000 hours of egocentric video. In 
+
+Proceedings of the IEEE/CVF conference on computer vi-sion and pattern recognition , pages 18995–19012, 2022. 2, 5[14] Amirhossein Habibian, Davide Abati, Taco S Cohen, and Babak Ehteshami Bejnordi. Skip-convolutions for efficient video processing. In Proceedings of the IEEE/CVF Con-ference on computer vision and pattern recognition , pages 2695–2704, 2021. 2 [15] Amirhossein Habibian, Haitam Ben Yahia, Davide Abati, Ef-stratios Gavves, and Fatih Porikli. Delta distillation for ef-ficient video processing. In European Conference on Com-puter Vision , pages 213–229. Springer, 2022. 2 [16] Lingyi Hong, Wenchao Chen, Zhongying Liu, Wei Zhang, Pinxue Guo, Zhaoyu Chen, and Wenqiang Zhang. Lvos: A benchmark for long-term video object segmentation. In 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 13480–13492, 2023. 2 [17] Yuan-Ting Hu, Jia-Bin Huang, and Alexander G Schwing. Videomatch: Matching based video object segmentation. In 
+
+Proceedings of the European conference on computer vision (ECCV) , pages 54–70, 2018. 2 [18] Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura Gustafson, Tete Xiao, Spencer White-head, Alexander C Berg, Wan-Yen Lo, et al. Segment any-thing. In Proceedings of the IEEE/CVF international confer-ence on computer vision , pages 4015–4026, 2023. 2 [19] Bruno Korbar, Du Tran, and Lorenzo Torresani. Scsampler: Sampling salient clips from video for efficient action recog-nition. In Proceedings of the IEEE/CVF International Con-ference on Computer Vision , pages 6232–6242, 2019. 2 [20] Weiyu Liu, Neil Nie, Ruohan Zhang, Jiayuan Mao, and Ji-ajun Wu. Blade: Learning compositional behaviors from demonstration and language. In Conference on Robot Learn-ing (CoRL) , 2024. 1 [21] Priyanka Mandikal, Jiaheng Hu, Shivin Dass, Sagnik Ma-jumder, Roberto Mart´ ın-Mart´ ın, and Kristen Grauman. Mash, spread, slice! learning to manipulate object states via visual spatial progress. arXiv preprint arXiv:2509.24129 ,2025. 1, 2 [22] Priyanka Mandikal, Tushar Nagarajan, Alex Stoken, Zihui Xue, and Kristen Grauman. Spoc: Spatially-progressing ob-ject state change segmentation in video, 2025. 2 [23] K-K Maninis, Sergi Caelles, Yuhua Chen, Jordi Pont-Tuset, Laura Leal-Taix´ e, Daniel Cremers, and Luc Van Gool. Video object segmentation without temporal information. IEEE transactions on pattern analysis and machine intelligence ,41(6):1515–1530, 2018. 2 [24] Sangam B Neupane, Kazuhiko Sato, and Bishnu P Gautam. A literature review of computer vision techniques in wildlife monitoring. IJSRP , 16:282–295, 2022. 1 
+
+9[25] Seoung Wug Oh, Joon-Young Lee, Kalyan Sunkavalli, and Seon Joo Kim. Fast video object segmentation by reference-guided mask propagation. In Proceedings of the IEEE con-ference on computer vision and pattern recognition , pages 7376–7385, 2018. 2 [26] Seoung Wug Oh, Joon-Young Lee, Ning Xu, and Seon Joo Kim. Video object segmentation using space-time memory networks. In Proceedings of the IEEE/CVF international conference on computer vision , pages 9226–9235, 2019. 2 [27] Federico Perazzi, Jordi Pont-Tuset, Brian McWilliams, Luc Van Gool, Markus Gross, and Alexander Sorkine-Hornung. A benchmark dataset and evaluation methodology for video object segmentation. In Proceedings of the IEEE conference on computer vision and pattern recognition , pages 724–732, 2016. 2 [28] Jordi Pont-Tuset, Federico Perazzi, Sergi Caelles, Pablo Ar-bel´ aez, Alex Sorkine-Hornung, and Luc Van Gool. The 2017 davis challenge on video object segmentation. arXiv preprint arXiv:1704.00675 , 2017. 2, 5 [29] Lu Qi, Jason Kuen, Weidong Guo, Tiancheng Shen, Jiuxiang Gu, Jiaya Jia, Zhe Lin, and Ming-Hsuan Yang. High-quality entity segmentation. arXiv preprint arXiv:2211.05776 , 2022. 3, 4, 6 [30] Nikhila Ravi, Valentin Gabeur, Yuan-Ting Hu, Ronghang Hu, Chaitanya Ryali, Tengyu Ma, Haitham Khedr, Roman R¨ adle, Chloe Rolland, Laura Gustafson, et al. Sam 2: Segment anything in images and videos. arXiv preprint arXiv:2408.00714 , 2024. 1, 2, 3, 4, 6, 7, 8 [31] Giorgio Roffo, Simone Melzi, et al. The visual object track-ing vot2016 challenge results. In Computer Vision–ECCV 2016 Workshops: Amsterdam, The Netherlands, October 8-10 and 15-16, 2016, Proceedings, Part II , pages 777–823. Springer International Publishing, 2016. 2 [32] Michael S Ryoo, Keerthana Gopalakrishnan, Kumara Kahat-apitiya, Ted Xiao, Kanishka Rao, Austin Stone, Yao Lu, Ju-lian Ibarz, and Anurag Arnab. Token turing machines. In 
+
+Proceedings of the IEEE/CVF conference on computer vi-sion and pattern recognition , pages 19070–19081, 2023. 2 [33] Michael S Ryoo, Honglu Zhou, Shrikant Kendre, Can Qin, Le Xue, Manli Shu, Jongwoo Park, Kanchana Ranasinghe, Silvio Savarese, Ran Xu, et al. xgen-mm-vid (blip-3-video): You only need 32 tokens to represent a video even in vlms. 
+
+arXiv preprint arXiv:2410.16267 , 2024. 2 [34] Yihong Sun, Xinyu Yang, Jennifer J Sun, and Bharath Har-iharan. Tracking and understanding object transformations. 
+
+arXiv preprint arXiv:2511.04678 , 2025. 1, 2, 3, 4, 5, 6, 7, 8 [35] Pavel Tokmakov, Jie Li, and Adrien Gaidon. Breaking the” object” in video object segmentation. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 22836–22845, 2023. 2, 4, 5, 7 [36] Jovana Videnovic, Alan Lukezic, and Matej Kristan. Adistractor-aware memory for visual object tracking with sam2. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 24255–24264, 2025. 2, 7 [37] Paul Voigtlaender, Yuning Chai, Florian Schroff, Hartwig Adam, Bastian Leibe, and Liang-Chieh Chen. Feelvos: Fast end-to-end embedding learning for video object seg-mentation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 9481–9490, 2019. 2 [38] Yulin Wang, Zhaoxi Chen, Haojun Jiang, Shiji Song, Yizeng Han, and Gao Huang. Adaptive focus for efficient video recognition. In proceedings of the IEEE/CVF international conference on computer vision , pages 16249–16258, 2021. 2 [39] You Wu, Yuelong Wang, Yaxin Liao, Fuliang Wu, Hengzhou Ye, and Shuiwang Li. Tracking transforming objects: Abenchmark. In Chinese Conference on Pattern Recogni-tion and Computer Vision (PRCV) , pages 222–236. Springer, 2024. 2 [40] Zuxuan Wu, Caiming Xiong, Chih-Yao Ma, Richard Socher, and Larry S Davis. Adaframe: Adaptive frame selection for fast video recognition. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,pages 1278–1287, 2019. 2 [41] Yunyang Xiong, Chong Zhou, Xiaoyu Xiang, Lemeng Wu, Chenchen Zhu, Zechun Liu, Saksham Suri, Balakrishnan Varadarajan, Ramya Akula, Forrest Iandola, et al. Efficient track anything. In Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision , pages 11513–11524, 2025. 3 [42] Ning Xu, Linjie Yang, Yuchen Fan, Jianchao Yang, Dingcheng Yue, Yuchen Liang, Brian Price, Scott Cohen, and Thomas Huang. Youtube-vos: Sequence-to-sequence video object segmentation. In Proceedings of the Euro-pean conference on computer vision (ECCV) , pages 585– 601, 2018. 2 [43] Zihui Xue, Kumar Ashutosh, and Kristen Grauman. Learn-ing object state changes in videos: An open-world perspec-tive, 2024. 2 [44] Cheng-Yen Yang, Hsiang-Wei Huang, Wenhao Chai, Zhongyu Jiang, and Jenq-Neng Hwang. Samurai: Adapting segment anything model for zero-shot visual tracking with motion-aware memory. arXiv preprint arXiv:2411.11922 ,2024. 2, 7, 8 [45] Linjie Yang, Yanran Wang, Xuehan Xiong, Jianchao Yang, and Aggelos K Katsaggelos. Efficient video object seg-mentation via network modulation. In Proceedings of the IEEE conference on computer vision and pattern recogni-tion , pages 6499–6507, 2018. 2 [46] Zongxin Yang, Yunchao Wei, and Yi Yang. Collaborative video object segmentation by foreground-background inte-gration. In European Conference on Computer Vision , pages 332–348. Springer, 2020. 2 [47] Zongxin Yang, Yunchao Wei, and Yi Yang. Associating ob-jects with transformers for video object segmentation. Ad-vances in Neural Information Processing Systems , 34:2491– 2502, 2021. 2 [48] Jiangwei Yu, Xiang Li, Xinran Zhao, Hongming Zhang, and Yu-Xiong Wang. Video state-changing object segmentation. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 20439–20448, 2023. 2, 5, 7 [49] Qihang Yu, Ju He, Xueqing Deng, Xiaohui Shen, and Liang-Chieh Chen. Convolutions die hard: Open-vocabulary seg-mentation with single frozen convolutional clip. Advances in Neural Information Processing Systems , 36:32215–32234, 2023. 4, 5, 6 
+
+10 [50] Chenhao Zheng, Jieyu Zhang, Jianing Zhang, Weikai Huang, Ashutosh Kumar, Quan Kong, Oncel Tuzel, Chun-Liang Li, and Ranjay Krishna. Trajtok: Learning trajectory to-kens enables better video understanding. arXiv preprint arXiv:2602.22779 , 2026. 1, 2 [51] Chong Zhou, Chenchen Zhu, Yunyang Xiong, Saksham Suri, Fanyi Xiao, Lemeng Wu, Raghuraman Krishnamoorthi, Bo Dai, Chen Change Loy, Vikas Chandra, et al. Edgetam: On-device track anything model. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 13832–13842, 2025. 3 
+
+11

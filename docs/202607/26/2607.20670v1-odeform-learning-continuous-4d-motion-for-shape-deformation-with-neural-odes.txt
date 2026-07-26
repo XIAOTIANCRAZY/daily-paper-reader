@@ -1,0 +1,274 @@
+Title: ODeform: Learning Continuous 4D Motion for Shape Deformation with Neural ODEs
+
+URL Source: https://arxiv.org/pdf/2607.20670v1
+
+Published Time: Fri, 24 Jul 2026 00:11:43 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# ODeform: Learning Continuous 4D Motion for Shape Deformation with Neural ODEs 
+
+Yordanka Velikova 1,2, Mahdi Saleh 1, Liming Kuang 1,2, Benjamin Busam 1,2
+
+Abstract — Modeling continuous object deformation is im-portant for many computer vision and robotics tasks, such as manipulation and simulation. Existing approaches rely on learning-based methods or physics simulators to model shape deformations. However, these approaches either use discrete time steps or are too computationally intensive for real-time applications. We present ODeform, a novel extension of Neural Ordinary Differential Equations to continuous 4D dynamics of deformable objects in 3D space. Our method transforms 3D point clouds and physical conditions (like material prop-erties) into a unified latent space. By solving the resulting ordinary differential equations over time, we model defor-mations as continuous flows within this learned embedding, eliminating the need for discrete time steps while maintaining computational efficiency. We evaluate our approach on unseen physical parameter configurations, showing improved motion prediction accuracy over baseline methods. Our experiments further demonstrate a successful transfer to real 3D captured objects with novel shapes, along with effective interpolation and extrapolation of the learned dynamics. Our code and data will be made publicly available. 1
+
+I. I NTRODUCTION 
+
+Understanding and predicting object deformation is essen-tial for robotic perception and manipulation. Interactions are continuous processes, influenced by both object’s intrinsic material properties and external environmental forces. Real-world actions can include a ball bouncing off a surface, a bottle being grasped, or an object deforming under tactile interactions such as poking. Modeling these dynamic phe-nomena requires representations that capture both 3D shape and temporal evolution. While significant advancements have been achieved in representing static 3D shapes, predicting dynamic object changes remains challenging. Classical physics-based simulators solve partial differ-ential equations using finite element methods (FEM) [1], [2], [3], providing accurate results grounded in physical principles. However, their computational demands and sen-sitivity to configuration make them impractical for real-time robotic applications, particularly with geometrically complex or dense objects. Learning-based alternatives, in-cluding point-based methods [4], [5], [6] and autoregressive approaches [7], predict deformations directly from observa-tions but operate on discrete time steps, producing physically implausible intermediate states and struggling to generalize to unseen geometries or material properties. Neural Ordinary Differential Equations (nODEs) [8] offer a promising direction for modeling continuous-time dynam-  
+
+> 1Technical University of Munich
+> 2Munich Center for Machine Learning (MCML)
+> 1https://github.com/danivelikova/odeform Sparse
+> supervisions
+> Input Shape
+> Latent Space
+
+N-ODE      
+
+> Physical
+> Parameters
+> t=0.1 t=0.2 t=0.3 t=0.4 t=0.5
+> Fig. 1. Overview of our continuous deformation modeling framework. Given an input 3D shape and physical parameters, our method learns a latent space representation where neural ODEs (nODEs) model the continuous evolution of object deformation over time. ODeform can generate interme-diate deformation states at arbitrary timesteps while only requiring sparse supervisory signals. The learned latent space enables smooth interpolation between states while maintaining physical consistency.
+
+ics. Rather than advancing state at fixed intervals, nODEs define system evolution through a continuous learned vector field, allowing integration at arbitrary time points. This en-ables true interpolation between observed states and extrap-olation into future dynamics, capabilities directly relevant to predictive robotic control. Crucially, because nODEs assume deterministic motion from a fixed initial state, they are naturally suited to physical deformation tasks where each configuration has a unique outcome. While Neural ODEs have successfully modeled contin-uous dynamics in low-dimensional spaces, extending this paradigm to 3D deformations present significant theoretical challenges. By design, nODEs inherently assume determin-istic motion, as their formulation relies on a single, fixed vector field for each initial state. This is particularly im-portant for physical systems with deterministic dynamics, where each initial state has exactly one outcome, making nODEs well-suited for object deformation tasks. Based on these foundations, we propose ODeform, a novel framework that leverages nODEs to model continuous 4D dynamics of deformable objects. As shown in Figure 1, our approach encodes point clouds and physical parameters into a latent representation evolved through time via a learned ODE function. Our work addresses limitations in current ODE formulations by introducing a novel decomposition of the arXiv:2607.20670v1 [cs.CV] 22 Jul 2026 dynamics field while enabling efficient integration. In sum-mary, our key contributions are:  
+
+> •
+
+A novel neural ODE-based architecture integrating ge-ometric and physical priors for continuous-time defor-mation modeling of 3D objects.  
+
+> •
+
+Generalizable dynamics model transferring across ob-ject geometries and unseen physical conditions while maintaining physical consistency.  
+
+> •
+
+Continuous dynamics representation enabling inter-polation and extrapolation across multiple 3D formats such as point clouds, meshes, gaussian splats. II. R ELATED WORKS 
+
+A. Classical Deformation Modeling 
+
+Physics-based simulators model deformations by solv-ing differential equations using finite element methods (FEM) [3], providing physically accurate results grounded in well-established mechanics. However, their computational demands and sensitivity to expert configuration make them impractical for real-time robotic applications, particularly when interacting with geometrically complex or dense ob-jects. Efforts to mitigate computational demands include kinematic simplifications and low-dimensional mappings [9], which help approximate complex systems more efficiently but at the cost of accuracy or generality. Learning-based methods have emerged as faster alterna-tives, predicting deformations directly from observations. Point-based approaches [4], [5] model scene flow across discrete time steps, while autoregressive models [10] iter-atively predict future states. Specialized models like PE-GNN [11] encodes physical parameters into graph nodes for contact-driven deformation prediction, and 3D-PhysNet [12] learns material properties via adversarial training. Despite these advances,such approaches rely on discrete time steps, resulting in physically implausible intermediate states, and often overfit to specific observations rather than modeling the full temporal dynamics required for dynamic robotic manipulation 
+
+B. Deformable Object Interaction in Robotics 
+
+Robotic manipulation of deformable objects presents unique challenges, as objects alter shape upon contact in ways that are difficult to anticipate and control [13]. Early work addressed this through subspace simulation methods that merge physics-based and learning-based techniques to approximate contact-driven deformations efficiently [14], [15]. For hand-object interaction, hyperbolic space represen-tations have been explored to reconstruct deforming meshes from image observations [16]. Tactile-based approaches [17] leverage contact sensing for deformation estimates during manipulation, coupling perception with physical interaction. Model-based controllers [18], [19] incorporate deformation predictions into closed-loop robotic control. However, these methods typically assume known material properties, sim-plified geometries, or controlled lab settings, and lack the ability to generalize during deployment. 
+
+C. Continuous Dynamic Modeling 
+
+Continuous representations address the limitations of both discrete modeling and restricted generalization. Geometry-based methods build on the as-rigid-as-possible paradigm [20], providing strong geometric priors but limited physical realism for complex contact scenarios. Implicit representations enable resolution-independent modeling: Oc-cupancy Flow [21] learns continuous 4D vector fields for par-ticle deformation, while neural fields [22] allow interpolation between deformation states. While expressive, these methods lack a principled mechanism for modeling how deformation evolves continuously under varying physical conditions. Neural Ordinary Differential Equations (nODEs) [8], [23] offer such a mechanism, parameterizing system derivatives with neural networks and enabling continuous-time modeling without fixed time discretization. A key characteristic is their inherently deterministic nature, future states are fully determined by current conditions, which aligns naturally with physical deformation processes that follow deterministic rules of mechanics. CaSPR [24] demonstrates the promise of this direction by canonicalizing point spaces and applying nODEs for continuous time representation of 3D shapes; however, it lacks integration of physical parameters. Other works has expanded nODE capabilities through graph neural networks for relational dynamics [25], physics-inspired train-ing constraints [26], and static-dynamic component separa-tion [27]. ODE2VAE [28] infers continuous dynamics from 2D image sequences, EulerFlow [29] applies nODEs to con-tinuous space-time scene flow, and hybrid approaches [30] integrate implicit learning with explicit physical parameters for deterministic motion. However, most existing approaches either operate in lower-dimensional spaces or fail to leverage the full potential of nODEs for modeling complex defor-mations in 3D, while generalizing across different physical configurations. Unlike prior methods, ODeform leverages neural ODEs to model continuous 4D deformation in a learned latent space. By jointly encoding geometry and physical parameters, our approach enables interpolation, extrapolation, and general-ization to unseen configurations. This continuous formula-tion provides a foundation for applications where temporal consistency and physical accuracy are important. III. M ETHODOLOGY 
+
+Our architecture comprises three key components: (1) a dual encoder that processes geometry and physical parame-ters, (2) parallel neural ODEs for global and local dynamics, (3) specialized decoders for motion reconstruction. The com-plete pipeline is illustrated in Fig. 2. At its core, our method decomposes object dynamics into two parallel continuous flows, one for rigid body motion and another for local deformation. The integration of both components happens during the final reconstruction phase, preserving their distinct continuous dynamics during the learning process. deformation nODE 
+
+latent t0 latent t
+
+Decoder 
+
+latent t0 latent t
+
+Decoder 
+
+> …
+
+t
+
+> Rigid motion
+> Encoder
+> Local Deformation
+> Encoder
+> time
+> time
+
+Pose 0
+
+Pose t
+
+physical 
+
+parameters  
+
+> mass, bending, force
+
+PC 0
+
+> time
+> …
+
+t 
+
+> motion nODE Fig. 2. Overview of ODeform architecture for continuous deformation modeling. The framework consists of three main components: (1) A dual encoder that processes the initial point cloud ( P C 0) and physical parameters (mass, elasticity, force) through separate pathways for rigid motion and local deformation, (2) Two parallel neural ODEs that evolve the latent representations continuously in time, capturing global pose changes and local shape deformations separately, and (3) Specialized decoders that reconstruct the final state, producing both rigid transformation ( P ose t) and local shape changes at arbitrary timestamps. The neural ODEs enable smooth interpolation between discrete observations while preserving physical consistency through the learned dynamics.
+
+A. Theoretical Foundations 
+
+Neural ODEs [8] are a class of continuous-time models that describe the evolution of a hidden state h(t) using an ordinary differential equation (ODE): 
+
+dh (t)
+
+dt = fθ (h(t), t ), with h(t0) = h0 (1) where, fθ is a neural network parameterized by θ, which governs the state dynamics of over time. Unlike discrete models, nODEs enable the continuous evaluation of h(t) at any arbitrary time step by solving the ODE numerically: 
+
+h0, . . . , h N = ODESolve (fθ , h 0, (t0, . . . , t N )) . (2) However, modeling continuous dynamics of deformable objects in 3D space presents mathematical challenges not addressed by standard nODEs, which model system dynam-ics through a single vector field f as shown in Equation (1). When modeling both rigid motion T (t) and local deforma-tion D(t) jointly: 
+
+ddt (T (t) ◦ D(t)( P0)) ̸ = f (T (t) ◦ D(t)( P0), t ) (3) the inequality highlights that the derivative of the composed transformation cannot be directly modeled as a function of the transformed point cloud. The composed derivative requires chain rule application, introducing complex interac-tions between global and local motion that destabilize train-ing. We addresses these issues by modeling the continuous evolution of rigid transformations and local deformations as separate, parallel neural ODEs. This formulation offers sev-eral mathematical advantages: (1) it preserves SE(3) structure in the rigid component, (2) it separates motion scales to improve numerical stability, and (3) it allows specialized architectures for each component. Furthermore, this decom-position naturally aligns with the underlying physics—rigid body dynamics and material deformation properties follow different governing principles that are better captured sepa-rately. 
+
+B. Continuous Deformation Modeling 
+
+Given a temporal sequence of point clouds {P t}Tt=0 rep-resenting a deforming object and physical parameters θ, we aim to learn a continuous representation of its dynamics. Each point cloud Pt = {pti}Ni=1 ∈ RN ×3 consists of N points at time t. Our goal is to learn a mapping Φ : ( P0, θ, t ) → P t
+
+that predicts object configurations at any time t given only initial state and parameters. 
+
+C. Motion Decomposition 
+
+In physical interactions, objects often undergo both rigid displacement and local deformation simultaneously. The mapping Φ captures this into a composition of both: 
+
+Φ( P0, θ, t ) = T (t) ◦ D(t)( P0) (4) where T (t) ∈ SE (3) represents global rigid transformation and D(t) : R3 → R3 captures local shape deformation. This decomposition enables natural integration of physical constraints in the rigid motion component. For example, when a soft ball bounces, T (t) captures its parabolic tra-jectory while D(t) models compression at impact. This principled decomposition guides both our architecture design and learning objectives. 
+
+D. Physics and Geometry Encoding 
+
+To implement motion decomposition, we first employ a dual encoding architecture. We encode the initial configura-tion into a latent representation where the initial state and physical parameters go through two pathways: 
+
+zg = Eg (P0, θ ) ∈ R32 , zl = El(P0, θ ) ∈ R128 (5) The global encoder, Eg , processes the initial object pose 
+
+P0 and physical parameters θ to produce a low-dimensional representation zg capturing the overall rigid transformation. In parallel, the local deformation encoder El processes the initial point cloud P0 and physical parameters θ to produce a higher-dimensional latent zl representing local deforma-tion. In practice, we implement both encoders using 5-layer multilayer perceptrons (MLPs) to learn dense mappings from the input space to their respective latent dimensions. While Eg outputs a compact 32-dimensional representation focused on rigid motion parameters, El projects to a larger 128-dimensional space to capture the complexity of local deformations. Additionally we concatenate the latent of the global encoder zg with the local latent codes zl before inputing it to the neural ODE model. 
+
+E. Latent Neural ODE 
+
+Following equation (1), we model the temporal evolution of the latent states for both global and local components using a system of two parallel neural ODEs: Global motion: dz g (t)
+
+dt = fg (zg (t), t ) (6) Local deformation: dz l(t)
+
+dt = fl(zl(t), t ) (7) where the initial conditions for these ODEs are provided by the respective encoders: zg (0) = Eg (P0, θ ) and zl(0) = 
+
+El(P0, θ ). This formulation allows us to solve for any intermediate state P(t) by integrating the learned dynamics. Training leverages the adjoint sensitivity method, which computes gradients by solving a companion ODE backward in time [31] and the solution to the ODEs is computed using an adaptive Runge-Kutta 4 solver. 
+
+F. Decoder and loss functions 
+
+State Recovery: We decode the latent trajectories zg (t)
+
+and zl(t) back into the original object configurations to compute the final state at any time t through a decoder D:
+
+P(t) = D(zg (t), z l(t)) (8) where D comprises two MLPs: Dg maps zg (t) to rigid transformation parameters T (t) ∈ SE (3) , and Dl transforms 
+
+zl(t) to point-wise displacements D(t). We use 3-layer MLPs combined with ReLU activation functions, effectively learning the inverse mappings from latent space to motion trajectories. 
+
+Loss Functions: To train our model end-to-end, we use an automatically weighted loss inspired by [32], which dynamically adjusts the balance between learning the rigid and deformable aspects of the object’s motion. The total loss is a weighted sum of a rigid transformation loss Lrigid 
+
+and a point cloud reconstruction loss Lpoints . The weights, 
+
+λ1 and λ2, are optimised at each time step to account for differences in loss magnitude and variance across tasks, ensuring accurate learning of both global and local motion: 
+
+Ltotal = λ1Lrigid + λ2Lpoints (9) 
+
+G. Model Application 
+
+During inference, our model operates in three steps. First, the dual encoders process the initial point cloud P0 and physical parameters θ to produce global and local latent representations zg (0) and zl(0) . Second, the latent states are evolved through their respective neural ODEs to any desired timestamp t. Finally, the decoder networks Dg and 
+
+Dl transform these trajectories into rigid motion T (t) and local deformations D(t), enabling prediction Φ( P0, θ, t ) at arbitrary temporal resolution.  
+
+> Fig. 3. Effect of mass and bending on object deformation. Inference results from our model, demonstrating our method’s accuracy under diverse physical parameters. Top: fixed mass (1 kg), varying elasticity (0.3–3.0). Bottom: fixed bending (1), varying mass (0.1–0.5 kg).
+
+IV. E VALUATION 
+
+We evaluate our method through extensive experiments demonstrating its generalization capabilities across varying physical parameters and geometric configurations. Our eval-uation focuses on three key aspects: (1) performance on unseen physical parameters, (2) performance on interpolation and extrapolation tasks, and (3) adaptation to different 3D representations, including gaussian splatting for reconstruc-tion applications. 
+
+A. Datasets and Simulation 
+
+Our evaluation utilizes two complementary datasets de-signed to test different aspects of deformation modeling: multi-object contact interactions and mass-dependent elastic deformations. 
+
+Contact-Force Dataset We extend the Everyday Deform Dataset [33], which contains seven distinct objects with vary-ing material properties and mesh complexities sourced from 3D scans and CAD models. While the original dataset only provided resting and the final deformation state, we enhanced it with simulated interactions between rigid projectiles and soft objects using Blender’s physics engine. Our enhanced dataset generates 2.1k unique deformation sequences through rigid-soft body interactions. In our setup, soft bodies are positioned at the coordinate origin with fixed material pa-rameters, while rigid projectiles are initialized randomly near the surface with varying velocities and force vectors. Each interaction is recorded for 20 frames, capturing the complete deformation dynamics. We store contact point coordinates and force vectors alongside the soft body parameters. The resulting dataset comprises approximately 42k meshes across 7 object classes, divided into a 70/10/20 split for training, validation, and testing. 
+
+Mass-Elastic Dataset Our second dataset focuses on con-trolled drop experiments to analyze mass-dependent defor-mation dynamics. The experimental setup consists of drops from a height of 0.5m under standard gravity (9.81 m/s²). We parameterize the mass ( m) and bending stiffness ( EI )during the simulation. Mass affects both gravitational force TABLE I COMPARISON OF DEFORMATION PREDICTION ACCURACY ON UNSEEN PHYSICAL PARAMETERS . R ESULTS SHOW RMSE ( MM ), MAE ( MM ), AND MSE (MM ²) FOR OD EFORM AND BASELINE METHODS ACROSS TWO TEST CONDITIONS : U NSEEN CONTACT FORCE AND UNSEEN MASS , B ENDING PARAMETERS . L OWER VALUES INDICATE BETTER PERFORMANCE .                                           
+
+> Method Unseen Contact Force Unseen Mass, Bending RMSE (mm) ↓MAE (mm) ↓MSE (mm 2)↓RMSE (mm) ↓MAE (mm) ↓MSE (mm 2)↓
+> nODE 6.750 4.956 82 .710 10 .344 6.366 205 .000
+> RNN 22 .670 16 .076 683 .000 13 .585 9.035 260 .000
+> PEGNN [33] 14 .220 9.837 244 .400 ---
+> ODeform 6.657 5.140 58.430 1.279 0.948 2.000
+
+and impact deformation characteristics, while bending stiff-ness controls the object’s resistance to flexural deformation. These parameters are randomly sampled to generate diverse deformation behaviors, ranging from rigid-like responses to highly elastic deformations during impact. Each sequence records deformation dynamics for 10 seconds. The dataset contains 500 sequences, split into 350/50/100 for training, validation, and testing. Each sequence captures the complete dynamics from the initial fall through impact and subsequent bounces. 
+
+B. Evaluation Metrics 
+
+We evaluate our method using standard error metrics between predicted and ground truth point positions: Mean Squared Error (MSE), Root Mean Squared Error (RMSE), and Mean Absolute Error (MAE). MSE and RMSE are par-ticularly sensitive to large deviations, while MAE provides a more uniform assessment of prediction errors, making these metrics complementary for evaluating our method’s accuracy across different scales of deformation. 
+
+C. Generalization to new physical parameters 
+
+We test on a subset of unseen physical parameter con-figurations to evaluate our model’s ability to handle novel physical properties. We consider parameters including mate-rial properties (mass, bending) for the case of mass-elastic deformation and contact conditions (contact point, force vector) for contact-force deformation.  
+
+> TABLE II RESULTS ON THE CONTACT -F ORCE TEST SET DATA . C OMPARISON OF DEFORMATION PREDICTION FOR EACH OBJECT AND TIME POINT .
+
+Method RMSE (mm) ↓ MAE (mm) ↓ MSE (mm 2) ↓
+
+Bottle 7.322 5.733 65 .000 
+
+Cat 9.298 7.203 108 .000 
+
+Dog 10 .617 8.380 128 .000 
+
+Donut 4.058 3.000 18 .000 
+
+Doritos 4.842 3.676 26 .000 
+
+Flipflop 5.760 4.428 39 .000 
+
+Pillow 4.705 3.560 25 .000 
+
+Average 6.657 5.140 58.430 
+
+To evaluate generalization to novel physical scenarios, we first test ODeform on unseen contact point deformations across seven objects from the Contact-Force dataset (Ta-ble II). The model achieves the best performance on the Donut object (RMSE: 4.058mm, MAE: 3.0mm, MSE: 18.0mm²), while maintaining consistent performance across other household objects like Bottles, Pillows, and Flipflop (RMSE: 4.705-7.322mm), suggesting model’s practical ap-plicability to real-world complex geometries. We evaluate our method’s generalization capabilities on two test conditions (Table I): unseen force vectors in the Contact-Force dataset and unseen mass-bending parameters in the Mass-Elastic dataset. We compare against three base-lines: a neural ODE trained directly on point clouds without latent encoding, a recurrent neural network (RNN), and PE-GNN [33]. While PE-GNN leverages graph networks for structural relationships, it only predicts final states. The neural ODE and RNN baselines, though capable of temporal modeling, struggle with shape preservation and geometric details respectively. Our approach achieves the lowest errors across all metrics, with RMSE of 6.657 mm for unseen contact forces and 1.279 mm for unseen mass-bending parameters. Figure 4 demonstrates the generalization of local deformation of a force vector applied with time. While baselines exhibit over-smoothing (nODE) or shape instability (RNN), our method can model the deformation and maintain shape consistency that aligns with ground truth. In Figure 3, we present our model’s performance on the Mass-Elastic dataset under varying physical parameters. With fixed mass (1 kg), we vary bending (0.3-3.0) to demonstrate material flexibility effects on fall dynamics. Similarly, with fixed bending, we vary mass (0.1-0.5 kg) to showcase mass-dependent deformation patterns. These results validate our method’s ability to handle diverse physical parameters while maintaining physically plausible deformations, supporting its applicability in scenarios requiring parameter handling. 
+
+D. Performance on Unseen Geometry 
+
+We evaluate our model’s ability to transfer learned de-formation dynamics to real-world captures of novel in-stances from the same category. Using the HouseCAT6D [34] dataset, which contains real-world captured objects across different classes, we showcase the results on the shoe cate-gory, as it is contained in both datasets. Figure 5 demon-strates how our model, trained on synthetic shapes from the Contact-Force dataset, transfers the learned motion to Fig. 4. Comparison of deformation predictions on object from the Contact-Force dataset. Our dual nODE approach better models deformation of unseen force vector over time compared to baseline methods, achieving results closer to ground truth (GT). 
+
+reconstructed meshes from the HouseCAT6D dataset. The comparison shows undeformed (top) and deformed (bottom) states of unseen real-world objects processed by our model, demonstrating successful transfer of learned deformation dynamics to new instances, compared to ground truth de-formation from the synthetic example. The results illustrat-ing our method’s ability to translate structurally consistent deformations on novel instances. 
+
+E. Gaussian Splatting Integration 
+
+In this experiment, we demonstrate our model’s ability to transfer learned deformation dynamics to 3D gaussian splats. We begin with a textured volleyball mesh placed within a scanned 3D environment and render it from multiple camera viewpoints. Using these multi-view renderings, we reconstruct the scene with 3D Gaussian Splatting and isolate the region containing the volleyball. We then apply our pre-trained mass-elastic deformation model (from Section IV-C) to predict physically plausible deformations of the volleyball under various physical conditions. Since our model learns the deformation field of spherical objects given specific physical parameters, it can predict both local deformations and global position changes, which we use to reposition the Gaussian splats for subsequent rendering. Figure 6 illustrates the visual results of our approach, showing rendered splats deformed according to our model’s predictions. This experiment high-lights our model’s versatility in generalizing to denser and noisier sparse representations beyond traditional meshes. The combination of ODeform with 3DGS demonstrates the potential for integrating continuous deformation mod-eling to rendering techniques. Further exploration of this approach could be valuable for applications requiring both physical plausibility and visual fidelity. Additional qualitative results are provided in the supplementary material.   
+
+> Fig. 5. Deformation to real-world captured meshes. The comparison shows undeformed (top) and deformed (bottom) states of unseen real-world objects processed by our model, demonstrating successful transfer of learned deformation dynamics to new instances.
+> Fig. 6. 3D Gaussian Splatting integration with ODeform. The visualizations show our model’s ability to transfer predicted deformations to Gaussian splats, enabling realistic rendering of physically-based animations.
+
+F. Interpolation and Extrapolation                                      
+
+> TABLE III EXTRAPOLATION EXPERIMENTS ON THE CONTACT -F ORCE AND
+> MASS -E LASTIC DATASETS . F OR THE CONTACT -F ORCE DATASET ,
+> MODELS ARE TRAINED ON FRAMES 0-10 AND EVALUATED ON 5
+> EXTRAPOLATED FRAMES . F OR THE MASS -E LASTIC DATASET ,MODELS ARE TRAINED ON FRAMES 0-20 AND EVALUATED ON THE NEXT 10
+> FRAMES .
+> Method Contact-Force Mass-Elastic RMSE (mm) ↓MAE (mm) ↓RMSE (mm) ↓MAE (mm) ↓
+> nODE 10 .926 7.954 27 .076 16 .208
+> RNN 27 .302 20 .107 28 .718 18 .169
+> ODeform 9.261 7.051 3.597 2.440
+
+We present extrapolation performance across both datasets in Table III, evaluating each method’s ability to predict beyond the training sequence. For the Mass-Elastic dataset, models are trained on frames 0-20 and tested on 10 additional extrapolated frames. For the Contact-Force dataset, models are trained on frames 0-10 and evaluated on 5 extrapolated frames. Figure 7 illustrates the extrapolation quality on the FlipFlop object with ODeform generating smooth, realistic deformations closer to the ground truth, while baseline models fail to predict the deformation and show distortions and artifacts. This setup assesses the methods’ capacity to generalize temporally and maintain physically plausible deformations beyond their training distribution. Additionally, to evaluate our model’s ability to generalize and learn dynamics from sparse inputs at varying intervals, we designed an interpolation experiment using the Mass-Elastic Dataset. We trained our model using datasets where only every 3rd, 5th, or 8th frame was provided during training. Table IV presents the performance of our model un-der these conditions, against baselines. We compare against Ours RNN nODE GT Fig. 7. Extrapolation results on the FlipFlop object. Trained on first 10 frames our approach generates physically plausible deformations beyond the training timeframe (at t=15), while baseline methods fail to maintain coherent motion. 
+
+RNNs, nODE without latent encodings and OccuFlow [21] pretrained network. For testing, the RNN, nODE and ODe-form are provided with only the first frame of the test sequence along with its physical parameters. OccuFlow is given every 3rd, 5th, or 8th frame of the testing set, due to its design of interpolating between any two given frames. During the evaluation, the models predicted the complete test set without any skipped frames. Compared to the baselines our model consistently achieves the lowest RMSE, MSE, and MAE across all intervals (3, 5, and 8), demonstrating superior capacity to interpolate temporal data. 
+
+TABLE IV MODELS TRAINED ON DIFFERENT INTERVALS OF FRAMES ON THE 
+
+MASS -E LASTIC DATASET .                                           
+
+> Method # Interval RMSE (mm) ↓MSE (mm) ↓MAE (mm) ↓
+> RNN 327.19 1010.00 17.42 528.37 1089.00 18.39 839.17 2056.00 25.06 nODE 324.56 951.00 14.57 526.69 1133.00 15.89 826.59 1043.00 15.97 OccuFlow[21] 3246.31 60899.00 207.43 5244.42 59984.00 206.20 8244.39 59937.00 206.60
+> Ours
+> 33.67 23.00 2.56
+> 55.05 38.00 3.54
+> 89.47 103.00 6.68
+
+G. Parameter Optimization 
+
+We validate our model’s understanding of physical dy-namics through inverse parameter identification. Given a deformed observation, we leverage our trained model to reversely identify the physical parameters that caused it. By freezing the weights of our networks and optimizing only the physical parameters via gradient descent to minimize the difference between predicted and observed dynamics as follows: 
+
+θnew = θold − η∇θ L(P (t)pred , P (t)gt ) (10) we achieve low Mean Absolute Errors (MAE) of 0.113 for mass and 0.084 for bending, as shown in Table V. This demonstrates that our model not only predicts deformations from known parameters but also can effectively reverse-engineer physical parameters of a learned motion. The model has learned a meaningful latent representation of the un-derlying physics. This capability is valuable for real-world applications where material properties need to be estimated from observed deformations. 
+
+TABLE V MEAN ABSOLUTE ERROR (MAE) FOR RECOVERED PHYSICAL PARAMETERS THROUGH REVERSE OPTIMIZATION .
+
+Metric Mass Bending MAE 0.113 0.084 
+
+V. C ONCLUSION 
+
+Despite recent advances in 3D shape representation, accu-rately modeling physically consistent, continuous deforma-tions remains a significant challenge. Our approach addresses this by leveraging neural ODEs to represent deformation as a continuous flow within a learned embedding space, enabling accurate prediction across arbitrary timepoints from sparse observations. This continuous representation, rather than discrete states, enables smoother interpolation, more accurate extrapolation, and better generalization to unseen physical configurations. Beyond improved accuracy, our framework enables novel capabilities like parameter optimization and generalization across 3D representations. Looking forward, extending the method to multi-object interactions presents exciting opportunities for applications in robotic manipula-tion and simulation. REFERENCES [1] Z. Pan, H. Bao, and J. Huang, “Subspace dynamic simulation using rotation-strain coordinates,” ACM Transactions on Graphics (TOG) , vol. 34, pp. 1 – 12, 2015. [Online]. Available: https://api.semanticscholar.org/CorpusID:16624447 [2] J. Barbiˇ c and D. L. James, “Real-time subspace integration for st. venant-kirchhoff deformable models,” 
+
+ACM SIGGRAPH 2005 Papers , 2005. [Online]. Available: https://api.semanticscholar.org/CorpusID:3430137 [3] M. Pharr, W. Jakob, and G. Humphreys, Physically based rendering: From theory to implementation . MIT Press, 2023. [4] X. Liu, M. Yan, and J. Bohg, “Meteornet: Deep learning on dynamic 3d point cloud sequences,” in Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision , 2019, pp. 9246–9255. [5] T.-A. Vu, D. T. Nguyen, B.-S. Hua, Q.-H. Pham, and S.-K. Yeung, “Rfnet-4d: Joint object reconstruction and flow estimation from 4d point clouds,” in European Conference on Computer Vision . Springer, 2022, pp. 36–52. [6] X. Liu, C. R. Qi, and L. J. Guibas, “Flownet3d: Learning scene flow in 3d point clouds,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2019, pp. 529–537. [7] Z. Jin, Y. Lei, N. Akhtar, H. Li, and M. Hayat, “Deformation and correspondence aware unsupervised synthetic-to-real scene flow esti-mation for point clouds,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2022, pp. 7233–7243. [8] R. T. Chen, Y. Rubanova, J. Bettencourt, and D. K. Duvenaud, “Neu-ral ordinary differential equations,” Advances in neural information processing systems , vol. 31, 2018. [9] N. Sharp, C. Romero, A. Jacobson, E. Vouga, P. Kry, D. I. Levin, and J. Solomon, “Data-free learning of reduced-order kinematics,” in ACM SIGGRAPH 2023 Conference Proceedings , 2023, pp. 1–9. [10] J. Kerr, C. M. Kim, M. Wu, B. Yi, Q. Wang, K. Goldberg, and A. Kanazawa, “Robot see robot do: Imitating articulated ob-ject manipulation with monocular 4d reconstruction,” arXiv preprint arXiv:2409.18121 , 2024. [11] M. Saleh, M. Sommersperger, N. Navab, and F. Tombari, “Physics-encoded graph neural networks for deformation prediction under contact,” arXiv preprint arXiv:2402.03466 , 2024. [12] Z. Wang, S. Rosa, B. Yang, S. Wang, N. Trigoni, and A. Markham, “3d-physnet: Learning the intuitive physics of non-rigid object defor-mations,” arXiv preprint arXiv:1805.00328 , 2018. [13] V. E. Arriola-Rios, P. Guler, F. Ficuciello, D. Kragic, B. Siciliano, and J. L. Wyatt, “Modeling of deformable objects for robotic manipulation: A tutorial and review,” Frontiers in Robotics and AI , vol. 7, p. 82, 2020. [14] C. Romero, D. Casas, J. P´ erez, and M. Otaduy, “Learning contact corrections for handle-based subspace dynamics,” ACM Transactions on Graphics (TOG) , vol. 40, no. 4, pp. 1–12, 2021. [15] C. Romero, D. Casas, M. M. Chiaramonte, and M. A. Otaduy, “Contact-centric deformation learning,” ACM Transactions on Graph-ics (TOG) , vol. 41, no. 4, pp. 1–11, 2022. [16] Z. Leng, S. cheng Wu, M. Saleh, A. Montanaro, H. Yu, Y. Wang, N. Navab, X. Liang, and F. Tombari, “Dynamic hyperbolic attention network for fine hand-object reconstruction,” 2023 IEEE/CVF International Conference on Computer Vision (ICCV) , pp. 14 848–14 858, 2023. [Online]. Available: https://api.semanticscholar.org/CorpusID:261556700 [17] S. Wang, M. Lambeta, P. wei Chou, and R. Calandra, “Tacto: A fast, flexible, and open-source simulator for high-resolution vision-based tactile sensors,” IEEE Robotics and Automation Letters , vol. 7, pp. 3930–3937, 2020. [Online]. Available: https://api.semanticscholar.org/CorpusID:229181032 [18] D. Navarro-Alarc´ on, H. M. Yip, Z. Wang, Y. Liu, F. Zhong, T. Zhang, and P. Li, “Automatic 3-d manipulation of soft objects by robotic arms with an adaptive deformation model,” IEEE Transactions on Robotics , vol. 32, pp. 429–441, 2016. [Online]. Available: https://api.semanticscholar.org/CorpusID:11410308 [19] F. Ficuciello, A. Migliozzi, E. Coevoet, A. C. Petit, and C. Duriez, “Fem-based deformation control for dexterous manipulation of 3d soft objects,” 2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , pp. 4007–4013, 2018. [Online]. Available: https://api.semanticscholar.org/CorpusID:57753541 [20] O. Sorkine and M. Alexa, “As-rigid-as-possible surface modeling,” in Symposium on Geometry processing , vol. 4. Citeseer, 2007, pp. 109–116. [21] M. Niemeyer, L. Mescheder, M. Oechsle, and A. Geiger, “Occupancy flow: 4d reconstruction by learning particle dynamics,” in Proceedings of the IEEE/CVF international conference on computer vision , 2019, pp. 5379–5389. [22] G. Yang, S. Belongie, B. Hariharan, and V. Koltun, “Geometry pro-cessing with neural fields,” Advances in Neural Information Processing Systems , vol. 34, pp. 22 483–22 497, 2021. [23] M. Biloˇ s, J. Sommer, S. S. Rangapuram, T. Januschowski, and S. G¨ unnemann, “Neural flows: Efficient alternative to neural odes,” 
+
+Advances in neural information processing systems , vol. 34, pp. 21 325–21 337, 2021. [24] D. Rempe, T. Birdal, Y. Zhao, Z. Gojcic, S. Sridhar, and L. J. Guibas, “Caspr: Learning canonical spatiotemporal point cloud representa-tions,” Advances in neural information processing systems , vol. 33, pp. 13 688–13 701, 2020. [25] M. Poli, S. Massaroli, J. Park, A. Yamashita, H. Asama, and J. Park, “Graph neural ordinary differential equations,” arXiv preprint arXiv:1911.07532 , 2019. [26] S. Greydanus, M. Dzamba, and J. Yosinski, “Hamiltonian neural networks,” Advances in neural information processing systems , vol. 32, 2019. [27] I. A. Auzina, C ¸ . Yıldız, S. Magliacane, M. Bethge, and E. Gavves, “Modulated neural odes,” Advances in Neural Information Processing Systems , vol. 36, 2024. [28] C. Yildiz, M. Heinonen, and H. Lahdesmaki, “Ode2vae: Deep gener-ative second order odes with bayesian neural networks,” Advances in Neural Information Processing Systems , vol. 32, 2019. [29] K. Vedder, N. Peri, I. Khatri, S. Li, E. Eaton, M. Kocamaz, Y. Wang, Z. Yu, D. Ramanan, and J. Pehserl, “Neural Eulerian Scene Flow Fields,” arXiv preprint arXiv:2410.02031 , 2024. [30] F. Hofherr, L. Koestler, F. Bernard, and D. Cremers, “Neural implicit representations for physical parameter inference from a single video,” in Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision , 2023, pp. 2093–2103. [31] T. Q. Chen, Y. Rubanova, J. Bettencourt, and D. K. Duvenaud, “Neural ordinary differential equations,” in Neural Information Processing Systems , 2018. [Online]. Available: https://api.semanticscholar.org/CorpusID:49310446 [32] L. Liebel and M. K¨ orner, “Auxiliary tasks in multi-task learning,” ArXiv , vol. abs/1805.06334, 2018. [Online]. Available: https://api.semanticscholar.org/CorpusID:21730434 [33] M. Saleh, M. Sommersperger, N. Navab, and F. Tombari, “Physics-encoded graph neural networks for deformation prediction under contact,” 2024 IEEE International Conference on Robotics and Automation (ICRA) , pp. 17 160–17 166, 2024. [Online]. Available: https://api.semanticscholar.org/CorpusID:267499722 [34] H. Jung, S.-C. Wu, P. Ruhkamp, G. Zhai, H. Schieber, G. Rizzoli, P. Wang, H. Zhao, L. Garattoni, S. Meier et al. , “Housecat6d-a large-scale multi-modal category level 6d object perception dataset with household objects in realistic scenarios,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,2024, pp. 22 498–22 508.

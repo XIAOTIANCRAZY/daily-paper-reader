@@ -1,0 +1,639 @@
+Title: Agentic Designer: Progressive Multi-Agent Collaboration for Structure-Aware Interior Layout Generation
+
+URL Source: https://arxiv.org/pdf/2607.20866v1
+
+Published Time: Fri, 24 Jul 2026 00:30:45 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 1
+
+# Agentic Designer: Progressive Multi-Agent Collaboration for Structure-Aware Interior Layout Generation 
+
+Zhijing Yang, Haocheng Lin, Zhihua Xu, Haojie Li, Keze Wang, Liang Lin, Fellow, IEEE , and Tianshui Chen 
+
+Abstract —Generating realistic interior furniture layouts that strictly adhere to architectural constraints (e.g., walls, doors, and windows) remains a fundamental challenge in automated spatial design. Existing approaches, primarily based on one-shot generation using diffusion models or Large Language Models (LLMs), lack explicit mechanisms for intermediate geometric constraint verification, often resulting in structural collisions and functionally infeasible arrangements under complex room constraints. To address these challenges, we propose Agentic Designer, a progressive, multi-agent framework that formulates structure-aware interior layout generation as an iterative and constraint-verified decision process. By decomposing layout synthesis into modular stages of proposal, verification, and adjustment, the framework coordinates three specialized agents, a Generator, an Evaluator, and a Refiner, through a Progressive Consensus Mechanism. This mechanism enforces stepwise geometric validation and correction before each placement is committed, thereby preventing error accumulation. To facilitate this structure-aware paradigm and standardize evaluation, we establish InStruct, a comprehensive benchmark that integrates a dataset comprising over 18,000 high-quality, parametrically annotated samples with a novel suite of structure-centric metrics. Extensive quantitative evaluations, qualitative analyses, and user studies show that Agentic Designer significantly outperforms state-of-the-art methods, demonstrating substantial improvements in strict structural adherence and functional design coherence. 
+
+Index Terms —Interior Layout Generation, Multi-agent Systems, Large Language Models, Spatial Reasoning, Benchmark, Structure-aware Design 
+
+✦
+
+1 INTRODUCTION 
+
+Structure-aware interior layout generation is introduced in this work as a new task that reformulates traditional layout design by explicitly modeling architectural elements, such as walls, doors, and windows, as structural constraints, and inferring feasible furniture placement, orientation, and scale conditioned on these constraints. With the growing interest in automated interior layout generation [ 1, 2, 3, 4, 5, 6], realism and practicality have become central research concerns. Interior layout design in real-world living environments is inherently governed by architectural structures, which define feasible placement, movement affordances, and functional usability. However, most existing automated interior lay-out generation methods simplify rooms into homogeneous bounded regions [ 2], treating architectural elements as implicit or secondary constraints [ 3, 4]. This abstraction overlooks the fundamentally structure-dependent nature of furniture arrangement: doors must remain accessible, windows unobstructed, and furniture aligned with walls and openings. As a result, layouts generated under this assump-
+
+Z. Yang, H. Lin and Z. Xu contributed equally to this work and share first authorship. Z. Yang, T. Chen, and H. Lin, are with the Guangdong University of Technology, Guangzhou, China (Emails: lin-haocheng1@mails.gdut.edu.cn, tianshuichen@gmail.com, yzhj@gdut.edu.cn). Z. Xu, K. Wang, and L. Lin are with Sun Yat-sen University, Guangzhou, China (Email: xuzhh76@mail2.sysu.edu.cn, kezewang@gmail.com, linliang@ieee.org). H. Li is with the South China University of Technology, Guangzhou, China (Email: 12hjli4@gmail.com). (Corresponding author: T. Chen). This work was supported in part by the National Natural Science Foundation of China (NSFC) under Grant 62276283, in part by Fundamental Research Funds for the Central Universities, Sun Yat-sen University under Grant 23hytd006 and 23hytd006-2, and in part by Guangdong Provincial High-Level Young Talent Program under Grant RL2024-151-2-11. 
+
+tion frequently violate structural feasibility and practical usability, particularly in complex room configurations. Recent research on automated interior layout generation can be broadly categorized into two directions. The first focuses on end-to-end parametric generation, which directly synthesizes furniture layouts from given conditions using diffusion-based models or large language model (LLM) prompting [ 3, 4]. The second adopts a two-stage pipeline, where an intermediate representation (e.g., semantic or spatial maps) is first produced and then translated into concrete furniture parameters [ 1, 7]. It is also worth noting that LLM-based approaches employ prompt engineering to guide general-purpose language models, rather than models specifically trained for spatial or design-oriented reasoning, to infer furniture layouts from textual cues [ 3, 8]. Although these approaches have significantly advanced automation in layout design, they still struggle to maintain structural alignment with architectural elements and coherent spatial relationships among furniture pieces, often resulting in unrealistic or impractical arrangements under complex room constraints. The limitations of current methods mainly arise from their one-shot generation paradigm and insufficient data quality. Most approaches map input conditions directly to final layouts without intermediate reasoning or feedback, making it difficult to enforce structural constraints or control object-level properties such as position, orientation, and scale [ 9]. The lack of efficient evaluation further limits interpretabil-ity and prevents correction of suboptimal configurations. In contrast, human designers typically adopt an iterative arXiv:2607.20866v1 [cs.CV] 23 Jul 2026 IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 2
+
+strategy, placing, evaluating, and refining furniture piece by piece, which naturally ensures both functional consistency and spatial coherence [ 10, 11]. In addition, existing datasets are often small in scale, lack complete structural annotations, and contain inaccurate furniture placements [ 12, 13, 14, 15], restricting precise model training and structural alignment. Therefore, it is essential to develop a higher-quality dataset with comprehensive structural annotations and precise spa-tial information. Such a dataset is critical for advancing the accuracy, generalizability, and structural alignment of models in interior layout generation. Motivated by these observations, we introduce Agen-tic Designer, a progressive multi-agent framework that iteratively constructs and refines interior layouts through coordinated collaboration. The framework comprises three specialized agents, a Generator, an Evaluator, and a Refiner, each responsible for proposing, assessing, and improving furniture arrangements under predefined spatial and func-tional constraints. To enhance consistency and interpretability in layout reasoning, it employs a structured, program-like textual representation that explicitly encodes spatial relations and design logic. Building upon this foundation, a Progressive Consensus Mechanism (PCM) orchestrates successive stages of generation, evaluation, and refinement, ensuring steady improvement in both geometric accuracy and aesthetic coherence. These design choices enable Agentic Designer to produce layouts that are structurally aligned, spatially coherent, and amenable to iterative, controllable, and interpretable refinement. To foster the advancement of structure-aware interior lay-out generation and standardize its evaluation, we establish InStruct, a comprehensive benchmark specifically tailored for this domain. Beyond merely addressing data scarcity, InStruct provides a unified testbed comprising 18,853 samples (10,795 living rooms and 8058 bedrooms). Each sample is manually verified and richly annotated with architectural elements, including walls, doors, and windows, alongside precise furni-ture attributes. To further broaden the evaluation landscape, the benchmark additionally incorporates an adapted version of the widely used 3D-FRONT dataset [ 15], reprocessed to align with our task formulation and integrated into the testing protocols. Moreover, these data resources are complemented by a novel suite of structure-centric metrics designed to quantify geometric alignment and functional compatibility with architectural elements. By integrating diverse data sources with multi-dimensional evaluation protocols, InStruct serves as a foundational platform for assessing the realism and structural feasibility of structure-aware layout generation. Our contribution can be summarized as the following points:  
+
+> •
+
+We propose Agentic Designer, a progressive multi-agent framework that mimics human design workflows by integrating a Generator, Evaluator, and Refiner. This ar-chitecture transforms layout generation from an opaque one-shot process into a controllable, interpretable, and self-correcting pipeline.  
+
+> •
+
+We introduce a Progressive Consensus Mechanism (PCM) to orchestrate agent collaboration. This mecha-nism ensures consistent refinement across design stages, allowing for precise alignment with architectural con-straints while steadily optimizing spatial coherence and functionality.  
+
+> •
+
+We establish InStruct, a comprehensive benchmark tai-lored for structure-aware layout generation. By provid-ing high-quality manually verified data and specialized structure-centric metrics, it addresses the critical issue of data scarcity and standardizes the evaluation of structural feasibility.  
+
+> •
+
+Experimental results show that our method consistently improves geometric accuracy and design coherence, demonstrating that agent-based collaboration effectively resolves conflicts between strict structural constraints and design flexibility. Codes, trained models, and datasets will be available at https://haochengcop.github. io/Agentic-Designer/. 
+
+2 RELATED WORK 
+
+In this section, we review the literature relevant to our proposed framework, covering one-shot generative models for interior layout generation, large language models for spatial reasoning, agent-based collaborative systems, and existing interior furniture layout datasets. 
+
+2.1 One-Shot Generative Models for Interior Layout Generation 
+
+Early approaches to automated interior layout gener-ation primarily relied on Convolutional Neural Net-works (CNNs) [ 16] and Generative Adversarial Networks (GANs) [ 10, 17, 18] to synthesize 2D floor plans or object arrangements via image-based generation [ 1, 19]. While these methods established the feasibility of data-driven design, they were often limited by grid-based resolutions and lacked object-level manipulation capabilities. The subsequent shift towards sequence modeling es-tablished autoregressive Transformers as a dominant paradigm [ 2, 20]. For instance, ATISS [ 2] treats layout gener-ation as a sequence prediction task, synthesizing a sequence of furniture objects based on learned spatial distributions. More recently, the success of diffusion models in image synthesis has inspired approaches [ 4, 7, 21, 22, 23] like DiffuScene [ 4] and SemLayoutDiff [ 7], which model layouts as a denoising process from Gaussian noise. These methods have significantly improved the diversity and realism of generated scenes. Despite these improvements, continuous-space models face inherent limitations in structural adherence. By map-ping inputs directly to coordinates without explicit logical reasoning, they often struggle to satisfy hard geometric con-straints—such as preventing furniture from overlapping with doors or ensuring precise alignment with walls. Additionally, their black-box nature complicates interpretability, making it difficult to understand placement decisions or intervene when suboptimal layouts are produced. 
+
+2.2 LLM-Based Spatial Reasoning and Agentic Collabo-ration 
+
+The emergence of Large Language Models (LLMs) has reframed spatial planning as a semantic reasoning task. Recent studies [ 3, 24, 25, 26], such as LayoutGPT, leverage the IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 3
+
+rich pretrained knowledge embedded in LLMs to infer object arrangements directly from textual descriptions. More recent approaches [ 8], including SceneCraft, adopt executable code (e.g., Python scripts) as an intermediate representation [ 27], which more naturally captures hierarchical structures and logical constraints than raw coordinates. However, although these code-driven approaches offer greater expressiveness, they do not necessarily guarantee structural correctness. Operating predominantly in a one-shot paradigm, these methods map instructions directly to layouts without inter-mediate verification. Consequently, without domain-specific adaptation or explicit geometric validation, these models frequently produce hallucinated arrangements [ 28], where semantically relevant furniture is placed in physically implau-sible configurations, such as object collisions or violations of room boundaries. To address the limitations of one-shot generation, recent research in complex reasoning domains has increasingly explored multi-agent systems [ 29, 30, 31, 32] and iterative refinement strategies [ 33, 34, 35]. In these frameworks, distinct agents assume specialized roles, such as generators, critics, and editors, to collaboratively solve problems that are difficult for a single model to handle. While demonstrated to be effective across various reasoning-intensive domains, the application of such collaborative paradigms to interior layout generation remains underexplored. In practice, human designers typically follow an iterative process: proposing an initial layout, evaluating it against spatial constraints, and re-fining it accordingly. Inspired by this workflow, we introduce a Generator–Evaluator–Refiner loop that dynamically detects and corrects spatial violations during layout generation. 
+
+2.3 Interior Layout Datasets and Benchmarks 
+
+Existing datasets for interior layout generation generally fall into two categories: real-world reconstructions and synthetic environments. Real-world datasets include established benchmarks like Matterport3D [ 12] and ScanNet [ 36], as well as higher-fidelity contemporary datasets like HM3D [ 37] and ScanNet++ [ 38]. While recent advancements have significantly improved geometric resolution, these datasets fundamentally rely on unstructured surface meshes rather than parametric repre-sentations. In such environments, architectural boundaries and furniture are depicted as geometries often fused with the floor or background, suffering from occlusion and sensor artifacts. This lack of explicit, clean structural definition renders them suboptimal for layout generation tasks, as models struggle to extract precise geometric constraints from such fragmented data. Synthetic datasets emerged to circumvent the geometric noise and incompleteness of scanned data. SUNCG [ 13] was a pioneering effort but is no longer available. Subsequent works have focused on different aspects: InteriorNet [ 39] emphasizes photo-realistic rendering and physics simulation, while Structured3D [ 14] provides richer structural annota-tions such as room wireframes. Currently, 3D-FRONT [ 15] stands as the mainstream benchmark due to its large scale and high-quality furniture models. Nevertheless, despite its object diversity, 3D-FRONT is primarily optimized for visual rendering rather than structural reasoning. Its architectural elements are represented as unstructured mesh geometries rather than parametric entities. This forces current layout generation models to infer constraints from raw meshes, inevitably introducing geometric ambiguity and limiting the ability to learn precise, rule-based design logic. To address this, we establish InStruct, a benchmark that integrates a new, structurally annotated dataset with an adapted version of 3D-FRONT. Paired with specialized met-rics, it enables rigorous evaluation of structural constraints and geometric validity. 
+
+3 METHOD 
+
+As illustrated in Figure 1, we propose Agentic Designer , a multi-agent framework that iteratively constructs interior layouts through three collaborative modules: a Generator, an Evaluator, and a Refiner. In this section, we detail the framework’s components and their coordination. We begin by formulating the structure-aware layout generation task in Sec. 3.1, followed by the specific definitions of each agent in Sec. 3.2. Subsequently, we describe the collaborative workflow driven by the Progressive Consensus Mechanism 
+
+in Sec. 3.3, and conclude with implementation details in Sec. 3.4. 
+
+3.1 Problem Formulation 
+
+We formulate the structure-aware interior layout generation task as inferring a layout configuration that conforms to archi-tectural constraints defined by S = {S w, Sd, Sg }, where Sw,
+
+Sd, and Sg represent the sets of walls, doors, and windows, respectively. Each structural element s ∈ S is modeled as an axis-aligned quadrilateral s = ( v(1) , v (2) , v (3) , v (4) ) with 
+
+v(k) ∈ R2, providing a unified geometric basis for constraint enforcement. The goal is to generate an ordered sequence of furniture instances O = ( o1, o 2, . . . , o N ) that maintains spatial coherence within these boundaries. Each object oi is defined by a tuple oi = ( ci, p i, d i, θ i), where ci ∈ C denotes the semantic category, pi ∈ R2 is the center position, di ∈ R4
+
+represents the 2D bounding box, and θi ∈ [0 , 2π) indicates the orientation. 
+
+3.2 Multi-Agent Collaboration 
+
+To enable progressive, controllable, and structure-aware layout construction, we propose Agentic Designer, a multi-agent framework that models interior design as an iterative decision-making process rather than a one-shot prediction. Mirroring the workflow of human designers, the framework decomposes layout synthesis into modular stages of pro-posal, verification, and adjustment, orchestrated by three collaborative agents: a Generator that incrementally proposes furniture instances, an Evaluator that assesses geometric plausibility against architectural constraints, and a Refiner 
+
+that resolves detected inconsistencies through targeted correc-tions. This collaborative design ensures steady improvement in geometric accuracy and allows for interpretable reasoning throughout the generation process. IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 4Refiner 
+
+(b) Multi-Agent Collaboration 
+
+(c)Progressive Consensus Mechanism 
+
+Evaluator 
+
+# ... ... 
+
+(a)Initial Input 
+
+Generator 
+
+size 
+
+output       
+
+> className: TV_Stand
+> position: (4.50,10.67)
+> size: (0.43,2.17)
+> angle: 90 Orientation error
+> Partially out of bounds
+> Completely out of bounds
+> Overlap
+> room.addObj( ... )room.addObj(...) # evaluation results
+> className ：TV_Stand
+> position: (3.95,10.60)
+> size: (0.43,2.17)
+> angle: 90
+> room = Room("LivingRoom")
+> room.buildWall(...)
+> room.buildWall(...)
+> room.buildDoor(...)
+> room.buildWindow(...)
+> ... ...
+> # furniture layout
+> ... ...
+
+Fig. 1 – Framework overview of the proposed Agentic Designer. (a) Initial Input: The architectural structure is converted into a program-like representation that encodes walls, doors, and windows as the structural context. (b) Multi-Agent Collaboration: The layout is iteratively constructed by three collaborative agents. The Generator proposes candidate furniture objects, the Evaluator diagnoses geometric violations (e.g., boundary intrusion, collisions, orientation errors), and the Refiner performs targeted corrections to restore validity while preserving design intent. (c) Progressive Consensus Mechanism: Through step-wise proposal, verification, and refinement, the agents progressively construct an optimal layout while minimizing error accumulation.The process repeats until the Generator outputs the termination instance ( c = End ). 
+
+3.2.1 Generator Agent 
+
+The Generator is responsible for the incremental proposal of furniture objects. At step i, conditioned on the architectural structure S and the history of placed objects O<i , it predicts a candidate object ˆoi = G(S, O<i ), where ˆoi = ( ci, p i, d i, θ i).To autonomously conclude the layout expansion, the Genera-tor is designed to produce a specific object instance assigned with the semantic category ci = End . This instance serves as an explicit termination indicator, signifying that the current layout is complete and requires no further additions. 
+
+3.2.2 Evaluator Agent 
+
+The Evaluator functions as a learned, LLM-based geometric consistency checker, verifying whether each proposed object complies with architectural constraints. It is fine-tuned with role-specific supervision to identify geometric violations from structured layout representations. Given a candidate ˆoi, the structural context S, and the previously accepted objects 
+
+O<i , it produces a structured diagnostic report with Boolean judgments across four predefined violation types: partial boundary intrusion , complete boundary violation , object collision ,and orientation misalignment . We formally denote this four-way diagnosis as ei = E(ˆ oi, S, O<i ), where ei ∈ { 0, 1}4
+
+and each entry corresponds to one violation type in the above order. A value of 1 indicates the presence of the corresponding violation, while 0 indicates its absence. This type-specific diagnostic feedback is then provided to the Refiner for targeted correction. 
+
+3.2.3 Refiner Agent 
+
+Conditioned on the diagnostic feedback from the Evalua-tor, the Refiner performs object-level geometric refinement of infeasible proposals. It outputs a refined object ˆo′ 
+
+> i
+
+=
+
+R(ˆ oi, e i, S, O<i ), with updated attributes ˆo′ 
+
+> i
+
+= ( ci, p ′
+
+> i
+
+, d ′
+
+> i
+
+, θ ′
+
+> i
+
+),where the semantic category ci remains unchanged from the original proposal. The refinement is applied only to fine-grained geometric attributes, including position, dimensions, and orientation. These local corrections aim to resolve the specific violations indicated by ei while preserving the original design intent of the Generator. 
+
+3.3 Progressive Consensus Mechanism 
+
+To effectively orchestrate the specialized agents defined above, we introduce the Progressive Consensus Mechanism, a coordinated workflow designed to bridge the gap between static generation and dynamic design reasoning. Unlike conventional end-to-end approaches where early structural violations propagate and amplify throughout the generation process, our mechanism mimics the meticulous, step-by-step workflow of human designers. By decomposing the layout synthesis into a sequence of verify-and-refine steps, we ensure that each design decision is validated or corrected before serving as a basis for subsequent steps, thereby reducing the accumulation of local structural errors before they propagate to subsequent generation steps. The detailed execution flow is depicted in Figure 1(c) and proceeds as follows: IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 5
+
+Algorithm 1 Progressive Consensus Mechanism 
+
+Require: Architectural Structure S
+
+Ensure: Generated Furniture Layout O 
+
+> 1:
+
+Initialize: O ← ∅ , i ← 1 
+
+> 2:
+
+while True do  
+
+> 3:
+
+Step 2: Conditional Proposal  
+
+> 4:
+
+ˆoi ← Generator (S, O) 
+
+> 5:
+
+if ˆoi.c = End then break  
+
+> 6:
+
+end if  
+
+> 7:
+
+Step 3: Evaluation and Refinement  
+
+> 8:
+
+ei ← Evaluator (ˆ oi, S, O) 
+
+> 9:
+
+if ei = 0 then  
+
+> 10:
+
+oi ← ˆoi 
+
+> 11:
+
+else  
+
+> 12:
+
+oi ← Refiner (ˆ oi, e i, S, O) 
+
+> 13:
+
+end if  
+
+> 14:
+
+Step 4: Update State  
+
+> 15:
+
+O ← O ∪ { oi}, i ← i + 1  
+
+> 16:
+
+end while  
+
+> 17:
+
+return O
+
+Step 1: Structural Context Initialization. The process com-mences with the stage shown in Figure 1(a), where the raw architectural geometry S is encoded into a structured, program-like textual representation. This explicit coding serves as the global context, grounding all subsequent agent interactions in a precise coordinate system defined by the room’s boundary elements (walls, doors, and windows). 
+
+Step 2: Conditional Proposal. In iteration i, the Generator Agent receives the structural context and the history of placed furniture O<i . It samples a candidate object ˆoi from the learned conditional distribution: 
+
+ˆoi ∼ Pθ (o | S , O<i ). (1) This sampling strategy enables the model to explore diverse, plausible configurations rather than being limited to deterministic outputs. 
+
+Step 3: Evaluation and Refinement. The candidate ˆoi is immediately assessed by the Evaluator Agent to determine its geometric validity.  
+
+> •
+
+Validation: If the Evaluator detects no violations ( ei = 0), the object is directly accepted as oi and appended to the layout.  
+
+> •
+
+Correction: If violations are detected ( ei̸ = 0), the Refiner Agent is triggered. Conditioned on the Evaluator’s specific diagnostic feedback, the Refiner applies targeted transformations to resolve the inconsistencies, yielding a corrected object ˆo′
+
+> i
+
+.
+
+Step 4: State Update and Iteration. After the object is accepted or refined, the system updates the state to O≤i. The workflow loops back to Step 2 to generate the next object. This progressive cycle concludes only when the Generator autonomously predicts the termination instance ( c = End ). This signal implies that the agent perceives the current spatial arrangement as functionally complete and structurally saturated, requiring no further additions. A critical advantage of the Progressive Consensus Mech-anism is its ability to enforce a ”virtuous cycle” of accuracy. In standard autoregressive generation, the probability of a valid layout O is given by P (O) = Q 
+
+> i
+
+P (oi | ˆO<i ). If an early object ˆok in history ˆO<i is flawed (e.g., overlapping a wall), it corrupts the spatial context for all subsequent steps 
+
+i > k , leading to cascading errors. In contrast, our mechanism encourages that at every step 
+
+i, the conditioning history O<i is maintained in a structurally verified state with respect to the validity constraint set V:
+
+∀ok ∈ O <i , E(ok, S, O<k ) ≈ 0. (2) This indicates that the Generator operates on a cleaner and more reliable context, where previously detected structural errors have been mitigated through evaluation and refine-ment. Consequently, the prediction precision for the current step can be enhanced by the improved structural integrity of the previous steps: 
+
+Pvalid (oi | O verified  
+
+> <i
+
+) > P valid (oi | O noisy  
+
+> <i
+
+). (3) This property helps the layout quality improve progres-sively, as reliable context cues (e.g., clear available space, aligned orientation) guide the placement of subsequent furniture, leading to more globally coherent arrangements with fewer collisions and structural violations. 
+
+3.4 Implementation Details 
+
+In this section, we detail the implementation of Agentic Designer, starting with the unified model architecture and structured input representation. We then describe the role-specific data construction strategies for each agent, clarify the bounded refinement strategy used during inference, and finally present the training protocols, including data augmentation and hyperparameter settings. 
+
+3.4.1 Model Architecture and Input Representation. 
+
+The Generator, Evaluator, and Refiner are all built on the Qwen2.5-Coder-7B [ 40] backbone, but are independently trained with role-specific data and task objectives. During inference, they are deployed as separate modules and com-municate strictly through structured input/output prompts, including candidate furniture proposals, diagnostic violation reports, and corrected furniture proposals. The choice of a code-specialized language model is motivated by our structured, program-like layout representation, which re-quires precise syntactic and logical reasoning [ 41, 42, 43]. To facilitate distinct roles, we design specific system prompts for each agent (detailed in Appendix C ). All inputs, including the room structure, historical layout context, and target object attributes, are formatted as structured code sequences, en-abling the model to leverage its code generation capabilities for spatial reasoning. 
+
+3.4.2 Agent-Specific Data Construction. 
+
+Although the three agents adopt the same pretrained back-bone architecture, they are independently fine-tuned using role-specific training pairs and task objectives:  
+
+> •
+
+Generator Agent (Sequential Modeling): To enable logical layout expansion, we organize the furniture instances in each training sample based on semantic importance and frequency (e.g., placing large distinct items like beds or sofas before accessory items) [ 11]. IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 6
+
+The training data is formatted as an autoregressive task: given the room structure and the sequence of preceding furniture O<i , the model is trained to predict the attributes of the current furniture oi. 
+
+> •
+
+Evaluator Agent (Error Discrimination): We synthesize training data for geometric verification by injecting controlled noise into ground-truth layouts. For a valid furniture object oi, we apply random perturbations (translation and rotation) to generate a ”noisy” coun-terpart ˜oi that violates specific constraints. The input consists of the valid history O<i and the perturbed object ˜oi, while the target output is structured diagnostic feedback indicating the presence or absence of each predefined violation type. This trains the agent to discriminate between valid and invalid configurations.  
+
+> •
+
+Refiner Agent (Denoising and Correction): To empower the correction phase of the Progressive Consensus Mechanism, the Refiner is trained on pairs of invalid and valid states derived from the Evaluator’s data generation process. The input comprises the valid history O<i , the perturbed object ˜oi, and the corresponding structured diagnostic feedback. The target output is the original, ground-truth object oi. This setup essentially models refinement as a denoising task, teaching the agent to restore geometric validity based on diagnostic feedback. 
+
+3.4.3 Data Augmentation. 
+
+To enhance model robustness and rotational invariance, we apply geometric augmentation to the dataset. Each room layout is rotated by 0◦, 90 ◦, 180 ◦, and 270 ◦, effectively quadrupling the size of the training set. This ensures that the agents learn to handle architectural constraints regardless of the room’s global orientation. 
+
+3.4.4 Training Setup. 
+
+We fine-tune the models using Low-Rank Adaptation (LoRA) [ 44] to ensure parameter efficiency. The LoRA rank is set to r = 32 with an alpha scaling factor of α = 64 . We use the AdamW optimizer [ 45] with a learning rate of 1e-4. All experiments are conducted on 4 NVIDIA RTX 4090 GPUs, and the training process is monitored to prevent overfitting. 
+
+4 THE INSTRUCT BENCHMARK 
+
+To provide a unified and rigorous evaluation framework for structure-aware interior layout generation , we introduce the 
+
+InStruct Benchmark , which focuses on explicit architectural constraints and spatial coherence. The benchmark integrates our high-quality InStruct dataset with a carefully adapted version of 3D-FRONT . For 3D-FRONT, we transform raw object-centric mesh representations into explicit parametric architectural elements, including walls, doors, and windows, to ensure consistency with the proposed task formulation. The InStruct dataset is split into training, validation, and test sets with a ratio of 9:1:1 .The remainder of this section is organized as follows. We first describe the dataset construction pipeline and the adaptation of 3D-FRONT in Section 4.1.1. Section 4.1.2 then presents the dataset statistics and structural diversity. Section 4.2 introduces the baseline methods included in the benchmark. Finally, Section 4.3 and Section 4.4 define the evaluation metrics and unified evaluation protocols. 
+
+4.1 Dataset Construction and Analysis 
+
+4.1.1 Data Construction Pipeline 
+
+To ensure the scalability and reliability of the benchmark, we construct the InStruct dataset from a large collection of real-world residential floor plans through a rigorously designed 
+
+iterative human-in-the-loop pipeline. A primary challenge arises from the substantial visual heterogeneity of these real-world floor plans, which span diverse drawing styles such as CAD renderings, presentation drawings, and hand-drawn sketches. To address this issue, we adopt a style-adaptive construction strategy that enables robust structural perception across heterogeneous inputs. Specifically, the pipeline integrates automated annotation with progressive human verification in an iterative manner. Floor plans are first categorized by visual style. They are then processed using specialized detectors tailored to each style to produce preliminary structural annotations for architectural elements, such as walls, doors, and windows. High-confidence predictions are subsequently verified and corrected by human annotators, and the refined annotations are iteratively fed back to improve subsequent rounds of automated processing. Following convergence, a final global audit is conducted to eliminate residual inconsistencies and enforce annotation uniformity. All verified detections are then projected into real-world coordinates using the floor plan scale. This produces standardized, structure-aware layout annotations for benchmarking and quantitative evaluation. For fair and unified benchmarking, we additionally adapt the widely used 3D-FRONT [ 15] dataset into the same structure-aware parametric representation. Room boundaries are reconstructed from raw mesh geometry and projected onto 2D floor plans. Architectural openings are identified by consolidating multiple mesh components and resolving ambiguous or inconsistent mesh-level semantics, where a single category name may correspond to either doors or windows. To enable explicit structural reasoning, the extracted floor boundaries are converted into a unified wall representation with standardized thickness. Door and window instances are then geometrically aligned with the corresponding wall segments. The resulting layouts form clean, topology-consistent structural annotations that are directly comparable to InStruct. Further details on the con-struction of the InStruct dataset and the associated annotation quality-control procedures are provided in Appendix A .
+
+4.1.2 Dataset Statistics and Diversity 
+
+We analyze the comprehensive characteristics of InStruct from three key perspectives: scale, structural complexity, and semantic diversity. Overall Scale. The InStruct dataset comprises a total of 18,853 high-quality interior layouts, specifically consisting of 10,795 living rooms and 8,058 bedrooms. These scenes are populated with over 181,880 parametrically annotated furniture instances. This substantial scale provides a rich foundation for training data-hungry generative models, ensuring sufficient diversity to capture complex spatial dependencies between furniture objects and architectural structures. 
+
+Structural Complexity. A key characteristic of InStruct is the pronounced topological diversity of its room structures. IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 7
+
+Unlike many existing synthetic datasets that are dominated by simple rectangular geometries, InStruct incorporates a substantial proportion of complex, non-rectangular room layouts. As shown in Fig. 2 and Fig. 3, the majority of layouts consist of more than six wall segments, particularly in living rooms, while a significant portion of bedrooms exhibits similar structural complexity. In addition to topological complexity, the dataset further exhibits highly intricate boundary conditions characterized by frequent architectural openings (i.e., doors and windows). These openings densely interrupt wall boundaries across both room types. As a result, they impose rigorous geometric constraints and reframe layout generation as a strict constraint satisfaction problem rather than a relatively open-space arrangement. (a) 
+
+> (b)
+
+Fig. 2 – Wall-segment distribution for living-room layouts in the InStruct dataset. Most living rooms exhibit complex, non-rectangular boundaries, with the majority containing more than six wall segments. (a) 
+
+> (b)
+
+Fig. 3 – Wall-segment distribution for bedroom layouts. Com-pared with living rooms, bedrooms show a higher proportion of simple geometries, though a substantial number still contain six or more segments. 
+
+Semantic Diversity. InStruct encompasses a broad seman-tic space with 15 distinct functional furniture categories, covering common interior elements across sleeping, dining, storage, and seating activities. Beyond category coverage, semantic diversity in InStruct is primarily manifested at the room level through rich multi-object compositions, where multiple heterogeneous furniture items jointly form a single layout. Such room layouts are typically populated with functionally diverse and non-sparse object sets. On average, living rooms contain 13.42 furniture instances per scene, while bedrooms contain 4.80 instances. 
+
+4.1.3 Comparison with 3D-FRONT Dataset 
+
+We compare InStruct with 3D-FRONT [ 15], a widely used large-scale indoor scene dataset. The comparison highlights differences in structural representation, geometric consis-tency, and suitability for structure-aware interior layout generation. We evaluate both datasets using the unified metrics defined in Sec. 4.3, which jointly characterize scene richness, space utilization, and structural consistency. As summarized in Table 1, InStruct consistently demonstrates substantially improved structural validity across both living-room and bedroom layouts. In particular, layouts derived from 3D-FRONT exhibit high rates of structural violations and object collisions, reflecting frequent wall penetrations and overlaps inherited from raw mesh-based placements [ 15]. In contrast, InStruct markedly reduces these violations, vali-dating the effectiveness of its explicit parametric annotation and structural standardization pipeline. 
+
+TABLE 1 – Statistical comparison between InStruct and 3D-FRONT. Higher ANF indicates greater scene richness. Lower values are better for OR, SVR, BVC, and CS (pairwise IoU).                                  
+
+> Room Type Dataset ANF ↑OR (%) ↑SVR (%) ↓BVC ↓CS (IoU) ↓
+> Living Room 3D-FRONT 10.59 31.51 64.85 1.28 46.8
+> InStruct 13.41 22.51 12.37 0.26 4.7
+> Bedroom 3D-FRONT 4.34 47.98 73.45 1.34 90.0
+> InStruct 4.87 36.90 28.86 0.35 1.2
+
+Importantly, these gains in structural consistency are achieved without compromising scene richness. InStruct maintains higher or comparable furniture density across room types, such as 13.41 versus 10.59 objects per living room. This indicates that InStruct can support dense yet physically plausible multi-object arrangements under stricter geometric constraints. Figure 4 provides representative visual comparisons be-tween the two datasets. InStruct layouts exhibit floor-plan ge-ometries that more closely resemble real residential designs, including non-rectangular boundaries, natural indentations, and corridor-like extensions. Furniture placements also show stronger alignment with architectural structures and more balanced spatial organization, preserving circulation space and functional zoning. By contrast, layouts projected from 3D-FRONT tend to appear more rectangular and visually congested, with weaker alignment between furniture objects and structural boundaries. These differences stem from a fundamental divergence in dataset representation and design objectives. InStruct explicitly models architectural elements—such as walls, doors, and windows—as parametric entities, rendering structural constraints directly accessible for reasoning and optimization. In contrast, 3D-FRONT adopts an object-centric representation in which architectural context is encoded implicitly in raw meshes with inconsistent semantics, mak-ing reliable extraction of boundary constraints challenging. Consequently, while 3D-FRONT is well suited for object-centric scene synthesis and perceptual modeling, InStruct provides a more appropriate foundation for structure-aware and constraint-driven interior layout generation. IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 83D-Front 
+
+Living room 
+
+Our 
+
+Living room 
+
+3D-Front 
+
+Bed room 
+
+Our 
+
+Bed room  
+
+> Fig. 4 – Visual comparison between 3D-FRONT and InStruct for living-room and bedroom layouts. InStruct exhibits more realistic floor-plan geometries and more coherent spatial organization, with furniture placements that align more consistently with architectural structures.
+
+4.2 Baseline Methods. 
+
+We select DiffuScene [ 4] and SemLayout [ 7] as representative state-of-the-art baselines for interior layout generation. Dif-fuScene formulates scene synthesis as a continuous diffusion process over an unordered set of object attributes, where fur-niture placements are generated without explicitly modeling architectural structures. In contrast, SemLayout represents room geometry, doors, and windows as a 2D semantic layout map and generates furniture arrangements by reasoning over semantic relations on a discretized grid. 
+
+4.3 Evaluation Metrics 
+
+To thoroughly evaluate the generated layouts, the InStruct benchmark establishes a multi-dimensional evaluation suite comprising quantitative geometric metrics and subjective perceptual metrics. This combination ensures a holistic assessment of both mathematical correctness and human-centric design quality. 
+
+4.3.1 Quantitative Metrics 
+
+These metrics focus on scene complexity and geometric validity, assessing the richness of the generated content and the model’s adherence to structural constraints:  
+
+> •
+
+Average Number of Furniture (ANF): The arithmetic mean of furniture instances per generated scene. This metric indicates the model’s capacity to synthesize spatially rich and complex layouts, rather than sparse or empty rooms.  
+
+> •
+
+Occupancy Ratio (OR): This measures the average ratio of the total furniture area to the room area. It reflects the spatial density and usage efficiency of the generated layouts.  
+
+> •
+
+Scene Violation Rate (SVR): The percentage of gener-ated layouts containing at least one furniture instance that penetrates architectural boundaries (e. g., walls). This serves as a strict, scene-level indicator of structural adherence.  
+
+> •
+
+Boundary Violation Count (BVC): The average number of individual furniture instances per scene that violate boundary constraints. Unlike SVR, this metric provides a fine-grained assessment of local geometric errors, quantifying the severity of structural misalignment.  
+
+> •
+
+Collision Score (CS): To evaluate object-level phys-ical plausibility, we compute the average pairwise Intersection-over-Union (IoU) between all furniture instances. We scale the result by a factor of 10 4 for readability. A lower score indicates fewer physical collisions and better spatial separation. 
+
+4.3.2 Perceptual Metrics (Subjective) 
+
+To capture the functional usability and aesthetic quality that quantitative formulas may overlook, we define three perceptual dimensions for human evaluation based on a 5-point Likert scale (ranging from 1: Poor to 5: Excellent):  
+
+> •
+
+Circulation Rationality (CR): Assesses whether the layout preserves smooth and unobstructed movement IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 9
+
+flows. This includes ensuring that furniture does not block doorways or impede access to functional zones.  
+
+> •
+
+Location Rationality (LR): Evaluates the functional logic of furniture placement and its consistency with room geometry. Key considerations include adherence to boundary constraints, prevention of invalid overlaps, and reasonable spatial relationships (e.g., a TV stand positioned opposite a sofa).  
+
+> •
+
+Proportional Rationality (PR): Measures the visual balance and scale harmony of the layout, examining whether furniture dimensions are appropriate relative to the room area and to surrounding objects. 
+
+4.4 Evaluation Protocols 
+
+Method-Specific Input Adaptation. To ensure a fair com-parison across methods with heterogeneous input repre-sentations, we explicitly account for their distinct archi-tectural modeling paradigms in the evaluation protocol. DiffuScene [ 4] generates layouts by denoising continuous object attributes (e.g., size and position) from a binary room-boundary mask, whereas SemLayout [ 7] operates on a 2D semantic grid that encodes room boundaries, doors, and windows. In contrast, our Agentic Designer consumes a parametric, program-like representation of architectural structures. For evaluation on the InStruct test set, we perform method-specific input adaptation. Specifically, we project the parametric annotations of walls, doors, and windows into the exact input formats required by each baseline. All models are evaluated using their original configurations, with DiffuScene and SemLayout instantiated from the official checkpoints released by the authors. This setup allows each method to operate within its intended representation space while enabling direct comparison on the same test scenarios. 
+
+Cross-Dataset Generalization. Beyond InStruct, we fur-ther examine cross-dataset generalization on 3D-FRONT [ 15], the dataset originally used by DiffuScene and SemLayout. We randomly sample 300 living rooms and 300 bedrooms from the curated subset of the adapted 3D-FRONT dataset, and apply the corresponding input adaptation for DiffuScene, SemLayout, and Agentic Designer, respectively, while keep-ing all models fixed without additional fine-tuning. This bidirectional evaluation protocol facilitates a comprehensive assessment of structure-aware layout generation across different data formulations. 
+
+5 EXPERIMENTS 
+
+In this section, we comprehensively evaluate Agentic De-signer for structure-aware interior layout generation. We first compare our framework against state-of-the-art methods quantitatively on the InStruct and 3D-FRONT datasets in Section 5.1, followed by qualitative visual comparisons in Section 5.2 and a user study assessing perceptual realism and functional usability in Section 5.3. To validate our system design, we conduct ablation studies examining the core multi-agent collaboration and iterative refinement mechanisms in Section 5.4. Finally, we provide in-depth analyses of the Refiner’s convergence behavior under varying iteration limits in Section 5.5 and the inference latency introduced by the progressive multi-agent loop in Section 5.6. 
+
+5.1 Quantitative Analysis 
+
+We present quantitative comparisons on the InStruct test set and the 3D-FRONT test set in Table 2 and Table 3, respec-tively. The results show that Agentic Designer consistently outperforms state-of-the-art baselines, particularly in terms of strict geometric validity and structural adherence. 
+
+5.1.1 Performance on InStruct 
+
+As shown in Table 2, existing one-shot generation methods (DiffuScene and SemLayout) struggle under the rigorous structural constraints of the InStruct dataset, exhibiting extremely high Scene Violation Rates (SVR > 88% ) and Collision Scores, which indicate difficulties in precisely aligning furniture with complex wall geometries and bound-ary conditions. In contrast, Agentic Designer achieves a substantial reduction in structural errors, reducing the SVR for living rooms from over 90% (baselines) to 16.85%, while lowering the Boundary Violation Count (BVC) by an order of magnitude (from ∼ 5.0 to 0.30). Importantly, this improvement in validity does not come at the cost of scene simplicity: our method generates layouts with a higher Average Number of Furniture (ANF: 13.16 vs. 10.23) and a more realistic Occupancy Ratio (OR). These results indicate that the collaborative agent workflow can effectively resolve conflicts in dense arrangements, producing layouts that are both semantically rich and geometrically plausible, whereas baselines often result in locally congested and structurally inconsistent configurations. 
+
+5.1.2 Generalization on 3D-FRONT 
+
+Table 3 further evaluates the generalization capability of our method on the 3D-FRONT dataset. Even though baselines such as DiffuScene were originally developed under this data distribution, they still exhibit substantial structural violations (e.g., an SVR of 86.00% for living rooms). When adapted to the same inputs, Agentic Designer consistently demonstrates stronger structural reasoning, achieving the lowest violation rates (SVR: 14.81% for living rooms and 8.33% for bedrooms) along with minimal boundary violations. While preserving a comparable or higher furniture count (ANF), our method maintains a competitive Collision Score (CS). Overall, these results suggest that the proposed Progressive Consensus Mechanism is robust across different data distributions, effec-tively mitigating the hallucination of physically impossible placements through iterative agent coordination rather than one-shot generation. 
+
+5.2 Qualitative Analysis 
+
+Figure 5 presents representative qualitative comparisons between DiffuScene, SemLayout, and our method across living room and bedroom scenes with varying structural complexity and furniture density. The selected examples highlight typical failure modes of baseline methods under complex geometric constraints. In rooms with highly irregular boundaries, DiffuScene frequently fails to place furniture within valid room regions. Consequently, many predicted objects fall outside the room boundary and are not rendered, resulting in layouts that appear sparse and under-utilized. This behavior reflects limited capability in handling explicit structural constraints, IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 10 
+
+TABLE 2 – Quantitative comparison with state-of-the-art methods on the InStruct test set. We evaluate geometric validity and scene complexity across Living Room and Bedroom scenarios. ANF : Average Number of Furniture, OR : Occupancy Ratio, SVR :Scene Violation Rate, BVC : Boundary Violation Count, CS : Collision Score. ↑ indicates higher is better, and ↓ indicates lower is better. Our method significantly outperforms baselines in structural adherence and collision avoidance. 
+
+Room Type Method ANF ↑ OR (%) ↑ SVR (%) ↓ BVC ↓ CS ↓
+
+Living Room DiffuScene [4] 10.23 3.32 92.90 5.35 18.00 SemLayout [7] 9.69 11.85 91.69 4.85 7.71 
+
+Agentic Designer (Ours) 13.16 21.55 16.85 0.30 3.27 
+
+Bedroom DiffuScene [4] 4.15 3.38 95.14 3.37 31.70 SemLayout [7] 3.63 39.35 88.90 2.04 30.62 
+
+Agentic Designer (Ours) 4.78 35.73 7.14 0.14 3.10 
+
+TABLE 3 – Quantitative comparison on the 3D-FRONT test set. Results are reported on 300 living rooms and 300 bedrooms randomly sampled from the 3D-FRONT test split. Higher ANF indicates richer layouts, while lower values are better for OR, SVR, BVC, and CS. 
+
+Room Type Method ANF ↑ OR (%) ↑ SVR (%) ↓ BVC ↓ CS (IoU) ↓
+
+Living Room DiffuScene [4] 10.19 5.13 86.00 4.40 20.77 SemLayout [7] 9.82 19.28 93.67 4.01 8.67 
+
+Agentic Designer (Ours) 10.86 23.67 14.81 0.27 9.72 
+
+Bedroom DiffuScene [4] 4.28 11.76 76.33 1.77 36.96 SemLayout [7] 3.37 40.96 88.33 1.96 24.46 
+
+Agentic Designer (Ours) 4.49 36.06 8.33 0.08 9.88 
+
+rather than an intentional trade-off between layout density and validity. SemLayout, while capable of generating denser layouts, often violates structural constraints by blocking circulation paths, introducing object overlaps, or misaligning objects with respect to surrounding architectural elements. In contrast, our method consistently produces compact yet structurally valid layouts, preserving accessibility and respecting room boundaries even under highly constrained geometries. These differences become more pronounced in high-density scenarios. SemLayout tends to increase furniture count at the expense of structural correctness, whereas DiffuScene struggles to maintain valid object placement as density increases. These failure modes largely stem from the lack of explicit modeling of fine-grained structural con-straints during generation, which limits the ability of baseline methods to handle irregular geometries and high object den-sity. Benefiting from an iterative evaluation-and-refinement process that explicitly enforces structural constraints, our approach achieves a better balance between space utilization and structural consistency, effectively mitigating boundary violations, collisions, and passage blocking. Overall, the qualitative results corroborate the quantitative improvements reported in Section 5.1, demonstrating the robustness and consistency of our method under challenging structural constraints. 
+
+5.3 User Study 
+
+To evaluate the perceptual quality and functional usability of the generated layouts beyond geometric metrics, we conducted a subjective user study involving 31 participants. We randomly sampled 30 room scenarios from the test set and generated layouts using three methods: DiffuScene [ 4], SemLayout [ 7], and our Agentic Designer. Participants were presented with anonymized 2D renderings and asked to rate them on a 5-point Likert scale (1: Poor to 5: Excellent) across three dimensions: Circulation Rationality (CR), Location Ra-tionality (LR), and Proportional Rationality (PR), as defined in Section 4.3. As summarized in Table 4, our method consistently outperforms state-of-the-art baselines. Specifically, Agentic Designer achieves a CR score of 4.78, significantly surpassing DiffuScene (1.50) and SemLayout (2.83). While baselines often produce fragmented arrangements that obstruct doorways or clutter functional zones, our approach effectively preserves clear movement flows. Furthermore, our method achieves the highest ratings in Location and Proportional Rationality, confirming that the constraint-aware generation leads to layouts that are not only geometrically valid but also visually harmonious and functionally practical for real-world living. 
+
+TABLE 4 – User Study Results. Mean perceptual scores on a 1-5 scale (higher is better). Our method demonstrates superior performance in circulation, placement logic, and visual balance compared to baselines.              
+
+> Method CR LR PR
+> DiffuScene [4] 1.50 1.32 1.32 SemLayout [7] 2.83 2.58 3.02
+> Agentic Designer (Ours) 4.78 4.74 4.80 IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 11
+
+DiffuScene 
+
+Living room 
+
+SemLayout 
+
+Living room 
+
+Ours 
+
+Living room 
+
+DiffuScene 
+
+Bed room 
+
+SemLayout 
+
+Bed room 
+
+Ours 
+
+Bed room 
+
+Fig. 5 – Qualitative comparison of DiffuScene, SemLayout, and our method on representative living room and bedroom scenes. The examples include rooms with highly irregular boundaries and high furniture density. Baseline methods exhibit typical failure modes such as out-of-bound object placement (objects outside the room are not rendered), passage blocking, object overlap, and improper object orientation, whereas our method produces compact and structurally valid layouts that better respect architectural constraints. IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 12 
+
+5.4 Ablation Study 
+
+5.4.1 Multi-Agent vs. Single-Agent Design. 
+
+We evaluate the necessity of multi-agent collaboration by ablating the Evaluator and Refiner agents, resulting in a 
+
+Generator-Only variant that produces layouts in a single autoregressive pass without iterative verification. This base-line is compared with the full agentic framework using both objective structural metrics and human perceptual evaluation. Quantitative results in Table 5 show that removing agent collaboration leads to a clear degradation in geometric valid-ity, with the effect being most pronounced in the Bedroom scenario under tighter spatial constraints. Specifically, the Generator-only variant exhibits a Scene Violation Rate (SVR) of 21.14% and a Collision Score (CS) of 5.31, whereas the full framework reduces these values to 7.14% and 3.10, respectively. This suggests that while a single Generator can produce semantically plausible layouts, it lacks the ability to reliably resolve hard geometric conflicts, which are effectively mitigated through iterative evaluation and refinement. 
+
+TABLE 5 – Ablation Study: Effectiveness of Multi-Agent Collaboration. Comparison between the single-agent baseline (Generator Only ) and the full multi-agent framework. Collabo-ration significantly reduces violation rates (SVR) and collision scores (CS) while preserving scene complexity (ANF, OR).                                  
+
+> Room Type Model Variant ANF ↑OR (%) ↑SVR (%) ↓BVC ↓CS ↓
+> Living Room Generator Only 13.15 21.43 20.00 0.38 3.42
+> Agentic Designer (Full) 13.16 21.55 16.85 0.30 3.27
+> Bedroom Generator Only 4.78 35.71 21.14 0.29 5.31
+> Agentic Designer (Full) 4.78 35.73 7.14 0.14 3.10
+
+TABLE 6 – User Study: Perceptual Ablation on Agent Collabo-ration. Reported values are mean scores on a 1–5 scale.          
+
+> Configuration CR LR PR
+> Generator Only 3.63 3.15 3.70
+> Agentic Designer (Full) 4.44 4.39 4.49
+
+Importantly, these validity improvements are achieved without simplifying the generated scenes. The Average Number of Furniture (ANF) and Occupancy Ratio (OR) remain statistically stable across configurations (e.g., ANF 
+
+≈ 13.15 for living rooms), indicating that the collaborative agents enhance layout validity primarily through local geometric adjustments (e.g., repositioning, reorientation, and minor rescaling) while preserving the original scene density and design intent. Consistent with these findings, a user study conducted under the same ablation setting (Table 6) reveals consistent perceptual declines across all criteria when agent collaboration is removed, with the largest drops observed in Location Rationality and Circulation Rationality. The full framework achieves improvements of approximately +0.7 to +0.8 across perceptual dimensions, confirming that the geometric corrections introduced by multi-agent collaboration translate directly into improved human-perceived layout quality. 
+
+5.4.2 Impact of Progressive Consensus Mechanism 
+
+To validate the necessity of the step-by-step verification protocol, we compare our framework against a Global Refinement variant. In this setup, the Progressive Consensus Mechanism is removed; instead, the system generates the entire furniture sequence in a single pass, followed by a one-time global evaluation and refinement of all objects. As shown in Table 7, replacing the progressive strategy with global refinement leads to a decline in overall geometric validity. 
+
+TABLE 7 – Ablation Study: Progressive vs. Global Refinement. 
+
+Comparison between the proposed step-by-step mechanism and a global, post-hoc refinement strategy. The progressive approach achieves better overall structural validity, especially in the Bedroom scenario.                                  
+
+> Room Type Model Variant ANF ↑OR (%) ↑SVR (%) ↓BVC ↓CS ↓
+> Living Room Global Refinement 13.13 21.23 20.50 0.37 2.54
+> Agentic Designer (Full) 13.16 21.55 16.85 0.30 3.27
+> Bedroom Global Refinement 4.75 35.36 17.74 0.26 3.99
+> Agentic Designer (Full) 4.78 35.73 7.14 0.14 3.10
+
+The performance degradation is most evident in the Bedroom scenario, where more compact room dimensions leave less margin for geometric adjustment, causing the Scene Violation Rate (SVR) to rise sharply from 7.14% to 17.74%, accompanied by a noticeable increase in collision scores (CS from 3.10 to 3.99). In the Living Room scenario, the Global variant presents a mixed outcome: while it achieves slightly lower collision scores, it fails to maintain comparable bound-ary adherence (20.50% SVR vs. 16.85%). Furthermore, other metrics also exhibit varying degrees of deterioration across both scenarios. This suggests that without step-wise error correction, the Global variant struggles to find a balanced solution that satisfies all constraints simultaneously, resulting in a suboptimal trade-off between collision avoidance and boundary compliance compared to the full Agentic Designer. 
+
+5.4.3 Impact of Historical Context Quality. 
+
+To empirically validate the assumption in Eq. (3), we isolate the impact of historical context quality on the Generator’s predictions. We compare two inference settings using the same trained Generator. The two settings differ only in how the layout history is updated for subsequent steps. In the Unverified-History setting, the Generator’s raw proposal is directly appended to the context. In the Verified-History 
+
+setting, the proposal is first assessed by the Evaluator and rectified by the Refiner if necessary; this verified object is then incorporated into the context. Crucially, in both settings, quantitative metrics are computed strictly on the Generator’s initial, unrefined proposals to evaluate its raw prediction capability, rather than the Refiner’s immediate correction ability. By evaluating only the raw proposals in both cases, we ensure that any performance difference stems entirely from the geometric validity of the historical context guiding the Generator. As shown in Table 8, maintaining this verified context directly translates into higher-quality predictions, consistent with the hypothesis in Eq. (3). When guided by a Verified-History , the Generator’s raw proposals exhibit fewer geomet-ric errors while maintaining comparable scene complexity (ANF and OR). Specifically, SVR/BVC/CS decrease from 20.00%/0.38/3.42 to 17.97%/0.33/2.19 in living rooms, and from 21.14%/0.29/5.31 to 17.38%/0.25/3.14 in bedrooms. This confirms that the Progressive Consensus Mechanism IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 13 
+
+TABLE 8 – Ablation Study: Impact of Historical Context Qual-ity. Comparison of the Generator’s initial proposals conditioned on unverified versus verified historical contexts. Providing a verified history consistently reduces geometric violations and collisions without sacrificing scene complexity.                                  
+
+> Room Type Context Setting ANF ↑OR (%) ↑SVR (%) ↓BVC ↓CS ↓
+> Living Room Unverified-History 13.15 21.43 20.00 0.38 3.42 Verified-History 13.01 21.34 17.97 0.33 2.19
+> Bedroom Unverified-History 4.78 35.71 21.14 0.29 5.31 Verified-History 4.78 35.94 17.38 0.25 3.14
+
+improves layout generation not merely by retrospectively fixing errors, but by proactively providing a clean, valid history that prevents error accumulation in subsequent steps. 
+
+5.5 Convergence and Iteration Analysis of the Refiner 
+
+The Progressive Consensus Mechanism relies on an iterative evaluation-refinement loop to enforce geometric validity. To manage computational overhead and ensure algorithmic stability, this loop is bounded by a hyperparameter: the maximum number of refinement iterations per object ( Nmax ). Specifically, the loop terminates either when the Evaluator detects no geometric violations or when Nmax is reached, at which point the most recent state is committed. In our primary evaluations, we set the default to Nmax = 1 to prioritize inference efficiency while preserving high layout quality. To further investigate the convergence dynamics of the Refiner under relaxed iteration limits, we conduct an extended analysis by varying Nmax ∈ { 1, 2, 3, 4} on the InStruct test set. The results are summarized in Table 9. 
+
+TABLE 9 – Convergence Analysis with Varying Maximum Iterations ( Nmax ). The average refinement steps per object plateaus rapidly, indicating fast convergence without oscillatory corrections.                                                             
+
+> Room Nmax Avg. Steps ANF ↑OR (%) ↑SVR (%) ↓BVC ↓CS ↓
+> Living 10.04 13.16 21.55 16.85 0.30 3.27 20.05 13.01 21.33 10.04 0.24 1.63 30.07 13.01 21.34 8.63 0.22 1.73 40.08 13.02 21.34 8.43 0.22 1.61 Bedroom 10.07 4.78 35.73 7.14 0.14 3.10 20.09 4.77 35.85 5.17 0.11 2.94 30.10 4.77 35.83 5.31 0.12 2.72 40.10 4.77 35.84 4.74 0.11 2.84
+
+As shown in Table 9, expanding the refinement allowance from Nmax = 1 to Nmax = 2 yields consistent improvements in structural validity. For instance, the Scene Violation Rate (SVR) in living rooms decreases from 16.85% to 10.04%, and the Collision Score (CS) is nearly halved. Furthermore, as 
+
+Nmax is further increased to 3 and 4, the evaluation metrics stabilize, and the average number of executed refinement steps per object naturally plateaus (e.g., converging to 0.08 for living rooms and 0.10 for bedrooms). This stabilization serves as direct evidence of the system’s strong convergence properties. If the Refiner were prone to oscillatory corrections, it would merely alternate between invalid states without resolving the underlying spatial con-flicts. Consequently, this behavior would cause the system to continuously fail the Evaluator’s checks, forcing it to exhaust the iteration budget. Under such circumstances, the average step count would increase proportionally with Nmax . In contrast, the observed early plateau demonstrates that when a geometric violation occurs, the Refiner successfully rectifies it within one or two targeted adjustments. Once corrected, the object’s placement immediately passes the Evaluator’s validation, effectively terminating the iterative loop without falling into redundant cycles. 
+
+5.6 Inference Latency and Efficiency Analysis 
+
+We report the average inference latency on the InStruct test set to quantify the computational overhead of the progressive multi-agent loop. For comparison, we evaluate a one-shot Generator baseline. Unlike the sequential iterative ablation discussed previously, this baseline predicts the complete furniture set in a single pass without intermediate evaluation or refinement. Thus, it serves as a suitable baseline to strictly isolate the latency cost introduced by the iterative verification-and-refinement process. 
+
+TABLE 10 – Inference Latency Comparison. Average end-to-end inference time per scene on the InStruct test set. The One-shot Generator directly predicts the complete furniture set in a single pass, while Agentic Designer performs progressive multi-agent verification and refinement.         
+
+> Room Type Model Variant Avg. Inference Time (s)
+> Living Room One-shot Generator 9.87 Agentic Designer 23.97 Bedroom One-shot Generator 3.86 Agentic Designer 8.62
+
+For a fair and realistic latency comparison, all scenes are processed sequentially with a batch size of 1 in the same NVIDIA RTX 4090 GPU environment. As shown in Table 10, Agentic Designer requires 23.97 seconds per living-room scene and 8.62 seconds per bedroom scene, compared with 9.87 and 3.86 seconds for the one-shot Generator baseline, respectively. The results indicate that the multi-agent loop increases inference time by approximately 2.2×–2.4×. This overhead is primarily attributed to the additional evaluation and refinement steps, whereas the token generation budget remains comparable to that of the one-shot baseline. How-ever, this increased latency is justified by improvements in overall layout quality. While single-pass generation is fast, the iterative multi-agent loop is crucial for satisfying strict structural and spatial constraints. 
+
+6 LIMITATION AND FUTURE WORK .
+
+While Agentic Designer significantly outperforms existing methods in structural adherence and collision avoidance, it is not without limitations. As illustrated in Figure 6, highly irregular floor plans with deep external recesses or concave boundaries may still introduce topological ambiguity. In particular, the model may occasionally misinterpret nook-like external recesses as valid interior regions for furniture placement. Although the proposed multi-agent framework reduces the frequency and severity of such failures compared with baseline methods, this failure case indicates that reason-ing solely over coordinate-based textual representations may be insufficient for perceiving complex 2D topology. IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 14 DiffuScene SemLayout Ours    
+
+> Fig. 6 –Failure case analysis on highly irregular geometries. In rooms with deep external recesses, the model may occasionally place furniture in non-interior zones due to topological ambigu-ity. However, compared to DiffuScene and SemLayout, Agentic Designer maintains significantly better structural coherence and minimizes such occurrences.
+
+This limitation is partly due to the reliance of the current Evaluator on coordinate-level geometric checks. While such checks are effective for detecting local violations, including boundary penetration, object collisions, and orientation errors, they are less reliable in determining whether a candidate placement lies in the connected interior region or in an external recess that merely appears locally valid. To address this issue, future work will incorporate visual grounding into the agentic framework. A Vision-Language Model (VLM) or a dedicated 2D spatial encoder will be introduced to extract topology-aware features from room masks, boundary contours, or occupancy maps. Serving as an auxiliary verification signal, these features will enable the Evaluator to reason more explicitly about interior-exterior relationships and global connectivity before a furniture placement is accepted. By integrating this topology-aware verification into the progressive evaluation-and-refinement loop, the framework is expected to better distinguish valid interior alcoves from invalid external recesses, thereby reducing boundary-related failures in layouts with complex and highly irregular room boundaries. 
+
+7 CONCLUSION 
+
+In this paper, we introduced Agentic Designer, a progressive multi-agent framework tailored for structure-aware inte-rior layout generation. Driven by a Progressive Consensus Mechanism, our approach decomposes the complex design task into collaborative stages of proposal, evaluation, and refinement, effectively overcoming the limitations of one-shot generation methods and ensuring rigorous adherence to architectural constraints. To standardize evaluation in this field, we also established InStruct, a comprehensive benchmark that integrates a large-scale, explicitly annotated dataset with an adapted version of 3D-FRONT and a suite of specialized structural metrics. Our experiments on this benchmark demonstrate that the collaborative synergy between the Generator, Evaluator, and Refiner significantly reduces structural violations and collision rates, producing layouts that are both functionally plausible and geometri-cally coherent. We envision that Agentic Designer and the InStruct benchmark will serve as foundational resources for future research, fostering the development of more robust, controllable, and standardizable automated design tools. 
+
+REFERENCES 
+
+[1] K. Wang, Y.-A. Lin, B. Weissmann, M. Savva, A. X. Chang, and D. Ritchie, “Planit: Planning and instan-tiating indoor scenes with relation graph and spatial prior networks,” ACM Transactions on Graphics (TOG) ,vol. 38, no. 4, pp. 1–15, 2019. [2] D. Paschalidou, A. Kar, M. Shugrina, K. Kreis, A. Geiger, and S. Fidler, “Atiss: Autoregressive transformers for indoor scene synthesis,” Advances in Neural Information Processing Systems , vol. 34, pp. 12 013–12 026, 2021. [3] W. Feng, W. Zhu, T.-j. Fu, V. Jampani, A. Akula, X. He, S. Basu, X. E. Wang, and W. Y. Wang, “Layoutgpt: Compositional visual planning and generation with large language models,” Advances in Neural Information Processing Systems , vol. 36, pp. 18 225–18 250, 2023. [4] J. Tang, Y. Nie, L. Markhasin, A. Dai, J. Thies, and M. Nießner, “Diffuscene: Denoising diffusion models for generative indoor scene synthesis,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2024, pp. 20 507–20 518. [5] Y. Yang, B. Jia, P. Zhi, and S. Huang, “Physcene: Physi-cally interactable 3d scene synthesis for embodied ai,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2024, pp. 16 262–16 272. [6] Z. Liang, G. Xu, H. Wu, Y. Huang, W. Li, and L. Duan, “S-inf: Towards realistic indoor scene synthesis via scene implicit neural field,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 39, no. 5, 2025, pp. 5173–5181. [7] X. Sun, D. Goel, and A. X. Chang, “Semlayoutdiff: Semantic layout generation with diffusion model for indoor scene synthesis,” pp. 1545–1555, 2026. [8] Z. Hu, A. Iscen, A. Jain, T. Kipf, Y. Yue, D. A. Ross, C. Schmid, and A. Fathi, “Scenecraft: An llm agent for synthesizing 3d scenes as blender code,” in Forty-first International Conference on Machine Learning , 2024. [9] T. Chen, J. Lin, Z. Yang, C. Qing, G. Wang, and L. Lin, “Learning spatial-temporal coherent correlations for speech-preserving facial expression manipulation,” 
+
+IEEE Transactions on Pattern Analysis and Machine Intelli-gence , 2026. [10] H. Tanasra, T. Rott Shaham, T. Michaeli, G. Austern, and S. Barath, “Automation in interior space planning: Utilizing conditional generative adversarial network models to create furniture layouts,” Buildings , vol. 13, no. 7, p. 1793, 2023. [11] C. Wang, H. Zhong, M. Chai, M. He, D. Chen, and J. Liao, “Chat2layout: Interactive 3d furniture layout with a multimodal llm.” IEEE transactions on visualization and computer graphics , 2025. [12] A. Chang, A. Dai, T. Funkhouser, M. Halber, M. Niessner, M. Savva, S. Song, A. Zeng, and Y. Zhang, “Matter-port3d: Learning from rgb-d data in indoor environ-ments,” arXiv preprint arXiv:1709.06158 , 2017. [13] S. Song, F. Yu, A. Zeng, A. X. Chang, M. Savva, and T. Funkhouser, “Semantic scene completion from a single depth image,” in Proceedings of the IEEE conference on computer vision and pattern recognition , 2017, pp. 1746– 1754. [14] J. Zheng, J. Zhang, J. Li, R. Tang, S. Gao, and Z. Zhou, IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 15 
+
+“Structured3d: A large photo-realistic dataset for struc-tured 3d modeling,” in European Conference on Computer Vision . Springer, 2020, pp. 519–535. [15] H. Fu, B. Cai, L. Gao, L.-X. Zhang, J. Wang, C. Li, Q. Zeng, C. Sun, R. Jia, B. Zhao et al. , “3d-front: 3d furnished rooms with layouts and semantics,” in 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision , 2021, pp. 10 933–10 942. [16] D. Ritchie, K. Wang, and Y.-a. Lin, “Fast and flexible indoor scene synthesis via deep convolutional genera-tive models,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2019, pp. 6182– 6190. [17] M.-J. Yang, Y.-X. Guo, B. Zhou, and X. Tong, “In-door scene generation from a collection of semantic-segmented depth images,” in Proceedings of the IEEE/CVF International Conference on Computer Vision ,2021, pp. 15 203–15 212. [18] T. Chen, J. Lin, Z. Yang, C. Qing, Y. Shi, and L. Lin, “Contrastive decoupled representation learning and regularization for speech-preserving facial expression manipulation,” International Journal of Computer Vision ,vol. 133, no. 7, pp. 3822–3838, 2025. [19] M. Li, A. G. Patil, K. Xu, S. Chaudhuri, O. Khan, A. Shamir, C. Tu, B. Chen, D. Cohen-Or, and H. Zhang, “Grains: Generative recursive autoencoders for indoor scenes,” ACM Transactions on Graphics (TOG) , vol. 38, no. 2, pp. 1–16, 2019. [20] X. Wang, C. Yeshwanth, and M. Nießner, “Sceneformer: Indoor scene generation with transformers,” in 2021 International Conference on 3D Vision (3DV) . IEEE, 2021, pp. 106–115. [21] Q. A. Wei, S. Ding, J. J. Park, R. Sajnani, A. Poulenard, S. Sridhar, and L. Guibas, “Lego-net: Learning regular rearrangements of objects in rooms,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2023, pp. 19 037–19 047. [22] C. Lin and Y. Mu, “Instructscene: Instruction-driven 3d indoor scene synthesis with semantic graph prior,” 
+
+arXiv preprint arXiv:2402.04717 , 2024. [23] S. Hu, D. M. Arroyo, S. Debats, F. Manhardt, L. Carlone, and F. Tombari, “Mixed diffusion for 3d indoor scene synthesis,” arXiv preprint arXiv:2405.21066 , 2024. [24] A. C¸ elen, G. Han, K. Schindler, L. Van Gool, I. Armeni, A. Obukhov, and X. Wang, “I-design: Personalized llm interior designer,” in European Conference on Computer Vision . Springer, 2024, pp. 217–234. [25] R. Fu, Z. Wen, Z. Liu, and S. Sridhar, “Anyhome: Open-vocabulary generation of structured and textured 3d homes,” in European Conference on Computer Vision .Springer, 2024, pp. 52–70. [26] Y. Yang, F.-Y. Sun, L. Weihs, E. VanderBilt, A. Herrasti, W. Han, J. Wu, N. Haber, R. Krishna, L. Liu et al. ,“Holodeck: Language guided generation of 3d embod-ied ai environments,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,2024, pp. 16 227–16 237. [27] J. Liang, W. Huang, F. Xia, P. Xu, K. Hausman, B. Ichter, P. Florence, and A. Zeng, “Code as policies: Language model programs for embodied control,” arXiv preprint arXiv:2209.07753 , 2022. [28] A. Brohan, Y. Chebotar, C. Finn, K. Hausman, A. Herzog, D. Ho, J. Ibarz, A. Irpan, E. Jang, R. Julian et al. , “Do as i can, not as i say: Grounding language in robotic affordances,” in Conference on robot learning . PMLR, 2023, pp. 287–318. [29] S. Hong, M. Zhuge, J. Chen, X. Zheng, Y. Cheng, J. Wang, C. Zhang, Z. Wang, S. K. S. Yau, Z. Lin et al. , “Metagpt: Meta programming for a multi-agent collaborative framework,” in The Twelfth International Conference on Learning Representations , 2023. [30] S. Shi, L. Jiang, D. Dai, and B. Schiele, “Mtr++: Multi-agent motion prediction with symmetric scene modeling and guided intention querying,” IEEE Transactions on Pattern Analysis and Machine Intelligence , vol. 46, no. 5, pp. 3955–3971, 2024. [31] S. Liu, J. Song, Y. Zhou, N. Yu, K. Chen, Z. Feng, and M. Song, “Interaction pattern disentangling for multi-agent reinforcement learning,” IEEE Transactions on Pattern Analysis and Machine Intelligence , vol. 46, no. 12, pp. 8157–8172, 2024. [32] L. Lin, Y. Jin, Y. Zhou, W. Chen, and C. Qian, “Mao: A framework for process model generation with multi-agent orchestration,” IEEE Transactions on Services Com-puting , 2025. [33] A. Madaan, N. Tandon, P. Gupta, S. Hallinan, L. Gao, S. Wiegreffe, U. Alon, N. Dziri, S. Prabhumoye, Y. Yang et al. , “Self-refine: Iterative refinement with self-feedback, 2023,” URL https://arxiv. org/abs/2303.17651 ,2023. [34] T. Hu, B. Luo, C. Yang, and T. Huang, “Mo-mix: Multi-objective multi-agent cooperative decision-making with deep reinforcement learning,” IEEE Transactions on Pattern Analysis and Machine Intelligence , vol. 45, no. 10, pp. 12 098–12 112, 2023. [35] M. Besta, F. Memedi, Z. Zhang, R. Gerstenberger, G. Piao, N. Blach, P. Nyczyk, M. Copik, G. Kwa ´sniewski, J. M ¨uller et al. , “Demystifying chains, trees, and graphs of thoughts,” IEEE Transactions on Pattern Analysis and Machine Intelligence , 2025. [36] A. Dai, A. X. Chang, M. Savva, M. Halber, T. Funkhouser, and M. Nießner, “Scannet: Richly-annotated 3d recon-structions of indoor scenes,” in Proceedings of the IEEE conference on computer vision and pattern recognition , 2017, pp. 5828–5839. [37] S. K. Ramakrishnan, A. Gokaslan, E. Wijmans, O. Maksymets, A. Clegg, J. Turner, E. Under-sander, W. Galuba, A. Westbury, A. X. Chang et al. ,“Habitat-matterport 3d dataset (hm3d): 1000 large-scale 3d environments for embodied ai,” arXiv preprint arXiv:2109.08238 , 2021. [38] C. Yeshwanth, Y.-C. Liu, M. Nießner, and A. Dai, “Scannet++: A high-fidelity dataset of 3d indoor scenes,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , 2023, pp. 12–22. [39] W. Li, S. Saeedi, J. McCormac, R. Clark, D. Tzoumanikas, Q. Ye, Y. Huang, R. Tang, and S. Leutenegger, “Interi-ornet: Mega-scale multi-sensor photo-realistic indoor scenes dataset,” arXiv preprint arXiv:1809.00716 , 2018. [40] B. Hui, J. Yang, Z. Cui, J. Yang, D. Liu, L. Zhang, T. Liu, J. Zhang, B. Yu, K. Lu et al. , “Qwen2. 5-coder technical report,” arXiv preprint arXiv:2409.12186 , 2024. IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE 16 
+
+[41] D. Zhang, Z.-Z. Li, M.-L. Zhang, J. Zhang, Z. Liu, Y. Yao, H. Xu, J. Zheng, X. Chen, Y. Zhang et al. , “From system 1 to system 2: a survey of reasoning large language models,” IEEE Transactions on Pattern Analysis and Machine Intelligence , 2025. [42] A. Plaat, A. Wong, S. Verberne, J. Broekens, and N. Van Stein, “Multi-step reasoning with large language models, a survey,” ACM Computing Surveys , 2025. [43] X. Liu, D. Yin, C. Zhang, D. Zhao, and Y. Feng, “Elic-iting and improving the causal reasoning abilities of large language models with conditional statements,” 
+
+Computational Linguistics , pp. 1–38, 2025. [44] E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang, W. Chen et al. , “Lora: Low-rank adaptation of large language models.” ICLR , vol. 1, no. 2, p. 3, 2022. [45] I. Loshchilov and F. Hutter, “Decoupled weight decay regularization,” arXiv preprint arXiv:1711.05101 , 2017. 
+
+Zhijing Yang received the B.S and Ph.D. degrees from the Mathematics and Computing Science, Sun Yat-sen University, Guangzhou China, in 2003 and 2008, respectively. He was a Visiting Research Scholar in the School of Computing, Informatics and Media, University of Bradford, U.K, between July-Dec, 2009, and a Research Fellow in the School of Engineering, University of Lincoln, U.K, between Jan. 2011 to Jan. 2013. He is currently a Professor and Vice Dean at the School of Information Engineering, Guangdong University of Technology, China. He has published over 80 peer-reviewed journal and conference papers, including IEEE T-CSVT, T-MM, T-GRS, PR, etc. His research interests include machine learning and pattern recognition. 
+
+Haocheng Lin received the bachelor’s degree from Guangdong University of Technology in 2024. He is currently pursuing the master’s de-gree with the School of Information Engineering, Guangdong University of Technology, under the supervision of Prof. Zhijing Yang. His research interests include multi-agent systems and gener-ative design. 
+
+Zhihua Xu received the B.E. degree from the School of Computer Science and Technology and the M.S. degree from the School of Information Engineering, both from Guangdong University of Technology, Guangzhou, China. He is currently pursuing the Ph.D. degree with the School of Computer Science and Engineering, Sun Yat-sen University, Guangzhou, China. His research inter-ests include Multimodal Large Language Models (MLLMs) and AI for Design. He has authored papers in top-tier conferences and journals, in-cluding ACM MM and IEEE TMM. 
+
+Haojie Li is currently a Ph.D. candidate at South China University of Technology. He received the M.S. degree from South China University of Tech-nology and the B.S. degree from Shantou Univer-sity. His research interests include controllable image generation and digital human generation. 
+
+Keze Wang is nationally recognized as the Dis-tinguished Young Scholars of the National Nat-ural Science Foundation of China (Overseas), currently serving as an Associate Professor at the School of Computer Science, Sun Yat-sen University, and a doctoral supervisor. He holds two Ph.D. degrees, one from Sun Yat-sen Uni-versity (2017) and another from the Hong Kong Polytechnic University (2019). In 2018, he worked as a postdoctoral researcher at the University of California, Los Angeles, and returned to Sun Yat-sen University in 2021 as part of the “Hundred Talents Program”. He has focused on reducing deep learning’s dependence on training samples and mining valuable information from massive unlabeled data, proposing fundamental learning paradigms, e.g., long-term self-learning and pseudo-label learning mechanisms. This has led to the gradual construction of a theoretical and methodological system for vision computing and reasoning. He has published nearly 30 papers in top-tier journals and conferences, including iScience, T-PAMI, T-NNLS, CVPR, and ICCV, with 12 papers as the first or corresponding author. His works have been cited approximately 2223 times on Google Scholar, and his has three ESI highly cited papers. He holds five patents and has received the 2018 Wu Wenjun AI Science and Technology Award, the 2019 Outstanding Doctoral Dissertation Award, and a nomination for the 2022 AI 2000 Most Influential Scholar Award. 
+
+Liang Lin (Fellow, IEEE) is a full professor at Sun Yat-sen University. From 2008 to 2010, he was a postdoctoral fellow at the University of Califor-nia, Los Angeles. From 2016–2018, he led the SenseTime R&D teams to develop cutting-edge and deliverable solutions for computer vision, data analysis and mining, and intelligent robotic systems. He has authored and co-authored more than 100 papers in top-tier academic journals and conferences (e.g., 15 papers in TPAMI and IJCV and 60+ papers in CVPR, ICCV, NIPS, and IJCAI). He has served as an associate editor of IEEE Trans. Human-Machine Systems, The Visual Computer, and Neurocomputing and as an area/session chair for numerous conferences, such as CVPR, ICME, ACCV, and ICMR. He was the recipient of the Annual Best Paper Award by Pattern Recognition (Elsevier) in 2018, the Best Paper Diamond Award at IEEE ICME 2017, the Best Paper Runner-Up Award at ACM NPAR 2010, Google Faculty Award in 2012, the Best Student Paper Award at IEEE ICME 2014, and the Hong Kong Scholars Award in 2014. He is a Fellow of IEEE, IAPR, and IET. 
+
+Tianshui Chen received a Ph.D. degree in com-puter science at the School of Data and Computer Science Sun Yat-sen University, Guangzhou, China, in 2018. Prior to earning his Ph.D, he re-ceived a B.E. degree from the School of Informa-tion and Science Technology in 2013. He is cur-rently an associate professor at the Guangdong University of Technology. His current research interests include artificial intelligence, multimodal large models, and generative AI. He has authored and co-authored more than 60 papers published in top-tier academic journals and conferences, including T-PAMI, IJCV, T-NNLS, T-IP, T-MM, CVPR, ICCV, AAAI, IJCAI, ACM MM, etc. He has served as a reviewer for numerous academic journals and conferences. He was the recipient of the Best Paper Diamond Award at IEEE ICME 2017.
