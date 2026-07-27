@@ -1,0 +1,519 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-27T21:47:19.165120+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 5,
+    "deep_cap": 7,
+    "deep_selected": 5,
+    "quick_candidates": 6,
+    "quick_skim_target": 12,
+    "quick_selected": 6
+  },
+  "deep_dive": [
+    {
+      "id": "2607.18116v1",
+      "source": "arxiv",
+      "title": "SGA: Plug&Play Geometric Verification for Educational Video Synthesis",
+      "abstract": "Recent work leverages Large Language Models (LLMs) to generate executable code for pedagogical animations using libraries such as Manim. However, ensuring spatial correctness and visual legibility remains challenging, as existing frameworks emphasize pedagogical content while overlooking geometric occlusions. We propose the Symbolic Geometric Agent (SGA), a plug-and-play module for code-centric animation pipelines that intercepts LLM-generated code, performs partial execution to extract symbolic scene graphs, and applies targeted refinement when spatial conflicts are detected. We further introduce the Manim Visual Quality Score (MVQS), a deterministic rendering-free proxy for spatial integrity. Experiments on the MMMC-Code benchmark across four LLM backbones and two agentic pipelines show that SGA achieves a peak MVQS of 73.11 (Code2Video + GPT-5.1), corresponding to a 16.1% relative improvement over the raw baseline, and improves MVQS in 7 of 8 backbone x pipeline configurations.",
+      "authors": [
+        "Lopez Jhon",
+        "Hinojosa Carlos",
+        "Ghanem Bernard"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CV",
+        "cs.GR",
+        "cs.MA",
+        "cs.MM"
+      ],
+      "published": "2026-07-20T16:11:19+00:00",
+      "link": "https://arxiv.org/pdf/2607.18116v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LLM-based agent for 3D scene construction",
+      "llm_evidence_cn": "基于LLM的智能体用于三维场景构建",
+      "llm_evidence": "基于LLM的智能体用于三维场景构建",
+      "canonical_evidence": "基于LLM的智能体用于三维场景构建",
+      "llm_tldr_en": "Proposes SGA, a plug-and-play geometric verification module that uses symbolic scene graphs to refine LLM-generated animation code, ensuring spatial correctness in educational video synthesis.",
+      "llm_tldr_cn": "针对大语言模型生成教育动画代码时空间不准确的问题，提出符号几何智能体（SGA），通过部分执行代码提取场景图并检测几何冲突，自动应用修正。在MMMC-Code基准测试中，SGA显著提升了四种LLM后端输出的视觉质量，且无需额外训练。",
+      "llm_tldr": "针对大语言模型生成教育动画代码时空间不准确的问题，提出符号几何智能体（SGA），通过部分执行代码提取场景图并检测几何冲突，自动应用修正。在MMMC-Code基准测试中，SGA显著提升了四种LLM后端输出的视觉质量，且无需额外训练。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "language model agent for 3d scene construction",
+      "matched_requirement_id": "req-14",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.19190v2",
+      "source": "arxiv",
+      "title": "Agentic Real2Sim: Physics-based World Modeling with Vision-Language Agents",
+      "abstract": "Real-to-sim conversion for robotic interaction with objects remains labor-intensive because it requires more than visual reconstruction: a streamlined real2sim process must recover scene geometries and object states, infer physical parameters, and assemble actors, objects, cameras, poses, and trajectories into a runnable physical simulation. Today this process still depends on manual tuning of visual foundation models, mesh cleanup, coordinate-frame alignment, and brittle workflow glue across visual perception tools and simulators. We introduce \\textit{Agentic Real2Sim}, a framework for generalized physical world modeling with vision-language agents, converting a real-world recording of object-robot interaction into a simulatable episodic twin which preserves observations, geometries, robot interactions, and object states. We evaluate Agentic Real2Sim on rigid-object manipulation, deformable-object interaction, and humanoid motion scenes, spanning domains that are usually handled by separate Real2Sim pipelines, marking a first step toward scalable conversion. The framework's agentic decisions can be driven by an open-weight VLM backend at a small fraction of the cost of frontier models, while attaining comparable conversion success rate. We aim to use the resulting real-world-aligned twins for downstream robotics tasks, specifically policy learning and evaluation. The project site is available at https://agentic-real2sim.github.io/.",
+      "authors": [
+        "Guanxiong Chen",
+        "Qianjun Xia",
+        "Jiawei Peng",
+        "Heng Zhang",
+        "Bole Ma",
+        "Justin Qian",
+        "Ziyi Jiao",
+        "Bingyang Zhou",
+        "Luoxin Ye",
+        "Kaifeng Zhang",
+        "Kunyi Wang",
+        "Weijia Zeng",
+        "Yunuo Chen",
+        "Pengzhi Yang",
+        "Ziqiu Zeng",
+        "Huamin Wang",
+        "Chao Liu",
+        "Alan Yuille",
+        "Fan Shi",
+        "Changxi Zheng",
+        "Yunzhu Li",
+        "Chenfanfu Jiang",
+        "Peter Yichen Chen"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-07-21T15:23:38+00:00",
+      "link": "https://arxiv.org/pdf/2607.19190v2",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "VLM agent for 3D scene construction from real-world recordings",
+      "llm_evidence_cn": "基于视觉语言智能体的真实世界到仿真场景构建",
+      "llm_evidence": "基于视觉语言智能体的真实世界到仿真场景构建",
+      "canonical_evidence": "基于视觉语言智能体的真实世界到仿真场景构建",
+      "llm_tldr_en": "Agentic Real2Sim uses vision-language agents to convert real-world robot-object interactions into simulatable 3D scenes, inferring physical parameters and assembling full simulation.",
+      "llm_tldr_cn": "该论文提出Agentic Real2Sim框架，利用视觉语言智能体将真实世界的物体-机器人交互记录自动转化为可运行的物理仿真场景。框架恢复场景几何和物体状态，推断物理参数，并组装参与者、摄像机、轨迹等，免去了传统手动流程，实现了自动化真实到仿真的转换。",
+      "llm_tldr": "该论文提出Agentic Real2Sim框架，利用视觉语言智能体将真实世界的物体-机器人交互记录自动转化为可运行的物理仿真场景。框架恢复场景几何和物体状态，推断物理参数，并组装参与者、摄像机、轨迹等，免去了传统手动流程，实现了自动化真实到仿真的转换。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.22355v1",
+      "source": "arxiv",
+      "title": "SiPhy: Single-Image Physical Property Reasoning",
+      "abstract": "Inferring physical properties such as mass, stiffness, and elasticity from a single image is essential for simulation and embodied AI, yet most existing approaches rely on multi-view reconstruction or physics-based supervision. We introduce SiPhy, a unified framework for single-image physical property reasoning that aligns 3D-aware visual cues, depth with language-based material knowledge. From one RGB image, SiPhy samples pseudo-voxel points, extracts CLIP features, and grounds them to material candidates proposed by a VLM. A part-based contrastive aggregator enforces region consistency, while a heaviness-aware refinement improves thickness and volume estimation for dense objects. Across ABO-500, MVImgNet-100, and PhysXNet-100, SiPhy achieves state-of-the-art single-image performance, surpassing multi-view reconstruction methods by improving mass MnRE by up to 93% (vs. PUGS), reducing density MAE by 35.5% (vs. NeRF2Physics), and lowering Young's modulus error by 23.5%. We further validate SiPhy on real hand-object interaction datasets, demonstrating its potential as a data annotation engine for physical understanding from single-view imagery.",
+      "authors": [
+        "Hoang Le",
+        "Joonwoo Kwon",
+        "Elkhan Ismayilzada",
+        "Yufei Zhang",
+        "Zijun Cui"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-07-24T14:36:37+00:00",
+      "link": "https://arxiv.org/pdf/2607.22355v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "single-image physical property reasoning of objects",
+      "llm_evidence_cn": "单张图像的物体物理属性推理",
+      "llm_evidence": "单张图像的物体物理属性推理",
+      "canonical_evidence": "单张图像的物体物理属性推理",
+      "llm_tldr_en": "SiPhy infers mass, stiffness, and elasticity from a single RGB image by combining 3D-aware visual cues with language-based material knowledge via a VLM and contrastive aggregation.",
+      "llm_tldr_cn": "针对单张图像物理属性推理依赖多视图重建或物理监督的局限，提出SiPhy统一框架，利用CLIP特征和VLM候选材料，通过部分对比聚合器和重量感知精炼模块，从单张RGB图像预测质量、刚度和弹性。在ABO-500等数据集上达到最先进性能。",
+      "llm_tldr": "针对单张图像物理属性推理依赖多视图重建或物理监督的局限，提出SiPhy统一框架，利用CLIP特征和VLM候选材料，通过部分对比聚合器和重量感知精炼模块，从单张RGB图像预测质量、刚度和弹性。在ABO-500等数据集上达到最先进性能。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "predicting physical properties of 3D articulated objects",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.19876v1",
+      "source": "arxiv",
+      "title": "KineBench: Benchmarking Embodied World Models via IDM-Free Kinematic Grounding",
+      "abstract": "Evaluating the physical consistency of embodied world models(EWMs) is a critical open challenge. While closed-loop evaluation via simulator rollouts offers a more faithful assessment of physical plausibility than open-loop alternatives, existing frameworks almost exclusively rely on Inverse Dynamics Models(IDMs) for action extraction. Due to the intricate mapping from 2D pixel space to 3D kinematic space, the learned IDMs can be brittle to data outside their training distribution, resulting in unreliable action extraction from the generated videos with novel objects and scenarios. This creates an unavoidable attribution ambiguity between world model inaccuracies and extractor errors. To reduce this ambiguity, we present KineBench, an IDM-free closed-loop benchmark for EWMs, built upon an explicit kinematic grounding pipeline. Given a generated video, KineBench employs cascaded visual foundation models to directly extract 6D end-effector poses from individual frames, which are then executed in a physics simulator for closed-loop validation. Beyond execution-based task success, KineBench incorporates two classical 3D kinematic metrics--Spectral Arc Length (SPARC) and the Maruyama Manipulability Index--to characterize trajectory smoothness and kinematic feasibility from a robot-centric perspective. Built on 20 diverse manipulation tasks in ManiSkill3, KineBench evaluates EWMs across four progressive suites: basic execution, task transfer, visual out-of-distribution generalization, and complexity-conditioned scaling. Evaluation across frontier models reveals task-complexity-bounded nonlinear scaling in embodied video generation, providing empirical guidance for future data-scaling strategies.",
+      "authors": [
+        "Zeyu Liu",
+        "Zhangzhe Zhu",
+        "Yang Zhang",
+        "Chenyou Fan",
+        "Chenjia Bai",
+        "Xuelong Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-07-22T08:04:17+00:00",
+      "link": "https://arxiv.org/pdf/2607.19876v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "kinematic grounding benchmark for evaluating world models",
+      "llm_evidence_cn": "用于评估世界模型物理一致性的运动学基准",
+      "llm_evidence": "用于评估世界模型物理一致性的运动学基准",
+      "canonical_evidence": "用于评估世界模型物理一致性的运动学基准",
+      "llm_tldr_en": "KineBench provides an IDM-free kinematic grounding benchmark to evaluate embodied world models on physical consistency, reducing attribution ambiguity.",
+      "llm_tldr_cn": "该论文提出KineBench基准，通过免逆动力学模型（IDM-free）的运动学归约评估具身世界模型的物理一致性。现有评估依赖逆动力学模型，易受分布外数据影响，KineBench通过直接运动学约束减少归属歧义，为世界模型的物理合理性提供更可靠的测试。",
+      "llm_tldr": "该论文提出KineBench基准，通过免逆动力学模型（IDM-free）的运动学归约评估具身世界模型的物理一致性。现有评估依赖逆动力学模型，易受分布外数据影响，KineBench通过直接运动学约束减少归属歧义，为世界模型的物理合理性提供更可靠的测试。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.22534v1",
+      "source": "arxiv",
+      "title": "SM4RT: Learning Structured Motion Geometry for 4D Reconstruction",
+      "abstract": "Geometry Foundation Models (GFMs) have substantially advanced monocular 3D reconstruction, yet extending this capability to 4D dynamic understanding remains a fundamental challenge. Most existing motion perception methods (e.g., sparse tracking, dense point-wise flow) treat motion as independent point-wise displacements, ignoring the structured nature of physical motion. However, real-world objects usually obey rigid-body kinematics, and points thus usually move collectively, not in isolation. Motion itself possesses geometric structure: physical objects undergo a set of rigid-body transformations governed by SE(3), rather than unstructured point-wise displacements. Building on this insight, we propose SM4RT, a Structured Motion 4D Reconstruction Transformer for end-to-end 3D reconstruction and structured motion perception. SM4RT introduces Structure-of-Motion to represent scene dynamics, where scene motion is decomposed into a compact set of motion bases, each represented as a temporal sequence of 6D twists in SE(3). Dense scene motion is then recovered by sparse, time-shared per-pixel assignment weights over these bases, ensuring points on the same object share a common rigid-body motion trajectory. SM4RT introduces a parallel motion geometry encoder and decoder that jointly infer 3D geometry, world-coordinate motion, and scene kinematic structure in a single forward pass from monocular RGB video. SM4RT achieves strong motion reconstruction performance while preserving the geometric structure of scene motion.",
+      "authors": [
+        "Shing Ho J. Lin",
+        "Wenzhao Zheng",
+        "Dong Zhuo",
+        "Yuqi Wu",
+        "Jie Zhou",
+        "Jiwen Lu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-07-24T17:59:51+00:00",
+      "link": "https://arxiv.org/pdf/2607.22534v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "structured motion geometry for 4D reconstruction; models rigid-body kinematics",
+      "llm_evidence_cn": "学习结构化运动几何，处理刚体运动学参数",
+      "llm_evidence": "学习结构化运动几何，处理刚体运动学参数",
+      "canonical_evidence": "学习结构化运动几何，处理刚体运动学参数",
+      "llm_tldr_en": "Proposes SM4RT, a transformer that models motion as structured SE(3) transformations instead of point-wise displacements, enabling 4D reconstruction with accurate kinematic understanding.",
+      "llm_tldr_cn": "当前运动感知方法将运动视为独立逐点位移，忽略了物理运动的结构化特性。本文提出SM4RT，利用Transformer建模物体刚体运动（SE(3)变换）的结构化几何，实现从单帧到4D动态重建。实验表明该方法能够准确捕捉运动学参数，优于逐点位移方法。这项工作为理解3D铰接物体运动提供了新范式，有望推动参数预测和物理属性推断。",
+      "llm_tldr": "当前运动感知方法将运动视为独立逐点位移，忽略了物理运动的结构化特性。本文提出SM4RT，利用Transformer建模物体刚体运动（SE(3)变换）的结构化几何，实现从单帧到4D动态重建。实验表明该方法能够准确捕捉运动学参数，优于逐点位移方法。这项工作为理解3D铰接物体运动提供了新范式，有望推动参数预测和物理属性推断。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.18924v1",
+      "source": "arxiv",
+      "title": "Learning Explicit Physical Parameter Control and Benchmarking for Video Generation",
+      "abstract": "Recent advances in image-to-video generation have improved visual realism, making physically grounded and controllable dynamics an important step toward future world simulation.   Current models often generate plausible motion, but it is not reliably governed by explicit physical causes, and instance-level constraints can leak or become entangled in multi-object interactions.   We attribute this gap to two missing pieces: large-scale, fine-grained physical parameterization, and model designs that correctly bind physical attributes to instances and emphasize dynamics over appearance.   To bridge this gap, we introduce PhyParam-Dataset, an interaction-centric collection of 130K physically simulated videos with dense physical parameterization, including force vectors, object material properties, and environmental constants across five representative rigid-body motion types.   Built on this data, we present PhyParam, a physics-guided image-to-video diffusion model that conditions on object-level forces, masses, friction, restitution, and scene-level gravity via a lightweight physical-attention routing mechanism, and further improves motion learning with semantic-structural feature-space supervision.   We also establish PhyParam-Bench, a benchmark for physical-law consistency in image-to-video generation, with a multi-level protocol evaluating temporal dynamics, spatial stability, and semantic--physical alignment. Experiments show that PhyParam improves physical consistency while maintaining high visual fidelity, advancing explicit rigid-body physical-parameter control for image-to-video generation.   We will publicly release the dataset, benchmark, and code to support future research.",
+      "authors": [
+        "Yanxun Li",
+        "Hao Wen",
+        "Bingze Song",
+        "Jiashu Zhu",
+        "Aiming Hao",
+        "Chubin Chen",
+        "Jintao Chen",
+        "Jiahong Wu",
+        "Xiangxiang Chu",
+        "Miao Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-21T10:06:55+00:00",
+      "link": "https://arxiv.org/pdf/2607.18924v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "explicit physical parameter control for video generation, applicable to articulated motion",
+      "llm_evidence_cn": "显式物理参数控制用于视频生成，可应用于铰接运动",
+      "llm_evidence": "显式物理参数控制用于视频生成，可应用于铰接运动",
+      "canonical_evidence": "显式物理参数控制用于视频生成，可应用于铰接运动",
+      "llm_tldr_en": "PhyParam-Dataset provides 130K physically simulated videos with dense parameterization, enabling explicit control of physical attributes for video generation.",
+      "llm_tldr_cn": "该论文针对现有视频生成模型缺乏显式物理控制的问题，构建了包含13万段物理仿真视频的数据集PhyParam-Dataset，并设计了将物理属性绑定到实例的模型。该数据集和模型支持对物理参数（如质量、刚度）的显式控制，为生成具有真实运动参数的铰接物体提供了关键工具。",
+      "llm_tldr": "该论文针对现有视频生成模型缺乏显式物理控制的问题，构建了包含13万段物理仿真视频的数据集PhyParam-Dataset，并设计了将物理属性绑定到实例的模型。该数据集和模型支持对物理参数（如质量、刚度）的显式控制，为生成具有真实运动参数的铰接物体提供了关键工具。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.21576v1",
+      "source": "arxiv",
+      "title": "Self-Supervised Learning of Structured Dynamics from Videos",
+      "abstract": "Understanding motion in video is a fundamental challenge for visual learning, as frame-to-frame change entangles two sources of dynamics: camera motion and object motion. This decomposition has remained underexplored in representation learning, partly because these factors are tightly coupled in natural videos and difficult to supervise separately. Yet recovering it is important for learning robust motion representations that separate meaningful object dynamics from camera-induced variation. We study whether such structured motion representations can be recovered from frozen features of a pretrained image vision transformer. We propose the Structured Dynamics Model (SDM), which explicitly separates the dominant source of temporal change from residual dynamics through future-feature prediction, rather than representing video change with a single entangled latent or with unstructured, spatially dense transition tokens. Training combines self-supervised learning on real video with weak supervision of scene dynamics on synthetic Kubric data. We evaluate SDM on ProbeMotion, a new evaluation suite spanning synthetic and real videos with camera motion, object motion, and combined dynamics. SDM outperforms backbone baselines using global CLS or average-pooled features, and compares favorably to strongly supervised representations such as VGGT on several probes, despite using substantially weaker supervision. These results suggest that pretrained image models can be readily repurposed into structured video-dynamics representations, providing a useful inductive bias for learning and analyzing latent video dynamics.",
+      "authors": [
+        "Lukas Knobel",
+        "Andrew Zisserman",
+        "Yuki M. Asano"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-23T17:55:07+00:00",
+      "link": "https://arxiv.org/pdf/2607.21576v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "self-supervised learning of object dynamics from video, relevant to understanding 3D articulated objects from observations",
+      "llm_evidence_cn": "从视频自监督学习物体动力学，与从观测理解三维铰接物体相关",
+      "llm_evidence": "从视频自监督学习物体动力学，与从观测理解三维铰接物体相关",
+      "canonical_evidence": "从视频自监督学习物体动力学，与从观测理解三维铰接物体相关",
+      "llm_tldr_en": "Proposes Structured Dynamics Model (SDM) that separates camera and object motion from frozen ViT features, enabling learning of object dynamics without supervision, relevant to understanding articulated objects.",
+      "llm_tldr_cn": "该论文提出结构化动力学模型（SDM），利用预训练视觉Transformer的冻结特征，自监督地分离视频中的相机运动和物体运动。该方法无需标注即可学习物体动力学，为从观测中理解三维铰接物体的运动提供了潜在方法。实验表明模型能有效分解运动，并提升下游任务性能。",
+      "llm_tldr": "该论文提出结构化动力学模型（SDM），利用预训练视觉Transformer的冻结特征，自监督地分离视频中的相机运动和物体运动。该方法无需标注即可学习物体动力学，为从观测中理解三维铰接物体的运动提供了潜在方法。实验表明模型能有效分解运动，并提升下游任务性能。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.19120v1",
+      "source": "arxiv",
+      "title": "Latent Riemannian Flow Matching for Geometry-Grounded 3D Foundation Models",
+      "abstract": "Geometric foundation models, such as the Visual Geometry Grounded Transformer (VGGT), provide strong 3D priors from unposed images. However, such models operate purely in a feed-forward, deterministic regime, \\ie~they cannot generate plausible geometry beyond what the input views directly support. Generative models for 3D scenes, on the other hand, must rely on strong geometric priors to produce coherent outputs from sparse inputs. We bridge these two paradigms by performing flow matching directly in VGGT's latent space, leveraging its learned 3D priors without committing to any explicit downstream representation such as Gaussians, meshes, or video-VAE latents. This requires respecting the latent geometry: VGGT tokens occupy a product of high-dimensional hyperspheres on which standard Euclidean flow matching fails. We address this with a Riemannian Flow Matching framework defined on a product manifold of four hyperspheres, aligned with VGGT's multi-scale encoder, which keeps generated tokens on the valid data manifold required by the frozen decoding heads. On RealEstate10K, ScanNet++ and ETH3D, our method achieves strong performance against recent scene generation baselines in both per-view appearance and aggregated 3D geometry, establishing latent-space flow matching on geometric foundation models as a viable paradigm for 3D generation. The project page can be found $\\href{https://lisaweijler.github.io/geometry-grounded-rfm/}{\\text{here}}$.",
+      "authors": [
+        "Lisa Weijler",
+        "Irene Ballester",
+        "Guofeng Mei",
+        "Tolga Birdal",
+        "Pedro Hermosilla"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-21T14:06:04+00:00",
+      "link": "https://arxiv.org/pdf/2607.19120v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "latent flow matching for 3D scene geometry generation; transferable method for 3D scene generation without explicit language model",
+      "llm_evidence_cn": "在几何基础模型潜在空间中进行流匹配用于3D场景生成；方法可迁移至基于语言的3D场景生成",
+      "llm_evidence": "在几何基础模型潜在空间中进行流匹配用于3D场景生成；方法可迁移至基于语言的3D场景生成",
+      "canonical_evidence": "在几何基础模型潜在空间中进行流匹配用于3D场景生成；方法可迁移至基于语言的3D场景生成",
+      "llm_tldr_en": "This paper bridges geometric foundation models and generative models by performing flow matching in VGGT's latent space, enabling 3D scene geometry generation from sparse inputs. It provides a strong generative prior for 3D scenes.",
+      "llm_tldr_cn": "本文通过在VGGT几何基础模型的潜在空间中进行流匹配，将前馈几何预测与生成建模相结合，使得从稀疏输入生成合理的3D场景几何成为可能。该方法避免了显式下游表示，为3D场景生成提供了强大的几何先验，虽未直接使用语言模型，但其生成范式可被基于LLM/VLM的场景生成方法借鉴。",
+      "llm_tldr": "本文通过在VGGT几何基础模型的潜在空间中进行流匹配，将前馈几何预测与生成建模相结合，使得从稀疏输入生成合理的3D场景几何成为可能。该方法避免了显式下游表示，为3D场景生成提供了强大的几何先验，虽未直接使用语言模型，但其生成范式可被基于LLM/VLM的场景生成方法借鉴。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.21848v1",
+      "source": "arxiv",
+      "title": "Closing the Loop: Training-Free Revisit Consistency for Autoregressive Generative Rendering",
+      "abstract": "Recent conditional video generation models have shown promising potentials to transform 3D engine renderings, such as depth maps and untextured geometry, into photorealistic videos for gaming and immersive content creation. These applications require long-horizon auto-regressive generation that continuously synthesizes new frames while preserving a persistent 3D world. Auto-regressive generators synthesize video chunk by chunk with a bounded KV cache, so when the camera revisits a location after its context has been evicted, the model often regenerates inconsistent appearance, even though the conditioning renderings (e.g., depth) remain perfectly aligned with the underlying geometry.We address this revisit inconsistency without any post-training by exploiting correspondences the 3D engine already provides: temporal correspondence retrieves pose-matched historical latent chunks into the KV cache as loop-closure memory, while spatial correspondence from camera pose and depth reprojection biases token-level attention toward geometrically corresponding regions of the retrieved chunks. We demonstrate our method on loop-closure trajectories mined from TartanAir and TartanGround dataset to mirror complicate real-world application scenarios, where it outperforms existing training-free baselines on revisit consistency without losing overall video quality. Project Page: https://wenchao-m.github.io/ClosetheLoop.github.io/",
+      "authors": [
+        "Wenchao Ma",
+        "Changran Liu",
+        "Sharon X. Huang",
+        "Haomiao Jiang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-23T22:33:52+00:00",
+      "link": "https://arxiv.org/pdf/2607.21848v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "training-free approach for consistent generative rendering of 3D scenes",
+      "llm_evidence_cn": "训练自由的生成式渲染方法，保持3D场景一致性",
+      "llm_evidence": "训练自由的生成式渲染方法，保持3D场景一致性",
+      "canonical_evidence": "训练自由的生成式渲染方法，保持3D场景一致性",
+      "llm_tldr_en": "Proposes a training-free method to avoid revisit inconsistency in autoregressive video generation from 3D renderings, ensuring persistent 3D world appearance without retraining.",
+      "llm_tldr_cn": "自动回归生成视频时，相机再次访问已遗忘位置会导致外观不一致。本文提出无需训练的闭环方法，通过缓存机制保持3D场景一致性，无需额外训练。实验证明该方法有效消除重访不一致，适用于将3D渲染转化为连贯视频。这项工作为训练自由的3D场景持久化生成提供了轻量级解决方案。",
+      "llm_tldr": "自动回归生成视频时，相机再次访问已遗忘位置会导致外观不一致。本文提出无需训练的闭环方法，通过缓存机制保持3D场景一致性，无需额外训练。实验证明该方法有效消除重访不一致，适用于将3D渲染转化为连贯视频。这项工作为训练自由的3D场景持久化生成提供了轻量级解决方案。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "training free 3d scene generation method",
+      "matched_requirement_id": "req-13",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.19190v3",
+      "source": "arxiv",
+      "title": "Agentic Real2Sim: Physics-based World Modeling with Vision-Language Agents",
+      "abstract": "Real-to-sim conversion for robotic interaction with objects remains labor-intensive because it requires more than visual reconstruction: a streamlined real2sim process must recover scene geometries and object states, infer physical parameters, and assemble actors, objects, cameras, poses, and trajectories into a runnable physical simulation. Today this process still depends on manual tuning of visual foundation models, mesh cleanup, coordinate-frame alignment, and brittle workflow glue across visual perception tools and simulators. We introduce \\textit{Agentic Real2Sim}, a framework for generalized physical world modeling with vision-language agents, converting a real-world recording of object-robot interaction into a simulatable episodic twin which preserves observations, geometries, robot interactions, and object states. We evaluate Agentic Real2Sim on rigid-object manipulation, deformable-object interaction, and humanoid motion scenes, spanning domains that are usually handled by separate Real2Sim pipelines, marking a first step toward scalable conversion. The framework's agentic decisions can be driven by an open-weight VLM backend at a small fraction of the cost of frontier models, while attaining comparable conversion success rate. We aim to use the resulting real-world-aligned twins for downstream robotics tasks, specifically policy learning and evaluation. The project site is available at https://agentic-real2sim.github.io/.",
+      "authors": [
+        "Guanxiong Chen",
+        "Qianjun Xia",
+        "Jiawei Peng",
+        "Heng Zhang",
+        "Bole Ma",
+        "Justin Qian",
+        "Ziyi Jiao",
+        "Bingyang Zhou",
+        "Luoxin Ye",
+        "Kaifeng Zhang",
+        "Kunyi Wang",
+        "Weijia Zeng",
+        "Yunuo Chen",
+        "Pengzhi Yang",
+        "Ziqiu Zeng",
+        "Siyuan Luo",
+        "Huamin Wang",
+        "Chao Liu",
+        "Alan Yuille",
+        "Fan Shi",
+        "Changxi Zheng",
+        "Yunzhu Li",
+        "Chenfanfu Jiang",
+        "Peter Yichen Chen"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-07-21T15:23:38+00:00",
+      "link": "https://arxiv.org/pdf/2607.19190v3",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "VLM agent for physics-based world modeling",
+      "llm_evidence_cn": "基于视觉语言模型的智能体进行物理世界建模",
+      "llm_evidence": "基于视觉语言模型的智能体进行物理世界建模",
+      "canonical_evidence": "基于视觉语言模型的智能体进行物理世界建模",
+      "llm_tldr_en": "Agentic Real2Sim uses vision-language agents to convert real-world recordings into simulatable episodic twins, recovering geometries, states, and physical parameters.",
+      "llm_tldr_cn": "真实场景到仿真的转换通常需要大量人工处理。本文提出Agentic Real2Sim框架，利用视觉语言智能体将真实世界的人-机器人交互记录转换为可模拟的场景数字孪生，自动恢复场景几何、物体状态和物理参数。该方法集成了视觉基础模型和物理模拟器，实现了无需手工调整的通用物理世界建模。",
+      "llm_tldr": "真实场景到仿真的转换通常需要大量人工处理。本文提出Agentic Real2Sim框架，利用视觉语言智能体将真实世界的人-机器人交互记录转换为可模拟的场景数字孪生，自动恢复场景几何、物体状态和物理参数。该方法集成了视觉基础模型和物理模拟器，实现了无需手工调整的通用物理世界建模。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "language model agent for 3d scene construction",
+      "matched_requirement_id": "req-14",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.20889v1",
+      "source": "arxiv",
+      "title": "Engine-Native Editable 3D World Reconstruction with Objects and Lighting",
+      "abstract": "Editable 3D scene creation requires object instances and lights that can be inspected, moved, and imported into standard engines, yet existing single-image methods largely stop at room-scale geometry, baked/global illumination, or text-driven generation. We introduce Lumera (Light-aware Unified Engine-native Reconstruction and Assembly), a benchmark and reference pipeline for engine-native, light-aware 3D scene parsing from a single image. Lumera-2K is built from 2,513 UE5 projects and provides 3.73M components, 63M object instances, 102.6K engine-native parametric lights, and 95.1K camera views. On this data, Lumera-Box and Lumera-Light adapt VLM to parse object boxes and parametric light tuples (x,y,z,r,g,b,I), which are assembled with per-object mesh reconstruction, HDR environment estimation, and a bounded agentic refinement loop. In a sanitized box benchmark against DetAny3D, SpatialLM, N3D-VLM, and WildDet3D, Lumera-Box obtains the strongest overall detection, geometry, semantic, and layout scores (merged mAP 0.1141, IoU-B 0.2472, F-score 0.2762), while WildDet3D remains stronger on anchor recall. For lights, Lumera-Light recovers almost all non-empty scenes (recall 0.998) but remains limited at individual-light localization (F1 0.209 at 0.5 m); matched lights have median position error 0.261 m, median ΔE2000 4.59, and intensity Pearson r=0.628. These results establish parametric lights as a measurable editable-scene target and expose remaining bottlenecks in relation structure, light recall/intensity, and cross-engine generalization.",
+      "authors": [
+        "Junhao Chen",
+        "Xinghao Chen",
+        "Henghaofan Zhang",
+        "Zihao Qiao",
+        "Saining Zhang",
+        "Yongzhi Li",
+        "Ruqi Huang",
+        "Sisi Li",
+        "Yimin Sheng",
+        "Jianyi Zhu",
+        "Hao Zhao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-23T03:26:02+00:00",
+      "link": "https://arxiv.org/pdf/2607.20889v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "uses VLM to parse object boxes and lights for 3D scene reconstruction",
+      "llm_evidence_cn": "使用VLM解析物体框和光照进行三维场景重建",
+      "llm_evidence": "使用VLM解析物体框和光照进行三维场景重建",
+      "canonical_evidence": "使用VLM解析物体框和光照进行三维场景重建",
+      "llm_tldr_en": "Lumera adapts VLM to parse object boxes and parametric lights from a single image, enabling editable 3D world reconstruction with objects and lighting.",
+      "llm_tldr_cn": "该论文针对单图像3D场景编辑性差的问题，提出Lumera管道，利用视觉语言模型（VLM）从单张图像解析物体边界框和参数化光照（位置、颜色、强度）。基于大型Unreal Engine数据集，方法输出引擎原生可编辑的3D场景，包含独立物体和灯光，为VLM驱动的3D场景构建提供了强基线。",
+      "llm_tldr": "该论文针对单图像3D场景编辑性差的问题，提出Lumera管道，利用视觉语言模型（VLM）从单张图像解析物体边界框和参数化光照（位置、颜色、强度）。基于大型Unreal Engine数据集，方法输出引擎原生可编辑的3D场景，包含独立物体和灯光，为VLM驱动的3D场景构建提供了强基线。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "vision language model harness for 3d scene construction",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
