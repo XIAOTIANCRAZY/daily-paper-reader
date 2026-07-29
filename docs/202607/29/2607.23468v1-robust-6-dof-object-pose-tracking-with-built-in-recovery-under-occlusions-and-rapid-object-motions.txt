@@ -1,0 +1,337 @@
+Title: Robust 6-DoF Object Pose Tracking with Built-In Recovery under Occlusions and Rapid Object Motions
+
+URL Source: https://arxiv.org/pdf/2607.23468v1
+
+Published Time: Tue, 28 Jul 2026 01:08:53 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Robust 6-DoF Object Pose Tracking with Built-In Recovery under Occlusions and Rapid Object Motions 
+
+Bal´ azs Opra 1,2 L´ eo Ghafari 1 Thomas Stewart 1 Cyrill Stachniss 3
+
+Abstract — Real-time 6-DoF object pose tracking is essential for many robotics applications, and several approaches exist. Yet even today’s approaches remain unreliable under tempo-rary full occlusions and rapid object motions. Once tracking is lost, most methods struggle to detect the failure and recover au-tomatically, often requiring manual re-initialization. In this pa-per, we address the problem of robust model-based 6-DoF track-ing of unseen objects from RGB-D data, especially in scenarios with occlusion and fast motion. We propose a novel method that combines efficient learning-based keypoint matching with optimization-based alignment and introduces a novel failure detection and recovery module. Our system monitors pose reli-ability, detects tracking divergence or occlusions, and performs a global re-detection and pose estimation step that robustly verifies recovery candidates before resuming tracking. Our eval-uation on standard tracking benchmarks and on a new dataset of occluded and fast-moving scenes shows that our method matches state-of-the-art accuracy on easy tracking sequences, maintains high tracking speed at 57.6 frames per second, and provides the most robust tracking performance under challeng-ing conditions. Thus, we believe that our approach is a relevant step forward in robust 6-DoF object tracking from RGB-D data. 
+
+I. I NTRODUCTION 
+
+Model-based object tracking, where a 3D model of the target object is available at test time, has seen significant progress in recent years, with state-of-the-art methods [30], [39] starting to saturate classical benchmarks such as YCB-Video [40]. These methods enable robotics applications to perform manipulation tasks with higher precision, and to be more reactive to dynamic events such as grasping failures or in interactions with humans. Object tracking also serves as the basis for some real-world deployments of robot learning methods [10], [25]. However, full or partial occlusions and sudden object motions, such as those that occur when objects are dropped or temporarily go out of frame, are part of real-world robotics operations and are often not well addressed by object tracking methods. In this paper, we investigate the problem of accurate and robust model-based object pose tracking under challeng-ing occluded and dynamic scenarios. Model-based object tracking is traditionally addressed by establishing correspon-dences between an RGB or RGB-D video stream and the object model, and framing the tracking problem as iterative pose refinement with numerical optimization [30]. More re-cently, learning-based methods became the prominent choice for correspondence estimation [27], and in some cases re-placed numerical optimization with a neural network [39].            
+
+> (Corresponding author: Bal´ azs Opra.) 1Woven by Toyota, Inc. 2University of Bonn, Germany. 3University of Bonn, Center for Robotics, and the Lamarr Institute for Ma-chine Learning and Artificial Intelligence. Email: {balazs.opra, leo.ghafari, tom.stewart }@woven.toyota ,cyrill.stachniss@igg.uni-bonn.de
+
+6-DoF Tracking  Detected Failure 
+
+Recovered Tracking  Recovery Mode 
+
+57 FPS  5 FPS 
+
+57 FPS  
+
+> 1. 2.
+> 3. 4.
+
+Fig. 1: Our 6-DoF object pose tracking system is capable of detecting tracking failure including due to full occlusions, and is able to re-detect the object and resume tracking automatically. 
+
+Both optimization and learning-based approaches are capable of highly accurate tracking in slower-moving scenes with partial occlusions, but tend to fail when confronted with fully losing view of the target object or rapid motions. Most methods are unable to effectively recover tracking once diverged and require a full re-initialization. The main contribution of this paper is a novel accurate model-based RGB-D object pose tracking method that can detect and handle tracking failures, where the estimated object pose no longer corresponds to the actual object pose due to divergence, rapid object motion, or complete occlusion. Our method builds upon the state-of-the-art ICG+ tracker [30] and is capable of autonomously recovering object tracks once the tracked object becomes visible again, as illustrated in Fig. 1. Our system maintains high tracking speed and recovers from tracking failure with low latency, while matching the accuracy of leading methods on standard benchmarks. We make three key claims: Our approach is able to (i) reliably detect and recover from tracking failure due to divergence or full occlusions; (ii) match the state-of-the-art tracking accuracy on general and robotics-focused datasets; (iii) maintain high tracking speed at 57.6 frames per second and recover from tracking failure with low latency. These claims are backed up by the paper and our experimental evaluation. 
+
+© 2026 IEEE. Personal use of this material is permitted. Permission from IEEE must be obtained for all other uses, in any current or future media, including reprinting/republishing this material for advertising or promotional purposes, creating new collective works, for resale or redistribution to servers or lists, or reuse of any copyrighted component of this work in other works. arXiv:2607.23468v1 [cs.CV] 26 Jul 2026 II. R ELATED WORK 
+
+The classical paradigm for tracking a known 3D object model is to continuously optimize its pose to align with sen-sor data. Region-based methods like PWP3D [24] segment the object’s silhouette and maximize foreground-background separation. Subsequent works improve robustness via local-ized color models around contours [33], incorporating pho-tometric constraints [42], and efficient sparse updates [31]. Region-based methods excel for texture-poor objects, but can be slow and struggle with axially symmetric objects. With RGB-D input, many trackers use dense geometric alignment, iterative closest point being a common tool for aligning the object’s 3D model to depth data [11]. Other methods use probabilistic alignment using signed distance fields [26]. Many works combine modalities such as region and depth [11], [32]. Texture keypoint matching is another common approach, yielding 2D-3D correspondences for pose estimation. Before the widespread adoption of deep learning, methods matched corners [7], [29], or features such as SIFT [17] to compute frame-to-frame pose updates [12], [30], [34]. Recent works integrate learned components or end-to-end models for tracking. Some employ deep networks to iteratively refine pose estimates [14], or combine learned codes with traditional methods such as particle filters [3]. ROFT [23] combines optical-flow-based pose tracking with an unscented Kalman filter and targets real-time tracking under fast object motion. VIPose [5] uses visual-inertial cues for fast-motion tracking in a moving-camera setting ex-ploiting IMU data. Neural methods like se(3)-TrackNet [37] use synthetic data to train a neural network to directly predict pose changes between frames. Many learning-based trackers require extensive per-object training which limits their applicability in practice. Other works aim to track objects without an exact CAD model, relying on category priors or online reconstructions [27], [35], [36], [38] at the cost of heavier computation or slight accuracy trade-offs. The latest trend in object tracking is to train or exploit foundation models for pose estimation. FoundationPose [39] uses large synthetic datasets to train a model capable of pose estimation and tracking of unseen objects given a CAD model or even a few reference RGB-D images. Other meth-ods use pretrained 3D foundation models [13], [20] for pose estimation [2], [21] and tracking [18] using sim2real match-ing between pre-rendered and real images of the target object. DynamicPose [15] builds on FoundationPose and extends it for fast moving-camera settings with visual-inertial input. To our knowledge, the only proposed tracking system that explicitly addresses tracking reliability is RGBTrack [6], which uses an additional segmentation system [1] to detect tracking failure and a Kalman filter to recover from it. In contrast, we implement a self-contained reliability check and recovery without an external supervision system. In our approach, we assume that a CAD model or a reconstructed mesh is available for the target object. Our contribution is a robust optimization-based RGB-D tracking system with an integrated automatic failure detection and re-initialization module that uses single-frame pose estima-tion to recover from tracking failure. The system includes intelligent keyframe management and a 3D point-to-point alignment term from depth, both of which improve accuracy in regular tracking scenarios. It yields a robust tracker that outperforms state-of-the-art approaches on challenging tracking scenarios. III. O UR APPROACH TO MODEL -B ASED POSE TRACKING 
+
+Our system works with one or more RGB-D sensors, and assumes calibrated camera poses, that is, the homogeneous transformation WTC between the world frame W and the camera frame C is known. We also assume calibrated camera intrinsics. Given an initial pose estimate of the target object model frame M, WTM,0 = WTC C TM,0, our task is to iteratively update the pose with each incoming RGB-D frame. To estimate the updated pose for a new frame, we use correspondence data from region, texture, and depth modalities. Our approach builds upon ICG+ proposed by Stoiber et al. [30], a multi-modal RGB-D tracker that combines region, depth, and texture correspondences in a single Gauss-Newton optimization. We keep the region and depth modalities un-changed compared to ICG+. We introduce five components in our proposed method that improve accuracy, especially rotational accuracy, and strengthen robustness under track-ing failure: (i) we extend the texture modality with high-throughput SuperPoint TensorRT keypoint extraction and GPU-based keypoint matching to maintain runtime while extracting six times more keypoints; (ii) we add a new 3D distance residual with analytic gradient and Hessian terms to improve tracking accuracy; (iii) we expand keyframe management with an icosahedron-indexed keyframe store to preserve viewpoint diversity; (iv) we integrate a cycle-consistency reliability check to detect divergence and occlu-sion; and (v) we add a global recovery procedure to handle full tracking failure. The following subsections detail these components. 
+
+A. Optimization-based Tracking 
+
+For completeness, we first briefly restate the optimization-based ICG+ tracking framework. The tracker system is com-posed of three modalities: region, depth, and texture. They are used to establish correspondences Dr, Dd, Dt between the tracked object’s body of the previous tracking iteration at k − 1 and the current color and depth data coming from one or more RGB-D cameras. The exact form of D depends on the specific modality. The depth modality uses model point to depth point correspondences and the region modality derives correspondences by considering image pixels along correspondence lines which are orthogonal to the model body, as in Stoiber et al. [30]. The texture modality derives correspondences from image keypoint matching. In each tracking iteration, we aim to use the corre-spondences to find a small pose variation in the model frame θT = θT 
+
+> r
+
+θT
+
+> t
+
+ which is composed of the rotation e) Keyframe Management   
+
+> 2D-3D
+> Matches
+> a) Texture Matching
+> c) Keypoint-to-Mesh Projection
+> 2D Keypoints 3D Keypoints
+> on Mesh
+> RGB Crop
+> Keyframes with
+> 3D-lifted keypoints
+> Previous Pose
+> Estimate
+> d) Tracking Reliability Check
+> Enough
+> inliers?
+> Recovery
+> Mode
+> Sec III-B-2.
+> 2D Keypoints
+> ...
+> b) Pose Optimization
+> Cycle
+> Consistency
+> Keyframe queue
+> NKFQ slots
+> Keyframe Store
+> Keyframes
+> ...
+> Previous Pose Matches Lifted to 3D
+> Using Depth
+> Optimized Pose
+> Updated Pose
+> Estimate
+
+Fig. 2: Overview of the Texture-Based Tracking System. (a) We perform texture-based keypoint matching between frozen prior frames called keyframes and the current frame. (b) We lift the matches to 3D using the object model and depth data, filter outliers, and update the pose estimate via numerical optimization. (c) Using the updated pose, we project the image keypoints onto the model, and (d) perform a cycle-consistency-based reliability check. (e) If the check passes, we may store the current frame as a keyframe for future matching. 
+
+vector θr ∈ R3 and translation vector θt ∈ R3, to update the estimated object pose. Specifically, once we found θ using the latest correspondences, we update the pose estimate as 
+
+> W
+
+TM, k +1 = WTM, k 
+
+I + [ θr ]× θt
+
+0 1
+
+
+
+, (1) based on the first-order approximation of the exponential map from the Lie algebra se(3) to the Lie group SE(3) .We find θ by maximizing the posterior probability density function (PDF) 
+
+p(θ | D ) = 
+
+> nr
+
+Y
+
+> i=1
+
+p(θ | D ri)
+
+> nd
+
+Y
+
+> i=1
+
+p(θ | D di)
+
+> nt
+
+Y
+
+> i=1
+
+p(θ | D ti), (2) where nr, n d, n t are the number of region, depth, and tex-ture correspondences, respectively. When multiple RGB-D sensors are available, separate modality instances can be configured per camera and all contribute correspondences to the joint optimization, following ICG+. To find a ˆθ that maximizes Eq. (2), we use Gauss-Newton optimization with Tikhonov regularization, 
+
+ˆθ = ( −H + Λ)−1 g, Λ =
+
+λR I3 00 λt I3
+
+
+
+, (3) where the gradient g and the Hessian H are the first-and second-order derivatives of the logarithm of the PDF, with the latter approximated using the Gauss–Newton for-mulation. The parameters λR and λt are the rotation and translation Tikhonov regularization parameters. Intuitively, the Tikhonov regularization helps stabilize the optimization in cases where any of the degrees of freedom of the pose are underconstrained. Below, we describe our texture modality extensions, which constitute our first main contribution. 
+
+B. Texture Modality 
+
+In the texture modality, we use local image feature match-ing to establish correspondences. At the beginning of each tracking iteration, we project the tracked object’s model into the color image of each RGB-D sensor using the latest pose estimate. We then crop a square-shaped region of interest around the projected object model, and extract image features from it. To take advantage of advances in efficient learning-based image matching, we use the SuperPoint [4] feature detector network with an efficient NVIDIA TensorRT [43] implementation. This allows us to use a region of interest of size 1024 ×1024 and set the number of keypoints to 1800. Subsequently, we match the features with those of so-called keyframes saved from previous frames. A keyframe is a frame that is kept static, and we match subsequent frames against it. We create new keyframes as the object moves a certain amount since the last keyframe, and describe our keyframe management in detail in the next section. We use nearest-neighbor matching with L2 distance as our matching algorithm, and keep matches that pass both, Lowe’s ratio test [17] and the two-view cycle-consistency check [8]. We implement the nearest-neighbor search with LibTorch [22] on the GPU, which allows us to maintain efficiency despite the increased number of keypoints. We also tried replacing nearest-neighbor matching with the learned keypoint matcher LightGlue [16], which is strong for global image matching. In our object tracking setting, we did not observe an im-proved tracking accuracy but an increase in feature matching time, going from 4 ms to 43 ms, because each keyframe-current-frame pair requires a separate network inference. This yields a nearly 11-fold increase in the matching stage runtime, making LightGlue prohibitively slow for our use case. Each match produces a three- or two-dimensional residual through either 3D point distance or reprojection error, and contributes to the gradient and Hessian; further details are given in Sec. III-B.3. 
+
+1) Keyframe management: Following Stoiber et al. [30], we create a new keyframe during tracking if the orientation of the object has changed by more than 10 ◦ since the last keyframe. We maintain a queue of keyframes of size NKFQ ,dropping the oldest keyframe if the queue is full. 
+
+Keyframe creation. To create a keyframe, we use the latest object pose estimate in the camera frame, CTM =
+
+> W
+
+T −1C WTM, to project the detected texture keypoints onto the surface of the model. Specifically, we transform the model into the camera frame using CTM, and for each keypoint location we find the intersection of the camera ray with the transformed model using the known intrinsic parameters. The keyframe stores these intersection points defined in the model frame, MX, together with their visual feature descriptor vectors. Note that not all detected keypoints from the region of interest fall onto the surface of the model, as some may correspond to the background or lie on an occluded part of the object. As in ICG+ [30], we use the depth image to filter out occluded keypoints, and only keep those that fall on the unoccluded surface of the object model. In each tracking iteration we match all keyframes in the keyframe queue with the current frame’s region of interest. 
+
+Keyframe store. Only using a queue of the most recent keyframes is insufficient for robust tracking under fast object motions and for recovery from tracking failure, as previously observed informative views of the object go out of memory as the object rotates. Thus, we also maintain a buffer called keyframe store where we permanently store keyframes from already observed view directions. The view direction slots of this buffer are represented by the vertices of a subdi-vided icosahedron surrounding the target object, as shown in Fig. 2(e). At the end of each tracking iteration, we insert the current frame into the slot with the closest view direction to the current object pose if (a) the slot is empty, or (b) if the current frame has more keypoints than the stored keyframe. The keyframe store allows the system to maintain a persistent map of the object’s appearance from all previously observed viewpoints, regardless of how much the object has moved since. This is particularly useful for fast-moving objects, as well as for redetecting an object after tracking failure. Thus, in addition to the frames in the keyframe queue, we also select up to NKFS keyframes from the keyframe store for matching during tracking. These are selected from a 30 ◦
+
+view cone around the current view direction of the object, while maintaining a minimum distance of 5◦ from all other selected keyframes. Keyframe  Current Frame  Keyframe  Current Frame  
+
+> Accurate Pose Estimate Diverged Pose Estimate
+> Fig. 3: Tracking reliability check. The keyframe-current frame matches are projected into the model frame using the current pose estimate. Left: inlier (green) and outlier (red) matches when the current pose is accurate. Right: very few matches and inliers when the pose estimate diverged.
+
+2) Tracking reliability check: Since keyframes are created by projecting 2D image keypoints onto the model body using the current pose estimate, an inaccurate estimate will lead to projected keypoints that do not correspond to their real-world locations on the model. To avoid creating inaccurate keyframes and to detect tracking failure, we perform areliability check using the matches established between the current frame’s region of interest and all active keyframes. Specifically, at the end of a tracking iteration we select all matched, unoccluded keypoints in the current frame which, when projected onto the body mesh using the updated pose estimate, lie on the surface of the body mesh. We then perform a cycle-consistency check for all such keypoints, noting that if (a) the image keypoints matches, and (b) the prior keyframe’s pose estimate, and (c) the current pose estimate are all correct, then the keypoints from the current frame should lie at the same 3D position in the model coordinate system, MXcurrent , as their matching keypoints from the keyframes, MXkeyframe . Concretely, we deem a keypoint match an inlier if we have the following: 
+
+> M
+
+Xkeyframe − MXcurrent  
+
+> 2
+
+< ϵ cc , ϵ cc ∈ R+. (4) Refer to Fig. 3 for an illustration. If there is at least one keyframe with at least Ninliers inlier matches, we consider the current pose estimate acceptable and allow a keyframe to be created from the current frame. An appropriate value for Ninliers depends on the number of keypoints we detect. We found Ninliers = 10 to work well in all our experiments. If there is more than one configured camera, we perform this check for all cameras individually and allow or disallow the creation of keyframes per camera. If none of the cameras pass the reliability check, we consider the tracking to have failed and explicitly begin the tracking recovery procedure, described in Sec. III-C. 
+
+3) Pose probability density function: We use two PDFs of pose variation based on different residuals: a 3D distance residual when depth is available and a 2D reprojection residual otherwise. If the depth image contains a valid depth measurement at a matched keypoint location, we reconstruct the 3D point CP from it in the camera frame and move this point into the model frame using the current pose estimate and the pose variation vector: 
+
+> M
+
+P (θ) = MT (−θ) MTC C P (5) with MT (−θ) = 
+
+I − [θr ]× −θt
+
+0 1
+
+
+
+. (6) We use the 3D distance between MP (θ) and the matching 3D model point of the keyframe, MX, as the residual. We assume a normal distribution for the residuals and formulate the PDF for n independent point pairs as 
+
+p(θ|D ti) ∝
+
+> n
+
+Y
+
+> i=1
+
+exp 
+
+
+
+− 12σ2d2 ρtuk (ri)
+
+
+
+(7) with ri = ∥MXi − MPi(θ)∥2 . (8) We scale the residuals by the inverse of the square of d, the depth of the correspondence point, which is proportional to the uncertainty of the depth measurement. Furthermore, the user-defined variance σ2 is used to balance the influence of the texture modality with respect to the other modalities. To reduce the impact of outliers, we use Tukey’s biweight loss 
+
+ρtuk (x) = 
+
+( c2 
+
+> 6
+
+(1 − (1 − ( xc )2)3) |x| ≤ c 
+
+> c2
+> 6
+
+|x| > c , (9) where c is typically selected based on the expected magni-tude of inter-frame motion of object model surface points. To derive the gradient and Hessian, we first approximate the Tukey loss as an iteratively reweighted least squares for-mulation, ρtuk (ri) ≈ wir2 
+
+> i
+
+, where the weight is calculated as 
+
+wi = ρtuk (ri) /r 2 
+
+> i
+
+, evaluating the residuals at the current pose estimate with θ = 0. With this, we can compute the gradient and Hessian contributions from each correspondence using the Gauss-Newton approximation as 
+
+gt = − wi
+
+σ2d2 (MX − MP )T −[MP ]× I3
+
+ (10) 
+
+Ht ≈ − wi
+
+σ2d2
+
+[MP ]×
+
+I3
+
+ −[MP ]× I3
+
+ . (11) Alternatively, we could vary the fixed model point MX.This linearization would preserve the exact point-to-point distance and first-order gradient, while replacing MP by 
+
+> M
+
+X in the Gauss-Newton Hessian, where we could then precompute the unweighted [MX]× factors. In our ablation on YCBInEOAT [37], this reduced the ADD and ADD-S AUC scores [9] by 0.49 and 0.07 points, so we use the depth-point linearization above. Lifting the 2D-3D correspondences to 3D-3D by using the depth information enables us to filter outlier matches more effectively, as spurious matches between the target object and a nearby background pixel may have a small reprojection error in the image space, but a large 3D distance error. Although the Tukey loss helps reduce the influence of such outliers, we find that discarding all matches with a 3D distance residual larger than a threshold ϵ3D > c improves accuracy even further. Fig. 2(b) shows such outlier matches in red. A constant value of ϵ3D = 2 c works well in all our experiments. When there is no valid depth measurement at the keypoint location, we fall back to using the reprojection error as described by Stoiber et al. [30]. For an overview of the texture-based tracking system, refer to Fig. 2. 
+
+C. Failure Recovery 
+
+Our recovery module is our second main contribution and is integrated into the control flow of the tracker: if the reliability check (Sec. III-B) detects divergence or occlusion, the system enters recovery mode. Recovery mode performs exhaustive crop-to-keyframe matching, lifts matches to 3D using depth, solves robust point cloud registration to obtain candidate object poses, and resumes tracking only after verifying the candidate pose using the reliability check. This design avoids any external error detection. Specifically, in recovery mode, we do not assume any pose prior after a tracking failure, as the object may have moved rapidly or may have been temporarily occluded. Thus, instead of focusing only on the region of interest around the last pose estimate, we divide the entire color image into minimally overlapping crops sized 0.25 times the longer side of the image, to be used for matching. We have found that this crop size works well for most camera configurations used in robotic manipulation, and produces Ncrops = 16 
+
+crops for a 1280 ×1024 pixel image. We similarly do not use any pose prior for selecting keyframes, and instead use a strategy aimed at maximizing the view direction coverage of the object. In particular, we use farthest-point sampling to select Nrecovery keyframes from the keyframe store whose view direction vectors are maximally distant from each other. We extract SuperPoint features from the crops and match each crop with all selected keyframes using the same match-ing strategy as described in Sec. III-B. This gives us a set of 2D-3D crop-to-model point correspondences for each crop. We then use the depth information to reconstruct the 3D points from the crops to create 3D-3D correspondences between the depth point cloud and the object model. We solve the resulting point cloud registration problems using TEASER++ [41], which is a fast and robust registration method, to obtain Ncrops × Nrecovery pose estimates. The best candidate pose is selected as the one with the highest number of inlier keypoints retrieved from the registration solution. Since the recovery pose proposals are coarse, we re-initialize tracking from the best proposal and run one full tracking iteration as described in Sec. III-A, which acts as a pose refinement step. We then perform the tracking reliability check described in Sec. III-B, and exit recovery mode and continue tracking from the recovered pose estimate if it passes. If the reliability check fails, we discard the result of the recovery attempt and continue repeating the recovery procedure for each new frame until the tracking reliability check passes. The reliability check helps avoid spuriously accepting incorrect recovery pose proposals. Refer to Fig. 4 for an illustration of the recovery procedure. During recovery, instead of matching only a single image crop around the last pose estimate, we match multiple crops of the current frame with keyframes and additionally solve a 5) Refine by Tracking 4) Pick Best Proposal      
+
+> 3) Get TEASER Proposals 1) Match Keyframes to Crops
+> Ncrops Crops of Current Frame
+> Nrecovery Samples
+> from Keyframe
+> Store
+> Nrecovery xNcrops 2D-3D Match Sets
+> Keypoint
+> Matching
+> 2) Lift Matches to 3D
+
+Fig. 4: Failure recovery procedure: 1) we match well-selected keyframe store keyframes with all crops of the current image, 2) these matches are lifted to 3D using depth data, and 3) the TEASER point cloud registration method computes pose proposals for each pair. 4) We choose the proposal with the most TEASER inliers. 5) We run one full tracking iteration as described in Sec. III-A to refine the pose, and then apply the tracking reliability check from Sec. III-B. 
+
+point cloud registration problem for each crop. This makes computing the recovery pose estimate more expensive than a regular tracking iteration. Specifically, setting Ncrops = 16 
+
+and Nrecovery = 20 , as we used in all our experiments, we found that it takes about 210 ms on average to compute the recovery pose estimate, which is around 12 times longer than a regular tracking iteration. A natural alternative to our recovery procedure would be to re-initialize tracking with a full object segmentation and pose estimation pipeline, such as CNOS [19] followed by FoundationPose [39] in pose esti-mation mode. In our setting, this pipeline takes 2.69 s, which is more than 10 times longer than our recovery procedure. For a moving object, such a delay makes the returned pose estimate stale by the time it becomes available, which would make using such a pipeline for recovery unreliable. IV. E XPERIMENTAL EVALUATION 
+
+We present our experiments to support our three key claims: (i) our method reliably detects and recovers from tracking failure due to divergence or full occlusions; (ii) it matches state-of-the-art tracking accuracy on general and robotics-focused datasets; and (iii) it maintains high tracking speed at 57.6 frames per second and recovers from tracking failure with low latency. 
+
+A. Experimental Setup 
+
+We evaluate on YCB-Video [40], YCBInEOAT [37], Fast-YCB [23], and a new RGB-D dataset for rapid motion and full occlusion; its release awaits institutional review. Dataset page: github.com/Bazs/robust-6d-object-pose-tracking . We captured its 6 sequences and 2491 frames at 1280 x 1024 resolution with two overlapping Framos FSM-IMX304 stereo pairs, one for tracking and one for annotation verification. We use learning-based stereo depth [28], annotate poses primarily by hand, and initialize a subset of frames with FoundationPose [39]. The objects are the YCB-V cracker box and mug plus an axially symmetric textured bottle shown in Fig. 2. We split the sequences into fast motion-blur cases and occluded cases where the target leaves the camera view. We compare against PoseRBPF [3], a particle-filter tracker with per-object retraining; ROFT [23], an optical-flow and Kalman-filter tracker for fast motion; ICG+ [30], the RGB-D baseline on which our method builds; and Foundation-Pose [39], a single-view pose estimation and tracking base-line. We report all five methods on the in-house dataset and subsets on YCB-Video, YCBInEOAT, and Fast-YCB. We report ADD and ADD-S area-under-curve metrics [9] and measure runtime on a desktop system with an Intel Core i9-14900K CPU and an NVIDIA GeForce RTX 4090 GPU. 
+
+B. Tracking Failure Recovery 
+
+The first experiment supports the claim that our system remains robust under rapid object motion and occlusion and can recover from tracking failure. We evaluate all five meth-ods on the “fast” and “occluded” sequences of our dataset. To account for the recovery latency of our method, we freeze the output pose for 6 frames after recovery, matching the average recovery latency measured online at 30 FPS. Table I reports per-object, per-setting, and overall scores, including an ablation with failure detection and recovery disabled. Baseline methods score lower because they lose track during fast motions and occlusions and have limited recovery capability. The recovery-disabled variant of our method achieves the second-best overall ADD score, indicat-ing strong continuous tracking without re-localization. Rela-tive to this ablation, the full system gains 32.77 ADD AUC points and 30.55 ADD-S AUC points, reaching the best over-all scores and showing that recovery is also essential under severe tracking failures. Across the six in-house recordings, the full system entered recovery only seven times, indicating that tracking generally proceeds without re-localization. It spent 10.74% of evaluated frames in recovery, with ratios of 6.58% for fast sequences and 14.65% for occluded se-quences. Its weakest result is on the textureless, rotationally symmetric YCB-V mug, a difficult case for the texture-focused matching stage, yet it still outperforms all baselines. TABLE I: Tracking accuracy on our dataset for PoseRBPF (PRBPF) [3], ROFT [23], ICG+ [30], FoundationPose (FP) [39], Ours without recovery, and Ours. The novel object row indicates whether the method supports unseen object tracking. The best result is bold and the second-best result is underlined.                                                                                            
+
+> Group Metric PRBPF ROFT ICG+ FP Ours w/o rec. Ours Novel object ✗✗✓✓✓✓
+> bottle ADD 43.69 27.74 48.58 44.99 64.24 90.46
+> ADD-S 47.44 32.75 56.84 46.84 64.81 91.09
+> mug ADD 60.57 22.35 36.29 48.19 40.32 66.09
+> ADD-S 69.04 32.99 55.32 48.65 51.58 77.33
+> cracker box ADD 42.90 26.21 45.59 43.94 49.79 92.66
+> ADD-S 68.57 29.04 53.06 43.94 55.96 93.25
+> Fast ADD 65.46 26.70 46.71 44.89 47.60 88.95
+> ADD-S 74.88 31.18 64.26 46.24 53.84 92.05
+> Occluded ADD 32.95 24.23 40.50 46.23 53.99 78.70
+> ADD-S 51.33 31.47 46.00 46.25 60.13 83.47 All Frames ADD 48.69 25.43 43.51 45.58 50.90 83.67
+> ADD-S 62.74 31.33 54.84 46.25 57.08 87.63
+
+TABLE II: Tracking accuracy and speed on YCB-Video and YCBInEOAT. The best all-frame result is bold, the second-best is underlined, and per-object winners have a gray highlight.                                                                                                                                                                                                                                                     
+
+> Approach PRBPF ICG +FP Ours Novel object ✗✓✓✓
+> Metric ADD ADD-S ADD ADD-S ADD ADD-S ADD ADD-S
+> YCB-Video
+> master chef can 90.5 95.1 94.7 98.0 93.6 97.0 96.1 98.4 cracker box 88.2 93.0 96.8 98.4 96.9 97.8 96.2 98.2 sugar box 92.9 95.5 96.6 98.5 96.9 98.2 97.5 98.9 tomato soup can 90.0 93.8 95.2 98.1 96.3 98.1 95.3 98.2 mustard bottle 91.9 96.3 97.1 98.7 97.3 98.4 97.6 99.0 tuna fish can 91.1 95.3 94.1 97.1 96.9 98.5 95.8 97.8 pudding box 85.8 92.0 80.4 90.5 97.8 98.5 76.3 89.4 gelatin box 96.3 97.5 96.8 99.1 97.7 98.5 96.2 99.0 potted meat can 68.7 77.9 95.4 98.1 95.1 97.7 95.6 98.2 banana 74.2 86.9 92.8 98.2 96.4 98.4 95.1 98.4 pitcher base 86.8 94.2 97.2 98.9 96.7 98.0 97.6 99.0 bleach cleanser 86.0 93.0 91.6 97.0 95.5 97.8 93.6 97.7 bowl 25.5 94.2 84.1 97.9 95.2 97.6 84.5 98.0 mug 90.9 97.1 95.6 98.4 95.6 97.9 96.0 98.6 power drill 93.9 96.1 96.8 98.7 96.9 98.2 96.8 98.6 wood block 20.1 89.1 91.7 96.7 93.2 97.0 94.8 97.7 scissors 76.1 85.6 94.9 97.6 94.8 97.5 93.6 97.1 large marker 92.0 97.1 94.0 98.1 96.9 98.6 92.5 97.8 large clamp 48.5 94.8 93.8 97.8 93.6 97.3 94.7 98.0 extra large clamp 40.3 90.1 91.8 97.0 94.4 97.5 94.4 97.9 foam brick 81.1 95.7 94.0 97.9 97.9 98.6 95.0 98.0
+> All frames 80.8 93.3 94.3 97.9 96.0 97.9 95.0 98.1 YCBInEOAT
+> cracker box 81.72 89.76 91.58 95.63 91.32 95.10 92.25 95.47 bleach cleanser 70.79 86.84 92.06 96.07 91.45 95.96 92.32 96.17 sugar box 88.64 93.44 93.32 96.49 94.14 96.67 94.06 96.77 tomato soup can 91.18 96.16 79.83 95.71 91.71 96.58 90.69 96.60 mustard bottle 92.20 96.47 95.53 97.81 96.34 97.89 95.85 97.92
+> All frames 85.54 92.68 90.79 96.35 93.09 96.42 93.14 96.57
+> FPS [Hz] 21.7 111.0 41.3 57.6
+
+C. Accurate and Fast Tracking 
+
+The second experiment evaluates accuracy and runtime on YCB-Video, YCBInEOAT, and Fast-YCB. Tables II and III compare against the applicable baselines. The results support our claim that our approach achieves a tracking accuracy similar to the state-of-the-art method FoundationPose while being around 40% faster on the same hardware. Although ICG+ [30] is faster, our method is more accurate, especially for rotation: it gains 5.09 ADD points on Fast-YCB all frames and 10.86 ADD points on the axially symmetric tomato soup can sequence in YCBInEOAT. 
+
+TABLE III: Tracking accuracy on Fast-YCB. The best all-frame result is bold, the second-best is underlined, and per-object winners have a gray highlight.                                                                     
+
+> Fast-YCB
+> Approach ROFT ICG +FP Ours Metric ADD ADD-S ADD ADD-S ADD ADD-S ADD ADD-S
+> cracker box 78.50 88.05 98.69 98.75 98.39 98.53 99.39 99.40 sugar box 81.15 89.87 99.01 99.11 98.94 99.11 99.32 99.39 tomato soup can 79.00 89.74 81.25 98.46 99.44 99.49 96.58 99.40 mustard bottle 73.10 86.78 98.91 99.14 98.59 98.79 99.10 99.38 gelatin box 74.26 85.49 90.58 96.04 99.47 99.49 99.39 99.47 potted meat can 73.87 87.58 94.26 98.15 99.46 99.49 99.43 99.48
+> All frames 76.59 87.88 93.78 98.27 99.05 99.15 98.87 99.42
+
+TABLE IV: Ablation of tracking settings on YCBInEOAT. 
+
+Settings ADD ADD-S 
+
+SIFT, 1 KF, reprojection error residual 90.79 96.35 + 3D distance residual 91.53 96.36 + SuperPoint instead of SIFT 92.60 96.50 + Increase to 9 keyframes 93.00 96.48 + Enable KF store with 10 keyframes 93.14 96.57 
+
+D. Ablation Study 
+
+The third experiment validates the effectiveness of our proposed 3D texture matching PDF, the use of the SuperPoint keypoint detector, and the keyframe store to improve tracking accuracy. Tab. IV starts from 300 SIFT keypoints and one keyframe ( NKFQ = 1 ), then adds the 3D residual, SuperPoint with 1800 keypoints, NKFQ = 9 , and finally the keyframe store with NKFS = 10 . The extensions increase the accuracy in general, with a relative 2.6% gain in the ADD score, highlighting the improvement in rotation tracking accuracy, which is important for robotic manipulation tasks. 
+
+E. Limitations 
+
+Since our recovery procedure is based on texture matching with previously seen views of the target object, its effective-ness is limited by the number of view directions observed since the tracking began. This limitation could be mitigated by pre-filling the keyframe store with pre-rendered views of the object if a textured model is available, or with real images taken from a variety of orientations. Moreover, when multiple same-kind instances are present, recovery after full tracking failure can reinitialize on the wrong instance and cause an identity switch. V. C ONCLUSION 
+
+In this paper, we presented a novel approach to model-based unseen object pose tracking using RGB-D data. Our proposed tracking reliability check, novel keyframe store, and failure recovery procedure allow the system to detect and recover from tracking failure caused by fast object motions or full occlusions, making it the most robust method among the strong and diverse baselines we evaluated in these challenging scenarios. By combining efficient deep learning-based keypoint detection with robust texture matching alignment that uses color and depth information holistically, the method improves tracking accuracy. Our experiments demonstrate the accuracy and efficiency of our approach on standard benchmarks and highlight its robustness to fast object motions and full occlusions. REFERENCES [1] H.K. Cheng and A.G. Schwing. XMem: Long-term video object segmentation with an atkinson-shiffrin memory model. In Proc. of the Europ. Conf. on Computer Vision (ECCV) , page 640–658, 2022. [2] W. Deng, D. Campbell, C. Sun, J. Zhang, S. Kanitkar, M.E. Shaffer, et al. Pos3R: 6D Pose Estimation for Unseen Objects Made Easy. In Proc. of the IEEE/CVF Conf. on Computer Vision and Pattern Recognition (CVPR) , 2025. [3] X. Deng, A. Mousavian, Y. Xiang, F. Xia, T. Bretl, and D. Fox. PoseRBPF: A Rao-Blackwellized Particle Filter for 6D Object Pose Tracking. arXiv preprint , arXiv:1905.09304, 2019. [4] D. DeTone, T. Malisiewicz, and A. Rabinovich. SuperPoint: Self-Supervised Interest Point Detection and Description. In Proc. of the IEEE/CVF Conf. on Computer Vision and Pattern Recognition (CVPR) , 2017. [5] R. Ge and G. Loianno. VIPose: Real-time Visual-Inertial 6D Object Pose Tracking. In Proc. of the IEEE/RSJ Intl. Conf. on Intelligent Robots and Systems (IROS) , pages 4597–4603, 2021. [6] T. Guo and J. Yu. RGBTrack: Fast, Robust Depth-Free 6D Pose Estimation and Tracking. arXiv preprint , arXiv:2506.17119, 2025. [7] C. Harris and M. Stephens. A combined corner and edge detector. In 
+
+Alvey Vision Conf. , 1988. [8] R. Hartley and A. Zisserman. Multiple View Geometry in Computer Vision . Cambridge University Press, second edition, 2004. [9] S. Hinterstoisser, V. Lepetit, S. Ilic, S. Holzer, G. Bradski, K. Konolige, et al. Model Based Training, Detection and Pose Estimation of Texture-Less 3D Objects in Heavily Cluttered Scenes. In Proc. of the Asian Conf. on Computer Vision (ACCV) , pages 548–562, 2012. [10] B. Huang, J. Yu, and S. Jain. EARL: Eye-on-Hand Reinforcement Learner for Dynamic Grasping with Active Pose Estimation. In 
+
+Proc. of the IEEE/RSJ Intl. Conf. on Intelligent Robots and Systems (IROS) , pages 2963–2970, 2023. [11] W. Kehl, F. Tombari, S. Ilic, and N. Navab. Real-Time 3D Model Tracking in Color and Depth on a Single CPU Core. In Proc. of the IEEE/CVF Conf. on Computer Vision and Pattern Recognition (CVPR) , 2017. [12] G. Klein and D. Murray. Parallel Tracking and Mapping for Small AR Workspaces. In Proc. of the Intl. Symp. on Mixed and Augmented Reality (ISMAR) , 2007. [13] V. Leroy, Y. Cabon, and J. Revaud. Grounding Image Matching in 3D with MASt3R. In Proc. of the Europ. Conf. on Computer Vision (ECCV) , pages 71–91, 2024. [14] Y. Li, G. Wang, X. Ji, Y. Xiang, and D. Fox. DeepIM: Deep Iterative Matching for 6D Pose Estimation. arXiv preprint , arXiv:1804.00175, 2018. [15] T. Liang, Y. Zeng, J. Xie, and B. Zhou. DynamicPose: Real-time and Robust 6D Object Pose Tracking for Fast-Moving Cameras and Objects. In Proc. of the IEEE/RSJ Intl. Conf. on Intelligent Robots and Systems (IROS) , pages 2424–2431, 2025. [16] P. Lindenberger, P.E. Sarlin, and M. Pollefeys. LightGlue: Local fea-ture matching at light speed. In Proc. of the IEEE/CVF Intl. Conf. on Computer Vision (ICCV) , pages 17581–17592, 2023. [17] D. Lowe. Distinctive Image Features from Scale-Invariant Keypoints. 
+
+Intl. Journal of Computer Vision (IJCV) , 60(2):91–110, 2004. [18] V.N. Nguyen, C. Forster, S. Shkodrani, V. Lepetit, B. Tekin, C. Keskin, et al. GoTrack: Generic 6DoF Object Pose Refinement and Tracking. 
+
+arXiv preprint , arXiv:2506.07155, 2025. [19] V.N. Nguyen, T. Groueix, G. Ponimatkin, V. Lepetit, and T. Hodan. CNOS: A Strong Baseline for CAD-based Novel Object Segmentation. In Proc. of the Intl. Conf. on Computer Vision Workshops , 2023. [20] M. Oquab, T. Darcet, T. Moutakanni, H.V. Vo, M. Szafraniec, V. Khalidov, et al. DINOv2: Learning Robust Visual Features without Supervision. Trans. on Machine Learning Research (TMLR) , 2024. [21] E.P. Ornek, Y. Labbe, B. Tekin, L. Ma, C. Keskin, C. Forster, et al. FoundPose: Unseen Object Pose Estimation with Foundation Features. In Proc. of the Europ. Conf. on Computer Vision (ECCV) , pages 163– 182, 2024. [22] A. Paszke, S. Gross, F. Massa, A. Lerer, J. Bradbury, G. Chanan, et al. PyTorch: An Imperative Style, High-Performance Deep Learning Library. In Proc. of the Conf. on Neural Information Processing Systems (NeurIPS) , 2019. [23] N.A. Piga, Y. Onyshchuk, G. Pasquale, U. Pattacini, and L. Natale. ROFT: Real-Time Optical Flow-Aided 6D Object Pose and Velocity Tracking. IEEE Robotics and Automation Letters (RA-L) , 7(1):159– 166, 2022. [24] V.A. Prisacariu and I.D. Reid. PWP3D: Real-Time Segmentation and Tracking of 3D Objects. Intl. Journal of Computer Vision (IJCV) ,98(3):335–354, 2012. [25] K. Rana, J. Abou-Chakra, S. Garg, R. Lee, I. Reid, and N. S¨ underhauf. Affordance-Centric Policy Learning: Sample Efficient and Generalis-able Robot Policy Learning using Affordance-Centric Task Frames. 
+
+arXiv preprint , arXiv:2410.12124, 2024. [26] C.Y. Ren, V.A. Prisacariu, O. K¨ ahler, I.D. Reid, and D.W. Murray. Real-Time Tracking of Single and Multiple Objects from Depth-Colour Imagery Using 3D Signed Distance Functions. Intl. Journal of Computer Vision (IJCV) , 124(1):80–95, 2017. [27] L. Shaikewitz, S. Ubellacker, and L. Carlone. A certifiable algorithm for simultaneous shape estimation and object tracking. IEEE Robotics and Automation Letters (RA-L) , 9(12):11873–11880, 2024. [28] K. Shankar, M. Tjersland, J. Ma, K. Stone, and M. Bajracharya. ALearned Stereo Depth System for Robotic Manipulation in Homes. 
+
+IEEE Robotics and Automation Letters (RA-L) , 7(2):2305–2312, 2022. [29] J. Shi and C. Tomasi. Good Features to Track. Technical report, Cornell University, 1993. [30] M. Stoiber, M. Elsayed, A.E. Reichert, F. Steidle, D. Lee, and R. Triebel. Fusing Visual Appearance and Geometry for Multi-Modality 6DoF Object Tracking. In Proc. of the IEEE/RSJ Intl. Conf. on Intelligent Robots and Systems (IROS) , 2023. [31] M. Stoiber, M. Pfanne, K.H. Strobl, R. Triebel, and A. Albu-Sch¨ affer. SRT3D: A Sparse Region-Based 3D Object Tracking Approach for the Real World. Intl. Journal of Computer Vision (IJCV) , 130(4):1008– 1030, 2022. [32] M. Stoiber, M. Sundermeyer, and R. Triebel. Iterative Corresponding Geometry: Fusing Region and Depth for Highly Efficient 3D Tracking of Textureless Objects. In Proc. of the IEEE/CVF Conf. on Computer Vision and Pattern Recognition (CVPR) , 2022. [33] H. Tjaden, U. Schwanecke, and E. Sch¨ omer. Real-Time Monocular Pose Estimation of 3D Objects using Temporally Consistent Local Color Histograms. In Proc. of the IEEE/CVF Intl. Conf. on Computer Vision (ICCV) , 2017. [34] L. Vacchetti, V. Lepetit, and P. Fua. Stable Real-Time 3D Tracking Using Online and Offline Information. IEEE Trans. on Pattern Analysis and Machine Intelligence (TPAMI) , 26(10):1385–1391, 2004. [35] C. Wang, R. Mart´ ın-Mart´ ın, D. Xu, J. Lv, C. Lu, F.F. Li, et al. 6-PACK: Category-level 6D Pose Tracker with Anchor-Based Keypoints. In Proc. of the IEEE Intl. Conf. on Robotics & Automation (ICRA) ,pages 10059–10066, 2020. [36] B. Wen and K. Bekris. BundleTrack: 6D Pose Tracking for Novel Objects without Instance or Category-Level 3D Models. In Proc. of the IEEE/RSJ Intl. Conf. on Intelligent Robots and Systems (IROS) ,pages 8067–8074, 2021. [37] B. Wen, C. Mitash, B. Ren, and K.E. Bekris. se(3)-TrackNet: Data-driven 6D Pose Tracking by Calibrating Image Residuals in Synthetic Domains. In Proc. of the IEEE/RSJ Intl. Conf. on Intelligent Robots and Systems (IROS) , 2020. [38] B. Wen, J. Tremblay, V. Blukis, S. Tyree, T. M¨ uller, A. Evans, et al. BundleSDF: Neural 6-DoF Tracking and 3D Reconstruction of Unknown Objects. In Proc. of the IEEE/CVF Conf. on Computer Vision and Pattern Recognition (CVPR) , 2023. [39] B. Wen, W. Yang, J. Kautz, and S. Birchfield. FoundationPose: Unified 6D Pose Estimation and Tracking of Novel Objects. In Proc. of the IEEE/CVF Conf. on Computer Vision and Pattern Recognition (CVPR) , pages 17868–17879, 2024. [40] Y. Xiang, T. Schmidt, V. Narayanan, and D. Fox. PoseCNN: A Convolutional Neural Network for 6D Object Pose Estimation in Cluttered Scenes. In Proc. of Robotics: Science and Systems (RSS) ,2018. [41] H. Yang, J. Shi, and L. Carlone. TEASER: Fast and Certifiable Point Cloud Registration. IEEE Trans. on Robotics (TRO) , 37(2):314–333, 2020. [42] L. Zhong and L. Zhang. A Robust Monocular 3D Object Tracking Method Combining Statistical and Photometric Constraints. Intl. Jour-nal of Computer Vision (IJCV) , 127(8):973–992, 2019. [43] Y. Zhou and K. Yang. Exploring TensorRT to Improve Real-Time Inference for Deep Learning. In Proc. of the Intl. Conf. on High Performance Computing & Communications , pages 2011–2018, 2022.

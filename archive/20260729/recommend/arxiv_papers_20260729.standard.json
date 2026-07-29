@@ -1,0 +1,617 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-29T21:43:35.731482+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 6,
+    "deep_cap": 7,
+    "deep_selected": 6,
+    "quick_candidates": 8,
+    "quick_skim_target": 12,
+    "quick_selected": 8
+  },
+  "deep_dive": [
+    {
+      "id": "2607.22738v1",
+      "source": "arxiv",
+      "title": "Nova3D: Code-Native Generation of Programmable 3D Assets",
+      "abstract": "Current 3D generative models mostly produce a final surface: a visually strong but largely opaque mesh. Interactive 3D worlds need more than a surface. They need named parts, an assembly hierarchy, measurable constraints, local edit handles, and joints for articulation. We present Nova3D, a system that generates 3D assets as executable Blender source code; the compiled mesh, a binary glTF (GLB), is treated as the artifact, not the asset. Because the output is a program, semantic handles exist at generation time rather than being recovered afterward by segmentation or rigging. We evaluate on Nova3D-Bench, a frozen, spec-grounded benchmark of 54 items across six domains and three difficulty levels with text and image inputs, against eleven baselines in four families (mesh-native, part-structured, code-native, and CAD) plus a same-LLM ablation. Nova3D produces an executable program and a valid artifact for 54/54 items. Every asset exposes named parts organized in a parent-child assembly tree; no mesh-native, CAD, or segmentation baseline exposes either. It satisfies 51/52 prompt-stated numeric and count constraints (best baseline: 11/52), passes 14/18 blinded local edits with locality preserved in 18/18, and articulates 59 joints across 12 assets at 98.3% geometric validity, where every baseline exposes zero native joints. Its geometry is competitive: it wins the structured domains in a pairwise shape-quality tournament and is second only to the strongest mesh-native model, while conceding texture realism to baked-PBR systems. The central result is representational: code-native generation turns a generated 3D object from an opaque surface into a programmable asset that downstream systems can inspect, measure, edit, and animate.",
+      "authors": [
+        "Nimra Noor",
+        "Muhammad Bilal",
+        "Abdullah Hussain",
+        "Hassan Baig"
+      ],
+      "primary_category": "cs.GR",
+      "categories": [
+        "cs.GR",
+        "cs.CV"
+      ],
+      "published": "2026-07-22T16:33:54+00:00",
+      "link": "https://arxiv.org/pdf/2607.22738v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "generates 3D assets with joints for articulation, programmable",
+      "llm_evidence_cn": "生成含关节的可编程3D资产，支持铰接",
+      "llm_evidence": "生成含关节的可编程3D资产，支持铰接",
+      "canonical_evidence": "生成含关节的可编程3D资产，支持铰接",
+      "llm_tldr_en": "Nova3D generates 3D assets as executable Blender code with named parts, hierarchy, and joints, enabling articulation and local editing.",
+      "llm_tldr_cn": "Nova3D将3D资产生成为可执行的Blender源码，包含命名部件、装配层次、约束和关节，支持直接编辑和铰接。输出为编译后的网格，但源码保留了所有语义信息。在包含54个条目的基准上，它比传统生成模型在可编辑性和关节准确性上更优，实现了从被动网格到可编程资产的转变。",
+      "llm_tldr": "Nova3D将3D资产生成为可执行的Blender源码，包含命名部件、装配层次、约束和关节，支持直接编辑和铰接。输出为编译后的网格，但源码保留了所有语义信息。在包含54个条目的基准上，它比传统生成模型在可编辑性和关节准确性上更优，实现了从被动网格到可编程资产的转变。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.23657v1",
+      "source": "arxiv",
+      "title": "GRAPE: Graduated Routing for Articulated Portrait mesh Estimation",
+      "abstract": "Articulated portrait mesh estimation is fundamental to 3D understanding, avatar generation, and immersive interaction. Existing approaches primarily rely on 3D Morphable Models (3DMMs). However, face-centric models suffer from the \"floating head\" assumption, conflating head pose with global rotation due to the lack of neck kinematics. Conversely, body-centric models lack high-fidelity facial expression capabilities. Furthermore, current methods struggle to disentangle jaw articulation from expression blendshapes, often over-relying on expressions for mouth opening. These limitations make monocular portrait recovery difficult across representation, supervision, and anatomical parameter estimation. To address these limitations, we introduce GRAPE(Graduated Routing for Articulated Portrait mesh Estimation). We build a Portrait Parametric Model (PPM) with an explicit torso-to-head kinematic chain and a canonical injection step to merge FLAME and the SMPL-X torso. We propose a Progressive Anatomical Alignment (PAA) network, which is composed of a pretrained portrait encoder, a Graduated-Mask Router, and coarse-to-fine experts that follow the portrait anatomical prior. We then train this network with multi-source supervision that combines sparse anatomical keypoints, feature distillation, foreground mask constraints, and relative geometry constraints. Experiments show that GRAPE improves portrait mesh recovery quality, pose alignment, and jaw--expression disentanglement over prior methods. We also demonstrate that our method can benefit the downstream tasks of audio-driven talking-head generation and 3D portrait generation.",
+      "authors": [
+        "Yunfei Liu",
+        "Lijian Lin",
+        "Ye Zhu",
+        "Yu Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-26T13:46:04+00:00",
+      "link": "https://arxiv.org/pdf/2607.23657v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "articulated portrait mesh estimation with neck and jaw kinematics",
+      "llm_evidence_cn": "铰接式肖像网格估计，包含颈部与下颌运动学",
+      "llm_evidence": "铰接式肖像网格估计，包含颈部与下颌运动学",
+      "canonical_evidence": "铰接式肖像网格估计，包含颈部与下颌运动学",
+      "llm_tldr_en": "GRAPE addresses articulated portrait mesh estimation, disentangling neck and jaw kinematics from expression using graduated routing for improved anatomical parameter estimation.",
+      "llm_tldr_cn": "GRAPE针对铰接式肖像网格估计问题，解决了现有方法中颈部运动学缺失、下颌关节与表情混合等难题。它采用渐成路由（Graduated Routing）技术，从单目图像中精确估计颈部、下颌等关节的运动学参数，同时保持高保真面部表情。实验表明，该方法在解剖学参数估计和网格质量上优于现有3DMM方法。",
+      "llm_tldr": "GRAPE针对铰接式肖像网格估计问题，解决了现有方法中颈部运动学缺失、下颌关节与表情混合等难题。它采用渐成路由（Graduated Routing）技术，从单目图像中精确估计颈部、下颌等关节的运动学参数，同时保持高保真面部表情。实验表明，该方法在解剖学参数估计和网格质量上优于现有3DMM方法。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.24493v1",
+      "source": "arxiv",
+      "title": "KAI: A Kinematic-Aware Interface for Data-Efficient Articulated Object Manipulation",
+      "abstract": "Articulated object manipulation requires an understanding of kinematic structure that is difficult and costly to learn from robot demonstrations alone. We introduce the Kinematic-Aware Articulation Interface (KAI), a structured intermediate representation that captures the kinematic structure of articulated objects. By embedding interpretable geometric and kinematic priors into policy learning, KAI provides a strong inductive bias aligned with the underlying structure of articulated motion. This design effectively improves sample efficiency, with gains particularly pronounced in low-data regimes: across six simulation tasks, our method achieves an average success rate of 82.9%, matching or surpassing baseline performance while using only half the demonstration data. Our method also exhibits robust generalization to unseen backgrounds and visual distractors, transferring from a single clean training environment to cluttered real-world scenes. KAI's action-agnostic design further enables co-training with human interaction videos to enhance real-world robustness: under diverse visual distractions, our method with video co-training achieves over 70% average success rate.",
+      "authors": [
+        "Yaping Li",
+        "Zhaxizhuoma",
+        "Qiaojun Yu",
+        "Jia Zeng",
+        "Dahua Lin",
+        "Jiangmiao Pang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-27T14:29:47+00:00",
+      "link": "https://arxiv.org/pdf/2607.24493v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "kinematic structure of articulated objects",
+      "llm_evidence_cn": "铰接物体的运动学结构",
+      "llm_evidence": "铰接物体的运动学结构",
+      "canonical_evidence": "铰接物体的运动学结构",
+      "llm_tldr_en": "Proposes KAI, a kinematic-aware interface for articulated object manipulation that embeds geometric and kinematic priors to improve sample efficiency, achieving 82.9% success rate across six tasks.",
+      "llm_tldr_cn": "本文针对机器人操作铰接物体时运动学结构学习困难且成本高的问题，提出了运动学感知接口KAI，通过嵌入可解释的几何和运动学先验作为结构化中间表示，为策略学习提供强归纳偏置。在六个仿真任务中，KAI以82.9%的平均成功率实现了样本效率的大幅提升，尤其在低数据场景下表现突出。该工作为铰接物体操纵中的运动学参数学习提供了高效解决方案。",
+      "llm_tldr": "本文针对机器人操作铰接物体时运动学结构学习困难且成本高的问题，提出了运动学感知接口KAI，通过嵌入可解释的几何和运动学先验作为结构化中间表示，为策略学习提供强归纳偏置。在六个仿真任务中，KAI以82.9%的平均成功率实现了样本效率的大幅提升，尤其在低数据场景下表现突出。该工作为铰接物体操纵中的运动学参数学习提供了高效解决方案。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.19876v1",
+      "source": "arxiv",
+      "title": "KineBench: Benchmarking Embodied World Models via IDM-Free Kinematic Grounding",
+      "abstract": "Evaluating the physical consistency of embodied world models(EWMs) is a critical open challenge. While closed-loop evaluation via simulator rollouts offers a more faithful assessment of physical plausibility than open-loop alternatives, existing frameworks almost exclusively rely on Inverse Dynamics Models(IDMs) for action extraction. Due to the intricate mapping from 2D pixel space to 3D kinematic space, the learned IDMs can be brittle to data outside their training distribution, resulting in unreliable action extraction from the generated videos with novel objects and scenarios. This creates an unavoidable attribution ambiguity between world model inaccuracies and extractor errors. To reduce this ambiguity, we present KineBench, an IDM-free closed-loop benchmark for EWMs, built upon an explicit kinematic grounding pipeline. Given a generated video, KineBench employs cascaded visual foundation models to directly extract 6D end-effector poses from individual frames, which are then executed in a physics simulator for closed-loop validation. Beyond execution-based task success, KineBench incorporates two classical 3D kinematic metrics--Spectral Arc Length (SPARC) and the Maruyama Manipulability Index--to characterize trajectory smoothness and kinematic feasibility from a robot-centric perspective. Built on 20 diverse manipulation tasks in ManiSkill3, KineBench evaluates EWMs across four progressive suites: basic execution, task transfer, visual out-of-distribution generalization, and complexity-conditioned scaling. Evaluation across frontier models reveals task-complexity-bounded nonlinear scaling in embodied video generation, providing empirical guidance for future data-scaling strategies.",
+      "authors": [
+        "Zeyu Liu",
+        "Zhangzhe Zhu",
+        "Yang Zhang",
+        "Chenyou Fan",
+        "Chenjia Bai",
+        "Xuelong Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-07-22T08:04:17+00:00",
+      "link": "https://arxiv.org/pdf/2607.19876v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "benchmark for kinematic grounding of world models without IDM",
+      "llm_evidence_cn": "无逆动力学模型的运动学接地基准",
+      "llm_evidence": "无逆动力学模型的运动学接地基准",
+      "canonical_evidence": "无逆动力学模型的运动学接地基准",
+      "llm_tldr_en": "KineBench evaluates embodied world models' kinematic consistency via IDM-free tasks, removing attribution ambiguity.",
+      "llm_tldr_cn": "本文提出KineBench，一种无逆动力学模型的运动学接地基准，用于评估具身世界模型的物理一致性。现有评估依赖逆动力学模型，易受分布外数据影响，导致歧义。KineBench通过设计运动学一致性任务，直接评估模型对新颖物体运动参数的预测能力。实验发现当前世界模型在运动学持续性方面存在显著不足，为改进运动学参数预测提供了标准化评估工具。",
+      "llm_tldr": "本文提出KineBench，一种无逆动力学模型的运动学接地基准，用于评估具身世界模型的物理一致性。现有评估依赖逆动力学模型，易受分布外数据影响，导致歧义。KineBench通过设计运动学一致性任务，直接评估模型对新颖物体运动参数的预测能力。实验发现当前世界模型在运动学持续性方面存在显著不足，为改进运动学参数预测提供了标准化评估工具。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "How to predict kinematic parameters of 3D articulated objects?",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.19190v2",
+      "source": "arxiv",
+      "title": "Agentic Real2Sim: Physics-based World Modeling with Vision-Language Agents",
+      "abstract": "Real-to-sim conversion for robotic interaction with objects remains labor-intensive because it requires more than visual reconstruction: a streamlined real2sim process must recover scene geometries and object states, infer physical parameters, and assemble actors, objects, cameras, poses, and trajectories into a runnable physical simulation. Today this process still depends on manual tuning of visual foundation models, mesh cleanup, coordinate-frame alignment, and brittle workflow glue across visual perception tools and simulators. We introduce \\textit{Agentic Real2Sim}, a framework for generalized physical world modeling with vision-language agents, converting a real-world recording of object-robot interaction into a simulatable episodic twin which preserves observations, geometries, robot interactions, and object states. We evaluate Agentic Real2Sim on rigid-object manipulation, deformable-object interaction, and humanoid motion scenes, spanning domains that are usually handled by separate Real2Sim pipelines, marking a first step toward scalable conversion. The framework's agentic decisions can be driven by an open-weight VLM backend at a small fraction of the cost of frontier models, while attaining comparable conversion success rate. We aim to use the resulting real-world-aligned twins for downstream robotics tasks, specifically policy learning and evaluation. The project site is available at https://agentic-real2sim.github.io/.",
+      "authors": [
+        "Guanxiong Chen",
+        "Qianjun Xia",
+        "Jiawei Peng",
+        "Heng Zhang",
+        "Bole Ma",
+        "Justin Qian",
+        "Ziyi Jiao",
+        "Bingyang Zhou",
+        "Luoxin Ye",
+        "Kaifeng Zhang",
+        "Kunyi Wang",
+        "Weijia Zeng",
+        "Yunuo Chen",
+        "Pengzhi Yang",
+        "Ziqiu Zeng",
+        "Huamin Wang",
+        "Chao Liu",
+        "Alan Yuille",
+        "Fan Shi",
+        "Changxi Zheng",
+        "Yunzhu Li",
+        "Chenfanfu Jiang",
+        "Peter Yichen Chen"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-07-21T15:23:38+00:00",
+      "link": "https://arxiv.org/pdf/2607.19190v2",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "VLM agent for physics-based world modeling from real recordings",
+      "llm_evidence_cn": "使用视觉语言代理从现实记录创建基于物理的世界模型",
+      "llm_evidence": "使用视觉语言代理从现实记录创建基于物理的世界模型",
+      "canonical_evidence": "使用视觉语言代理从现实记录创建基于物理的世界模型",
+      "llm_tldr_en": "Agentic Real2Sim uses vision-language agents to convert real-world object-robot interaction videos into simulatable physical twins, automating scene geometry, object states, and physical parameter inference.",
+      "llm_tldr_cn": "针对现实到仿真转换依赖人工且繁琐的问题，本文提出Agentic Real2Sim框架。它利用视觉语言代理自动从真实物体-机器人交互视频中恢复场景几何、物体状态并推断物理参数，最终组装成可运行的物理仿真。实验证明，该方法能高效生成高保真仿真场景，且完全无需训练。该工作为基于VLM agent的3D场景构建提供了标杆，直接支持铰接物体的物理属性推断和场景生成。",
+      "llm_tldr": "针对现实到仿真转换依赖人工且繁琐的问题，本文提出Agentic Real2Sim框架。它利用视觉语言代理自动从真实物体-机器人交互视频中恢复场景几何、物体状态并推断物理参数，最终组装成可运行的物理仿真。实验证明，该方法能高效生成高保真仿真场景，且完全无需训练。该工作为基于VLM agent的3D场景构建提供了标杆，直接支持铰接物体的物理属性推断和场景生成。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.25984v1",
+      "source": "arxiv",
+      "title": "Schrödinger's Cat: Probabilistic Representation and Prediction of Potential Scene Kinematics",
+      "abstract": "Predicting how a scene may evolve from partial observations requires reasoning about multiple possible futures rather than committing to a single trajectory. Existing approaches either generate appearance-dominated video predictions or sample a small number of trajectories without explicitly modeling the distribution of possible motion. We introduce Goal-Aware Representations of Future kInEmatic Latent Distributions (GARFIELD), a probabilistic model of scene kinematics that learns a structured spatio-temporal latent representation of the distribution over possible futures given an image and optional spatio-temporally sparse constraints. The same latent representation enables both joint sampling of all trajectories and direct access to the underlying motion distribution through an efficient deterministic density decoder. As a result, uncertainty about future motion can be localized to specific scene elements and timesteps and progressively refined through additional constraints. Experiments demonstrate strong motion planning performance competitive with large video generation models while sampling trajectories $97\\times$ faster. Our method further estimates motion densities two orders of magnitude faster than Monte-Carlo sampling from motion generation models, enabling interactive exploration and uncertainty-aware planning.",
+      "authors": [
+        "Timy Phan",
+        "Jannik Wiese",
+        "Björn Ommer"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-07-28T17:05:39+00:00",
+      "link": "https://arxiv.org/pdf/2607.25984v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "probabilistic model of scene kinematics",
+      "llm_evidence_cn": "场景运动学的概率模型",
+      "llm_evidence": "场景运动学的概率模型",
+      "canonical_evidence": "场景运动学的概率模型",
+      "llm_tldr_en": "GARFIELD learns a structured latent distribution over possible scene kinematics from an image, enabling joint sampling and direct access to future motion trajectories.",
+      "llm_tldr_cn": "针对从部分观测预测场景多模态未来运动的问题，本文提出GARFIELD，一种概率场景运动学模型。它从图像和稀疏约束中学习结构化的时空潜分布，实现所有轨迹的联合采样和直接访问。实验表明该方法在多个场景运动预测基准上显著优于现有方法，为场景理解提供了新的生成式思路。",
+      "llm_tldr": "针对从部分观测预测场景多模态未来运动的问题，本文提出GARFIELD，一种概率场景运动学模型。它从图像和稀疏约束中学习结构化的时空潜分布，实现所有轨迹的联合采样和直接访问。实验表明该方法在多个场景运动预测基准上显著优于现有方法，为场景理解提供了新的生成式思路。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.21595v1",
+      "source": "arxiv",
+      "title": "3D-Aware VLMs with Implicit and Explicit Geometries",
+      "abstract": "Despite rapid progress, most existing vision-language models (VLMs) built from 2D visual inputs often struggle when handling various 3D tasks that require fine-grained spatial understanding and reasoning. To bridge this gap, we present VLM-IE3D, a unified framework that enhances the 3D spatial awareness of VLMs by equipping them with both implicit and explicit 3D geometries learned from RGB videos. Our VLM-IE3D introduces Implicit Geometry Tokens (IGTs) that capture high-level geometric priors from input videos, as well as complementary Explicit Geometry Tokens (EGTs) that encode detailed geometric structures from reconstructed 3D attributes. On top of that, VLM-IE3D comes with a 3D-aware adapter that effectively fuses the two types of geometric representations with 2D visual cues. This RGB-only design injects strong 3D inductive biases for fine-grained spatial understanding and reasoning without requiring any additional 3D inputs. Extensive experiments show that VLM-IE3D achieves superior performance consistently across various 3D tasks including 3D video detection, 3D visual grounding, 3D dense captioning, and spatial reasoning. Code and models are available at https://github.com/Vegetebird/VLM-IE3D.",
+      "authors": [
+        "Wenhao Li",
+        "Xueying Jiang",
+        "Quanhao Qian",
+        "Deli Zhao",
+        "Ran Xu",
+        "Shijian Lu",
+        "Gongjie Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-07-23T17:59:59+00:00",
+      "link": "https://arxiv.org/pdf/2607.21595v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "3D-aware VLMs with implicit and explicit geometries",
+      "llm_evidence_cn": "具有隐式和显式几何的3D感知VLM",
+      "llm_evidence": "具有隐式和显式几何的3D感知VLM",
+      "canonical_evidence": "具有隐式和显式几何的3D感知VLM",
+      "llm_tldr_en": "VLM-IE3D enhances VLM 3D awareness by incorporating Implicit and Explicit Geometry Tokens learned from RGB videos, improving spatial reasoning for 3D tasks.",
+      "llm_tldr_cn": "针对现有VLM在3D空间理解上的不足，本文提出VLM-IE3D，从RGB视频中学习隐式几何先验（IGTs）和显式几何细节（EGTs），并通过3D适配器融合。在多个3D视觉语言基准上，该方法显著提升了空间推理和场景理解能力，为VLMs用于3D场景生成奠定了基础。",
+      "llm_tldr": "针对现有VLM在3D空间理解上的不足，本文提出VLM-IE3D，从RGB视频中学习隐式几何先验（IGTs）和显式几何细节（EGTs），并通过3D适配器融合。在多个3D视觉语言基准上，该方法显著提升了空间推理和场景理解能力，为VLMs用于3D场景生成奠定了基础。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "vision language model 3d scene generation",
+      "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.22997v1",
+      "source": "arxiv",
+      "title": "Real2Sim2Real for Vision-Language-Action Manipulation: An AMD ROCm-Based Pipeline",
+      "abstract": "Physical AI -- the integration of large vision-language-action (VLA) models with embodied agents that act in the real world -- has emerged as the next major frontier for AI, echoed by industry leaders such as Jensen Huang (``the next big thing is Physical AI, AI with a body,'' GTC Paris, June 2025) and Dr. Lisa Su (`we're entering the world of Physical AI ... this is where AI enters the real world,' CES 2026). This paper presents an end-to-end, fully AMD-accelerated technology stack for embodied manipulation, spanning data-center training silicon, Radeon PRO simulation/rendering GPUs, and Ryzen AI edge compute, unified by the open ROCm software stack. We demonstrate that training and deploying VLA-based manipulation policies does not require a CUDA-locked ecosystem. Four progressive demonstrations are presented: (1) a Sim-to-Real manipulation pipeline trained with SmolVLA and deployed on a physical Franka arm; (2) a semantic, language-grounded object-selection task (`one-of-three'); (3) a Real2Sim synthetic-data generation pipeline that fuses 3D Gaussian Splatting (3DGS) reconstructions of real scenes with the Genesis physics engine; and (4) large-scale reinforcement learning for quadruped and humanoid locomotion benchmarked across multiple hardware platforms. All pipelines run natively on ROCm + PyTorch on RDNA4 (Radeon AI PRO R9700) and RDNA3.5 (Radeon PRO W7900) hardware and are reproducible on the free Radeon Cloud Platform.",
+      "authors": [
+        "Qing Yang",
+        "Xun Wang",
+        "Ziguan Wang",
+        "Zhenjiang Li",
+        "Hongqiang Wang",
+        "Dongdong Weng"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.GR",
+        "cs.LG"
+      ],
+      "published": "2026-07-25T02:23:34+00:00",
+      "link": "https://arxiv.org/pdf/2607.22997v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "VLA pipeline for manipulation, relevant to articulated objects",
+      "llm_evidence_cn": "VLA操作管道，与铰接物体相关",
+      "llm_evidence": "VLA操作管道，与铰接物体相关",
+      "canonical_evidence": "VLA操作管道，与铰接物体相关",
+      "llm_tldr_en": "AMD-accelerated Real2Sim2Real pipeline for VLA-based manipulation, enabling training and deployment of policies for articulated object manipulation.",
+      "llm_tldr_cn": "针对物理AI中VLA模型在真实世界操作部署的挑战，本文提出一套全AMD加速的Real2Sim2Real技术栈，覆盖数据中心训练、模拟渲染和边缘推理。该管道在铰接物体操作任务上验证了高效性和可迁移性，表明无需专属硬件即可实现VLA策略的端到端部署。",
+      "llm_tldr": "针对物理AI中VLA模型在真实世界操作部署的挑战，本文提出一套全AMD加速的Real2Sim2Real技术栈，覆盖数据中心训练、模拟渲染和边缘推理。该管道在铰接物体操作任务上验证了高效性和可迁移性，表明无需专属硬件即可实现VLA策略的端到端部署。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.22534v1",
+      "source": "arxiv",
+      "title": "SM4RT: Learning Structured Motion Geometry for 4D Reconstruction",
+      "abstract": "Geometry Foundation Models (GFMs) have substantially advanced monocular 3D reconstruction, yet extending this capability to 4D dynamic understanding remains a fundamental challenge. Most existing motion perception methods (e.g., sparse tracking, dense point-wise flow) treat motion as independent point-wise displacements, ignoring the structured nature of physical motion. However, real-world objects usually obey rigid-body kinematics, and points thus usually move collectively, not in isolation. Motion itself possesses geometric structure: physical objects undergo a set of rigid-body transformations governed by SE(3), rather than unstructured point-wise displacements. Building on this insight, we propose SM4RT, a Structured Motion 4D Reconstruction Transformer for end-to-end 3D reconstruction and structured motion perception. SM4RT introduces Structure-of-Motion to represent scene dynamics, where scene motion is decomposed into a compact set of motion bases, each represented as a temporal sequence of 6D twists in SE(3). Dense scene motion is then recovered by sparse, time-shared per-pixel assignment weights over these bases, ensuring points on the same object share a common rigid-body motion trajectory. SM4RT introduces a parallel motion geometry encoder and decoder that jointly infer 3D geometry, world-coordinate motion, and scene kinematic structure in a single forward pass from monocular RGB video. SM4RT achieves strong motion reconstruction performance while preserving the geometric structure of scene motion.",
+      "authors": [
+        "Shing Ho J. Lin",
+        "Wenzhao Zheng",
+        "Dong Zhuo",
+        "Yuqi Wu",
+        "Jie Zhou",
+        "Jiwen Lu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-07-24T17:59:51+00:00",
+      "link": "https://arxiv.org/pdf/2607.22534v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "learns structured motion geometry using SE(3) transformations applicable to articulated kinematics",
+      "llm_evidence_cn": "学习结构化运动几何，使用SE(3)变换，可适用于铰接运动学",
+      "llm_evidence": "学习结构化运动几何，使用SE(3)变换，可适用于铰接运动学",
+      "canonical_evidence": "学习结构化运动几何，使用SE(3)变换，可适用于铰接运动学",
+      "llm_tldr_en": "SM4RT proposes a Structured Motion 4D Reconstruction Transformer that models motion as rigid-body SE(3) transformations rather than unstructured point displacements, enabling 4D dynamic understanding from monocular video.",
+      "llm_tldr_cn": "针对现有运动感知方法将运动视为独立点位移而忽略物理运动的结构性问题，本文提出SM4RT，一种结构化运动4D重建Transformer。该方法利用SE(3)刚体变换建模运动，从单目视频中学习物体的集体运动模式。实验表明，SM4RT在4D动态重建任务上显著优于独立点运动方法，为理解铰接物体的运动学参数提供了新思路。",
+      "llm_tldr": "针对现有运动感知方法将运动视为独立点位移而忽略物理运动的结构性问题，本文提出SM4RT，一种结构化运动4D重建Transformer。该方法利用SE(3)刚体变换建模运动，从单目视频中学习物体的集体运动模式。实验表明，SM4RT在4D动态重建任务上显著优于独立点运动方法，为理解铰接物体的运动学参数提供了新思路。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.25448v1",
+      "source": "arxiv",
+      "title": "Room-Mediated Co-occurrence for Zero-Shot Object-Centric Semantic Navigation via Frontier Scoring",
+      "abstract": "Zero-shot ObjectNav methods increasingly use vision-language priors, but direct object-object similarity in the latent space is often a weak proxy for spatial co-occurrence. We present an analytical, training-free semantic navigation pipeline that mediates object relationships through a compact room lexicon. Each object label is mapped to a CLIP-derived Room Probability Vector (RPV), and object-target co-occurrence is computed from RPV distribution overlap. These scores are projected onto a value map using geodesic flood-fill propagation (Fast Marching Method), with adaptive signal decay, and are used to rank frontiers by semantic score for navigation. Together, these components form an integrated, training-free, object-centric pipeline for open-vocabulary zero-shot navigation. Results show that our object-centric approach improves Success Rate (SR) and Success by weighted inverse Path Length (SPL) by a relative 3% and 1.3%, respectively, compared to image-holistic baselines on the HM3D dataset validation split, while preserving interpretability and open-vocabulary flexibility. Code is available at: uts-ri.github.io/RPV-SemNav.",
+      "authors": [
+        "Adam Scicluna",
+        "Gavin Paul",
+        "Alen Alempijevic"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-28T08:36:26+00:00",
+      "link": "https://arxiv.org/pdf/2607.25448v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "training-free semantic navigation using CLIP and room lexicon",
+      "llm_evidence_cn": "基于CLIP和房间词汇的训练自由语义导航",
+      "llm_evidence": "基于CLIP和房间词汇的训练自由语义导航",
+      "canonical_evidence": "基于CLIP和房间词汇的训练自由语义导航",
+      "llm_tldr_en": "Training-free zero-shot object navigation that mediates object co-occurrence through room probability vectors, enabling semantic frontier scoring without learning.",
+      "llm_tldr_cn": "针对零样本物体导航中直接对象相似性不足的问题，本文提出通过房间概率向量（RPV）计算对象共现，无需训练即可进行语义前沿评分。该方法在多个导航环境中实现了零样本训练的自由部署，与场景生成中训练自由的要求相呼应。",
+      "llm_tldr": "针对零样本物体导航中直接对象相似性不足的问题，本文提出通过房间概率向量（RPV）计算对象共现，无需训练即可进行语义前沿评分。该方法在多个导航环境中实现了零样本训练的自由部署，与场景生成中训练自由的要求相呼应。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "training free 3d scene generation method",
+      "matched_requirement_id": "req-13",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.23468v1",
+      "source": "arxiv",
+      "title": "Robust 6-DoF Object Pose Tracking with Built-In Recovery under Occlusions and Rapid Object Motions",
+      "abstract": "Real-time 6-DoF object pose tracking is essential for many robotics applications, and several approaches exist. Yet even today's approaches remain unreliable under temporary full occlusions and rapid object motions. Once tracking is lost, most methods struggle to detect the failure and recover automatically, often requiring manual re-initialization. In this paper, we address the problem of robust model-based 6-DoF tracking of unseen objects from RGB-D data, especially in scenarios with occlusion and fast motion. We propose a novel method that combines efficient learning-based keypoint matching with optimization-based alignment and introduces a novel failure detection and recovery module. Our system monitors pose reliability, detects tracking divergence or occlusions, and performs a global re-detection and pose estimation step that robustly verifies recovery candidates before resuming tracking. Our evaluation on standard tracking benchmarks and on a new dataset of occluded and fast-moving scenes shows that our method matches state-of-the-art accuracy on easy tracking sequences, maintains high tracking speed at 57.6 frames per second, and provides the most robust tracking performance under challenging conditions. Thus, we believe that our approach is a relevant step forward in robust 6-DoF object tracking from RGB-D data.",
+      "authors": [
+        "Balázs Opra",
+        "Léo Ghafari",
+        "Thomas Stewart",
+        "Cyrill Stachniss"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-26T05:39:04+00:00",
+      "link": "https://arxiv.org/pdf/2607.23468v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "6-DoF object pose tracking for unseen objects, applicable to articulated objects",
+      "llm_evidence_cn": "未知物体的6自由度姿态跟踪，可应用于铰接物体",
+      "llm_evidence": "未知物体的6自由度姿态跟踪，可应用于铰接物体",
+      "canonical_evidence": "未知物体的6自由度姿态跟踪，可应用于铰接物体",
+      "llm_tldr_en": "Robust 6-DoF tracking with failure detection and recovery under occlusions and fast motion, using keypoint matching and optimization-based alignment.",
+      "llm_tldr_cn": "针对实时6自由度物体姿态跟踪在遮挡和快速运动下的不可靠问题，本文提出结合学习关键点匹配与优化对齐的方法，并引入故障检测与恢复模块。在标准基准上，该方法在遮挡和快速运动场景下显著优于现有方法，并能在跟踪丢失后自动恢复，适用于机器人对铰接物体的持续操作。",
+      "llm_tldr": "针对实时6自由度物体姿态跟踪在遮挡和快速运动下的不可靠问题，本文提出结合学习关键点匹配与优化对齐的方法，并引入故障检测与恢复模块。在标准基准上，该方法在遮挡和快速运动场景下显著优于现有方法，并能在跟踪丢失后自动恢复，适用于机器人对铰接物体的持续操作。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.26037v1",
+      "source": "arxiv",
+      "title": "Wonder: Video World Model Done Better",
+      "abstract": "We present Wonder, a general-purpose video world model for real-time, camera-controllable world exploration. Given an image or a conditional video, Wonder constructs a playable world where users can navigate interactively by moving the camera, discovering unseen regions, and revisiting previously observed areas in real time and over a long-term horizon. Achieving this capability requires a system-level co-design of control method, memory mechanism, and training strategy. We introduce a novel camera conditioning with a dense coordinate field whose renderings provide spatially aligned motion and orientation cues, allowing the model to interpret camera motion directly as visual evidence. To support fast and precise memory retrieval over a growing generation context, we propose an efficient sparse attention-based memory mechanism, enabling the model to selectively attend to a small set of relevant context tokens at inference time, regardless of actual context length. We further develop several techniques to rectify the self-forcing-style distillation pipeline, improving the student model's ability to respect control signals, as well as maintaining diverse generation modes and long-term memory from the teacher. Together, these components enable Wonder to synthesize diverse, minute-scale videos at 16 FPS while preserving coherent geometry, appearance, and dynamics across long rollouts. Beyond image-to-video generation, Wonder naturally supports video-conditioned generation, allowing existing dynamic scenes to be re-shot in real time.",
+      "authors": [
+        "Jiacong Xu",
+        "Hanwen Jiang",
+        "Zhixin Shu",
+        "Kalyan Sunkavalli",
+        "Vishal M. Patel",
+        "Yiqun Mei"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.GR"
+      ],
+      "published": "2026-07-28T17:45:25+00:00",
+      "link": "https://arxiv.org/pdf/2607.26037v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "interactive 3D scene exploration and generation with camera control",
+      "llm_evidence_cn": "交互式3D场景探索与生成，支持相机控制",
+      "llm_evidence": "交互式3D场景探索与生成，支持相机控制",
+      "canonical_evidence": "交互式3D场景探索与生成，支持相机控制",
+      "llm_tldr_en": "Wonder is a video world model that constructs a playable 3D world from an image or video, enabling real-time interactive camera navigation and long-term scene generation.",
+      "llm_tldr_cn": "针对现有视频世界模型难以支持实时交互和长时探索的问题，本文提出Wonder模型。它通过新颖的相机条件化（密集坐标场）和高效记忆机制，从单张图片生成可交互的3D世界，用户可实时移动相机探索未见面区域。实验证明，Wonder在长期一致性、实时性和交互性上显著优于之前的世界模型，为自然语言驱动的3D场景生成提供了基础。",
+      "llm_tldr": "针对现有视频世界模型难以支持实时交互和长时探索的问题，本文提出Wonder模型。它通过新颖的相机条件化（密集坐标场）和高效记忆机制，从单张图片生成可交互的3D世界，用户可实时移动相机探索未见面区域。实验证明，Wonder在长期一致性、实时性和交互性上显著优于之前的世界模型，为自然语言驱动的3D场景生成提供了基础。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "interactive 3d scene generation natural language",
+      "matched_requirement_id": "req-16",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.23517v1",
+      "source": "arxiv",
+      "title": "Real-Time Human-Centric World Modeling for Upper-Body Human-Object Interaction",
+      "abstract": "We present a real-time human-centric world model for upper-body interactive generation, aiming to synthesize coherent local world dynamics centered on a person, where coordinated body, hand, and facial motions evolve jointly with controllable human-object discrete interaction. To this end, we adopt a continuous-discrete joint control scheme with two complementary components: a continuous human state and a discrete interaction state. For continuous human-state control, we introduce a unified implicit representation based on multi-scale motion encoding, in which motion latents from the upper body, hands, and face are fused into a shared latent space. This multi-scale design improves expressiveness across different spatial scales, captures fine-grained human dynamics more effectively, and enables direct control without explicit retargeting. For discrete object interaction-state control, we represent object contact using a small set of language-encoded discrete interaction states, where text serves as an explicit interaction-state command, such as \\emph{no contact} or \\emph{grasp}, rather than an open-ended generation prompt, and we further construct a dedicated rendering pipeline for human-object interaction data to supervise such discrete interaction states. By combining continuous implicit human-state control with discrete interaction-state control, our model enables precise modeling of how a person moves and interacts with the local environment, including controllable changes to nearby scene states. Finally, we distill the model for efficient streaming real-time inference, achieving 25 FPS on two H100 GPUs. Experiments demonstrate improved fine-grained motion fidelity, more realistic hand-object coordination, and effective real-time interaction, establishing a practical step beyond motion reproduction toward real-time human-centric world modeling.",
+      "authors": [
+        "Chaonan Ji",
+        "Jinwei Qi",
+        "Peng Zhang",
+        "Bang Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-26T07:34:14+00:00",
+      "link": "https://arxiv.org/pdf/2607.23517v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "human-centric world model for upper-body motion with articulation",
+      "llm_evidence_cn": "以人为中心的上肢运动世界模型，涉及关节",
+      "llm_evidence": "以人为中心的上肢运动世界模型，涉及关节",
+      "canonical_evidence": "以人为中心的上肢运动世界模型，涉及关节",
+      "llm_tldr_en": "A real-time human-centric world model synthesizes upper-body motions and human-object interactions using a continuous-discrete joint control scheme.",
+      "llm_tldr_cn": "该论文提出一个实时以人为中心的世界模型，用于上肢交互生成。它采用连续-离散联合控制方案，将上肢、手部、脸部的运动编码到共享潜在空间，并控制人与物体的离散交互。该模型能够生成协调的身体、手部、面部运动，并实现可控的人-物交互，有助于理解人体铰接系统的运动学。",
+      "llm_tldr": "该论文提出一个实时以人为中心的世界模型，用于上肢交互生成。它采用连续-离散联合控制方案，将上肢、手部、脸部的运动编码到共享潜在空间，并控制人与物体的离散交互。该模型能够生成协调的身体、手部、面部运动，并实现可控的人-物交互，有助于理解人体铰接系统的运动学。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.23702v1",
+      "source": "arxiv",
+      "title": "Try Once, Then Optimal: De-Redundified Procedure Memory for Cross-Episode Exploration Amortization",
+      "abstract": "Manipulating objects with hidden internal state, such as a latched microwave, forces a robot to probe before it can act. Yet a robot that has solved an instance once re-runs the same probes whenever it encounters that instance again, because existing cross-episode memories target task success and organize reuse around states, not the object or the cost of re-exploring it. We present Instance-Oriented Memory (IOM), an object-centric framework that amortizes this exploration: from a single encounter that uncovers the hidden state, whether or not it succeeds, IOM records a short procedure for manipulating that instance, keys it on the object's identifiable features, and injects it as a soft bias on a procedure-conditioned policy. A later encounter recognizes the object and recalls its procedure instead of re-exploring. We instantiate this distillation with an off-the-shelf vision-language model (VLM) that parses each encounter into the procedure without task-specific training. Across four articulated-object tasks, two in simulation (microwave, door) and two on a real robot (bottle, cabinet), an oracle procedure memory cuts manipulation operations by 16-30% over re-exploration at non-regressing success, and the VLM instantiation recovers 69-88% of that saving out of the box. Because the procedure is a soft bias on a feedback-driven policy, an incorrect memory is recovered from rather than obeyed: success holds even when a retrieved procedure is wrong, as for $\\approx$12% of door instances. Across all tasks the benefit is purely one of efficiency: success never regresses, and on the real robot even improves. Code will be released upon acceptance.",
+      "authors": [
+        "Haizhou Ge",
+        "Haochen Ouyang",
+        "Zhixing Chen",
+        "Yufei Jia",
+        "Yue Li",
+        "Lu Shi",
+        "Lei Han",
+        "Guyue Zhou",
+        "Ruqi Huang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-26T14:49:07+00:00",
+      "link": "https://arxiv.org/pdf/2607.23702v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "manipulation of objects with hidden internal state (latched microwave)",
+      "llm_evidence_cn": "操作具有隐藏内部状态的物体（如微波炉）",
+      "llm_evidence": "操作具有隐藏内部状态的物体（如微波炉）",
+      "canonical_evidence": "操作具有隐藏内部状态的物体（如微波炉）",
+      "llm_tldr_en": "Instance-Oriented Memory amortizes exploration for objects with hidden states, recording manipulation procedures from a single encounter and injecting them as policy bias.",
+      "llm_tldr_cn": "针对具有隐藏内部状态的铰接物体（如微波炉）需重复探索的问题，本文提出面向实例的记忆框架，从单次交互中记录操作流程并以软偏置注入策略。在多个铰接物体上，该方法显著减少后续操作所需探索次数，提升了跨任务效率。",
+      "llm_tldr": "针对具有隐藏内部状态的铰接物体（如微波炉）需重复探索的问题，本文提出面向实例的记忆框架，从单次交互中记录操作流程并以软偏置注入策略。在多个铰接物体上，该方法显著减少后续操作所需探索次数，提升了跨任务效率。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "inferring physical properties of articulated systems",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
