@@ -1,0 +1,276 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-02T21:22:46.335563+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 1,
+    "deep_cap": 7,
+    "deep_selected": 1,
+    "quick_candidates": 5,
+    "quick_skim_target": 12,
+    "quick_selected": 5
+  },
+  "deep_dive": [
+    {
+      "id": "2607.27755v1",
+      "source": "arxiv",
+      "title": "EgoGVAE: Ego-body Mesh Reconstruction via Guided Variational Autoencoder",
+      "abstract": "We address the problem of recovering the full-body mesh from only the head pose. This task has become essential for various applications based on head-mounted devices or smart glasses. The challenge of this task lies in estimating the pose information of unobserved body parts based solely on a single joint (i.e., head) trajectory. Several studies have begun to adopt head-conditioned generative models, however, such previous methods are costly and time-consuming due to the diffusion-based iterative process. As an alternative, we propose a simple yet novel method that leverages the latent space of the guidance network, which is designed as a variational autoencoder taking full-body poses as inputs. By enforcing latent distributions of this guidance network and our head-to-motion network to be similar, latent features sampled from the 'guided' distribution, i.e., distribution learned in our head-to-motion network, can be reliably decoded for natural representations of full-body poses even only with the head pose. One important advantage of the proposed method is that one-step sampling scheme achieves remarkably fast inference (more than 50 times faster) compared to diffusion-based approaches. Experimental results on benchmark datasets show that the proposed method efficiently improves the performance of ego-body mesh reconstruction.",
+      "authors": [
+        "Jaehun Jung",
+        "Wonjun Kim"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-30T06:52:59+00:00",
+      "link": "https://arxiv.org/pdf/2607.27755v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Estimates full-body kinematic pose from head trajectory; directly learns kinematic parameters of an articulated human body from visual data.",
+      "llm_evidence_cn": "从头部轨迹估计全身运动学姿态，直接从视觉数据学习人体这一铰接物体的运动学参数。",
+      "llm_evidence": "从头部轨迹估计全身运动学姿态，直接从视觉数据学习人体这一铰接物体的运动学参数。",
+      "canonical_evidence": "从头部轨迹估计全身运动学姿态，直接从视觉数据学习人体这一铰接物体的运动学参数。",
+      "llm_tldr_en": "EgoGVAE reconstructs full-body mesh from head pose via a guidance VAE, bypassing expensive diffusion. The method constrains latent distributions so unobserved body parts can be inferred, yielding efficient articulated human pose estimation from one joint trajectory.",
+      "llm_tldr_cn": "针对仅从头部轨迹恢复全身网格的问题，现有扩散方法成本高且耗时。EgoGVAE提出利用以全身姿态为输入的引导变分自编码器的隐空间，通过约束隐分布来推断未观察身体部位的运动学参数。该方法无需扩散的迭代过程，能够高效地从单关节轨迹重建全身姿态，为头戴式设备的全身人体运动估计提供轻量级方案。",
+      "llm_tldr": "针对仅从头部轨迹恢复全身网格的问题，现有扩散方法成本高且耗时。EgoGVAE提出利用以全身姿态为输入的引导变分自编码器的隐空间，通过约束隐分布来推断未观察身体部位的运动学参数。该方法无需扩散的迭代过程，能够高效地从单关节轨迹重建全身姿态，为头戴式设备的全身人体运动估计提供轻量级方案。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.23491v1",
+      "source": "arxiv",
+      "title": "PlanCraft: Sketch, Refine, and Furnish for Architect-Inspired Progressive 3D Residential Scene Generation",
+      "abstract": "Two structural insights have been overlooked in automated residential floor plan generation. First, design is inherently progressive. Architects begin with rough strokes and refine them over time, whereas existing methods typically require their conditioning representation to be fully specified before generation, a fundamental mismatch with how design actually works. Second, the 2D floor plan is not an optional intermediate but an irreplaceable spatial contract. Once room boundaries, doors, and windows are fixed, furnishing reduces from open-ended spatial reasoning to bounded constraint satisfaction. Bypassing this contract, as existing 3D systems do by delegating layout to language models, yields overlapping rooms and implausible proportions; directly calling general-purpose language models likewise produces geometrically invalid layouts. Guided by these insights, we present PlanCraft. SketchPlan supplies the missing training signal by replaying the architect's drawing process on 80K real floor plans, producing partial sketches at every completeness level. PlanCraft-Diff progressively sharpens an incomplete sketch into a geometrically precise, vectorizable floor plan through a coarse-to-fine strategy. With the spatial contract established, PlanCraft-Agent then furnishes the scene within well-defined room boundaries. Experiments show that PlanCraft achieves a 61.1\\% lower FID than the best existing 2D method and surpasses existing 3D systems by 15 points in expert-rated spatial rationality, with a sketch at only 25\\% completion already outperforming all fully specified baselines.",
+      "authors": [
+        "Pengyu Zeng",
+        "Yuqin Dai",
+        "Jun Yin",
+        "Ziyang Han",
+        "Ng Cheuk Hei",
+        "Jing Zhong",
+        "Chaoyang Shi",
+        "ZhanXiang Jin",
+        "Maowei Jiang",
+        "Yuxing Han",
+        "Shuai Lu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CL"
+      ],
+      "published": "2026-07-26T06:35:14+00:00",
+      "link": "https://arxiv.org/pdf/2607.23491v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "progressive 3D residential scene generation",
+      "llm_evidence_cn": "渐进式三维住宅场景生成",
+      "llm_evidence": "渐进式三维住宅场景生成",
+      "canonical_evidence": "渐进式三维住宅场景生成",
+      "llm_tldr_en": "PlanCraft mimics architects' progressive design: sketch, refine, then furnish, treating the 2D floor plan as a spatial contract that constrains furnishing, reducing room overlaps and improving 3D residential scene generation.",
+      "llm_tldr_cn": "针对现有住宅平面图自动生成方法忽视设计渐进性、绕过2D平面图空间契约导致房间重叠的问题，PlanCraft模拟建筑师先草图、再细化、后布置的流程，将2D平面图视为不可替代的空间约束，把布置转变为有界约束满足。实验表明该方法能有效减少重叠房间、提升布局合理性，为三维住宅场景生成提供了更符合真实设计过程的新范式。",
+      "llm_tldr": "针对现有住宅平面图自动生成方法忽视设计渐进性、绕过2D平面图空间契约导致房间重叠的问题，PlanCraft模拟建筑师先草图、再细化、后布置的流程，将2D平面图视为不可替代的空间约束，把布置转变为有界约束满足。实验表明该方法能有效减少重叠房间、提升布局合理性，为三维住宅场景生成提供了更符合真实设计过程的新范式。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.26910v1",
+      "source": "arxiv",
+      "title": "CinemaTraj: Composing Atomic Camera Trajectories for 3D Scenes with LLM Agents",
+      "abstract": "Automatically generating cinematically expressive camera trajectories through 3D scenes from natural language descriptions is a challenging task of high practical value, with applications ranging from real-estate advertising to virtual tour creation. Existing methods either lack true 3D spatial awareness by relying on 2D image priors, or treat trajectory generation as a geometric path planning problem divorced from cinematographic semantics. We present CinemaTraj, a framework that reframes camera trajectory planning as a language-grounded spatial reasoning problem. Given a set of RGB-D images and a user prompt, CinemaTraj equips an LLM agent with a structured 3D scene graph: the agent decomposes the prompt into a sequence of atomic cinematographic movements (dolly, orbit, crane, pan, tilt, zoom, arc). Each movement is instantiated via a novel parametric trajectory representation that is both cinematographically expressive and optimizable for collision avoidance. The scene graph acts as a structured spatial prior, grounding the agent's reasoning in accurate geometric and semantic knowledge of the environment. CinemaTraj further generates synchronized voiceover and subtitles aligned with camera motion, producing narrated cinematic video outputs. We evaluate CinemaTraj on real-world ScanNet++ environments, and show that it produces prompt-faithful, collision-free trajectories with high cinematographic quality, outperforming existing approaches on prompt alignment, trajectory quality, and safety metrics.",
+      "authors": [
+        "Qianru Li",
+        "Xuyang Chen",
+        "Erkin Türköz",
+        "Lu Liu",
+        "Xuqin Wang",
+        "Liqiu Meng",
+        "Tao Wu",
+        "Yanfeng Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-29T13:41:52+00:00",
+      "link": "https://arxiv.org/pdf/2607.26910v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LLM agent with structured 3D scene graph generates camera trajectories from natural language for 3D scenes",
+      "llm_evidence_cn": "利用LLM智能体与三维场景图，根据自然语言在三维场景中生成轨迹，属于agent式三维内容生成",
+      "llm_evidence": "利用LLM智能体与三维场景图，根据自然语言在三维场景中生成轨迹，属于agent式三维内容生成",
+      "canonical_evidence": "利用LLM智能体与三维场景图，根据自然语言在三维场景中生成轨迹，属于agent式三维内容生成",
+      "llm_tldr_en": "CinemaTraj reframes camera trajectory planning as language-grounded spatial reasoning, equipping an LLM agent with a 3D scene graph to decompose prompts into atomic cinematographic trajectory segments.",
+      "llm_tldr_cn": "现有相机轨迹生成方法要么缺乏三维空间感知，要么仅做几何路径规划而丢失电影语义。CinemaTraj将轨迹规划重新定义为语言引导的空间推理问题，为LLM智能体提供结构化三维场景图，把用户提示分解为原子化的电影摄影轨迹组合。该方法基于RGB-D图像直接生成具有电影表现力的轨迹，且无需训练。它为语言模型驱动三维场景内容创作提供了一个全新的agent式交互范式。",
+      "llm_tldr": "现有相机轨迹生成方法要么缺乏三维空间感知，要么仅做几何路径规划而丢失电影语义。CinemaTraj将轨迹规划重新定义为语言引导的空间推理问题，为LLM智能体提供结构化三维场景图，把用户提示分解为原子化的电影摄影轨迹组合。该方法基于RGB-D图像直接生成具有电影表现力的轨迹，且无需训练。它为语言模型驱动三维场景内容创作提供了一个全新的agent式交互范式。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.28164v1",
+      "source": "arxiv",
+      "title": "S-Avatar: Diffusion-Guided Gaussian Head Avatars from a Single Image",
+      "abstract": "We propose S-Avatar, a novel method for generating photorealistic 3D head avatars from a single image using a diffusion-guided 3D model generation module and strategies for animating 3D Gaussian Splatting (3DGS). While single-image head avatar reconstruction is crucial for lifelike Virtual Reality (VR) applications, existing approaches often struggle to preserve 3D consistency under unseen viewpoints. S-Avatar addresses this limitation through a three-stage pipeline. First, a high-resolution 3DGS is synthesized directly from a single image using a diffusion-based Gaussian splat generation module. Next, the parametric head model FLAME is aligned with the generated 3DGS by optimizing its parameters and spatial transformations. Finally, to adapt the 3DGS to FLAME variations, we construct a binding template that encodes the spatial relationship between the initial splats and FLAME. The dynamic 3D head avatar can then be rendered in real time by deforming the 3DGS with the binding template. By combining diffusion-guided canonical 3DGS generation with FLAME-based control, our method achieves efficient and accurate reconstruction with enhanced 3D consistency. Evaluations on public datasets demonstrate that S-Avatar outperforms state-of-the-art methods in novel-view and expression generation, achieving superior realism and consistency. Consequently, our approach represents a significant advance in accessible avatar creation, applicable to a wide range of VR/AR applications. The project page is available at https://github.com/hailsong/savatar.",
+      "authors": [
+        "Hail Song",
+        "Seokhwan Yang",
+        "Jiwon Yang",
+        "Woojin Cho",
+        "Woontack Woo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.GR"
+      ],
+      "published": "2026-07-30T13:04:03+00:00",
+      "link": "https://arxiv.org/pdf/2607.28164v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "aligns FLAME parametric head model with generated 3DGS to obtain animatable head avatars, effectively estimating articulation parameters from a single image",
+      "llm_evidence_cn": "通过优化FLAME参数对齐生成的3DGS，从单张图像估计可驱动头部化身所需的铰接参数",
+      "llm_evidence": "通过优化FLAME参数对齐生成的3DGS，从单张图像估计可驱动头部化身所需的铰接参数",
+      "canonical_evidence": "通过优化FLAME参数对齐生成的3DGS，从单张图像估计可驱动头部化身所需的铰接参数",
+      "llm_tldr_en": "S-Avatar generates photorealistic 3D head avatars from a single image by synthesizing 3DGS via diffusion and aligning the parametric FLAME model to enable animation, addressing view-consistent reconstruction and unseen-view rendering.",
+      "llm_tldr_cn": "针对单图头部化身重建在未见视角下缺乏3D一致性的问题，S-Avatar提出三阶段流程：先用扩散式高斯生成模块合成高分辨率3DGS，再优化FLAME参数与空间变换将其对齐到生成模型，最后驱动3DGS动画。实验表明该方法能生成照片级逼真且可动画化的头部化身，为从图像估计头部铰接参数提供了新思路。",
+      "llm_tldr": "针对单图头部化身重建在未见视角下缺乏3D一致性的问题，S-Avatar提出三阶段流程：先用扩散式高斯生成模块合成高分辨率3DGS，再优化FLAME参数与空间变换将其对齐到生成模型，最后驱动3DGS动画。实验表明该方法能生成照片级逼真且可动画化的头部化身，为从图像估计头部铰接参数提供了新思路。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Learning based estimation of articulation parameters from images.",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.28442v1",
+      "source": "arxiv",
+      "title": "ViewMind3D: Modular View-Aware Inference for Training-Free 3D-QA",
+      "abstract": "Recent advances in large language models (LLMs) and vision-language models (VLMs) have enabled new possibilities for 3D question answering (3D-QA), a key capability for embodied AI and robotic perception. However, most existing methods rely on 3D-specific training or fine-tuning with costly annotations, limiting their scalability and real-world applicability. We present \\textbf{ViewMind3D}, a fully training-free and modular framework for 3D spatial reasoning over multi-view observations of a scene without requiring complete 3D reconstruction. The framework decomposes the 3D-QA task into four interpretable components: (1) question-driven multi-view selection, (2) guided visual grounding with language-conditioned object cues, (3) spatial context encoding via a bird's-eye-view (BEV) viewpoint indicator, and (4) structured answer generation through role-based reasoning. This design enables structured, robust, and interpretable reasoning without requiring model tuning. Experimental results on ScanQA and SQA3D show that ViewMind3D achieves competitive performance compared to prior training-free and fine-tuned 3D-LLMs. In particular, our method improves performance on spatially grounded question types, such as ``What'' questions in SQA3D, while maintaining strong overall accuracy (50.8\\%) and achieving 73.4 CIDEr on ScanQA. These results demonstrate that effective 3D reasoning can be achieved through modular orchestration of general-purpose LLMs and VLMs for robotic perception in real-world environments.",
+      "authors": [
+        "Ping-Kun Chiang",
+        "Kun-Ru Wu",
+        "Po-han Li",
+        "Sandeep Chinchali",
+        "Ufuk Topcu",
+        "Yu-Chee Tseng"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-30T16:14:30+00:00",
+      "link": "https://arxiv.org/pdf/2607.28442v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Training-free VLM-LLM framework for 3D spatial reasoning over multi-view scene observations",
+      "llm_evidence_cn": "基于VLM-LLM的免训练3D空间推理框架，支持多视角场景观测",
+      "llm_evidence": "基于VLM-LLM的免训练3D空间推理框架，支持多视角场景观测",
+      "canonical_evidence": "基于VLM-LLM的免训练3D空间推理框架，支持多视角场景观测",
+      "llm_tldr_en": "ViewMind3D presents a fully training-free, modular framework for 3D question answering by decomposing the task into multi-view selection, visual grounding, and spatial context encoding, using LLMs and VLMs without 3D-specific training.",
+      "llm_tldr_cn": "现有三维问答方法依赖三维专属训练或微调，成本高且扩展性受限。本文提出ViewMind3D，一个完全免训练、模块化的三维空间推理框架，将三维问答分解为问题驱动的多视角选择、语言引导的视觉定位与空间上下文编码等组件。该框架无需完整三维重建即可对多视角场景观测进行推理，为利用语言与视觉模型构建三维场景理解系统提供了新思路。",
+      "llm_tldr": "现有三维问答方法依赖三维专属训练或微调，成本高且扩展性受限。本文提出ViewMind3D，一个完全免训练、模块化的三维空间推理框架，将三维问答分解为问题驱动的多视角选择、语言引导的视觉定位与空间上下文编码等组件。该框架无需完整三维重建即可对多视角场景观测进行推理，为利用语言与视觉模型构建三维场景理解系统提供了新思路。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.28394v1",
+      "source": "arxiv",
+      "title": "Hand-Object Interaction in the Age of Large Foundation Models:Reconstruction, Generation, and Embodied Transfer",
+      "abstract": "Hand-object interaction (HOI) modeling remains challenging because it requires joint reasoning about hand articulation, object geometry, contact, semantics, and dynamics under severe visual uncertainty. Foundation models introduce transferable prior knowledge learned from large-scale cross-domain data, offering new ways to address these challenges beyond task-specific data and models. However, the rapidly growing literature remains fragmented, and existing studies typically describe these methods simply as ``using large models'' without systematically characterizing what knowledge is introduced, where it enters the HOI pipeline, or which HOI uncertainty it helps reduce. This survey presents the first systematic review of foundation-model priors for HOI. We organize the literature into six HOI tasks spanning reconstruction and generation. More importantly, we establish a taxonomy of eight foundation-model sub-priors grouped into geometric, semantic, and visual families. Geometric priors encompass shape retrieval, shape reconstruction, and spatial reconstruction; semantic priors include semantic grounding and language reasoning; and visual priors cover visual representation, image generation, and video generation. Based on this taxonomy, we systematically analyze how different priors are represented, injected, and adapted across HOI pipelines and tasks. Beyond how foundation models empower HOI, we further examine how HOI-derived knowledge is used in robot learning, including human-data pretraining, human-to-robot skill transfer, and HOI-to-robot data generation. Finally, we summarize datasets and evaluation protocols, and discuss limitations and future directions toward more generalizable HOI systems. To support long-term progress, we curate a live repository that continuously aggregates emerging methods and benchmarks.",
+      "authors": [
+        "Weiquan Lin",
+        "Yu Deng",
+        "Shiyang Liu",
+        "Luping Xiao",
+        "Xu Tang",
+        "Junzhi Yu",
+        "Jiaolong Yang",
+        "Lei Zhang",
+        "Xingyu Chen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-30T15:48:16+00:00",
+      "link": "https://arxiv.org/pdf/2607.28394v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "survey covering hand articulation, object geometry, dynamics, reconstruction, generation",
+      "llm_evidence_cn": "综述涵盖手部关节、物体几何、动力学、重建与生成",
+      "llm_evidence": "综述涵盖手部关节、物体几何、动力学、重建与生成",
+      "canonical_evidence": "综述涵盖手部关节、物体几何、动力学、重建与生成",
+      "llm_tldr_en": "A systematic survey of hand-object interaction under large foundation models, characterizing how pretrained knowledge helps reconstruct, generate, and transfer articulated hand-object dynamics.",
+      "llm_tldr_cn": "手物交互建模需要同时推理手部关节、物体几何、接触、语义与动力学，且面临严重视觉不确定性。本文是首篇系统综述，从大基础模型引入的知识类型、进入流程的位置以及所降低的不确定性三个维度，对重建、生成与具身迁移工作进行分类。该综述为利用基础模型解决铰接物体理解与生成提供了组织化视角，与3D铰接物体运动学和物理属性主题高度相关。",
+      "llm_tldr": "手物交互建模需要同时推理手部关节、物体几何、接触、语义与动力学，且面临严重视觉不确定性。本文是首篇系统综述，从大基础模型引入的知识类型、进入流程的位置以及所降低的不确定性三个维度，对重建、生成与具身迁移工作进行分类。该综述为利用基础模型解决铰接物体理解与生成提供了组织化视角，与3D铰接物体运动学和物理属性主题高度相关。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
