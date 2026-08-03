@@ -1,0 +1,739 @@
+Title: MHRGait: Gait Recognition from Momentum Human Rig Pose
+
+URL Source: https://arxiv.org/pdf/2607.29083v1
+
+Published Time: Mon, 03 Aug 2026 00:36:20 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# MHRGait: Gait Recognition from Momentum Human Rig Pose 
+
+Huiran Duan 1∗, Qian Zhou 2∗, Xianda Guo 2, Hua Zou 2,Guoying Zhao 3,4 , Zhongyuan Wang 2†, Yingli Tian 1†
+
+> 1
+
+City University of New York 2School of Computer Science, Wuhan University 
+
+> 3
+
+ELLIS Institute Finland 4University of Oulu, Finland hduan@gc.cuny.edu, ytian@ccny.cuny.edu, guoying.zhao@oulu.fi, {zhouqian, zouhua}@whu.edu.cn, {xianda_guo, wzy_hope}@163.com 
+
+Abstract 
+
+Gait recognition is shaped by its input representation. Silhou-ettes encode projected body shape, skeletons encode sparse joint coordinates, and 3D meshes encode dense surface ge-ometry. In each case, identity-bearing articulation is observed through geometric carriers that also vary with clothing, skele-tal scale, or body shape. We investigate whether gait can in-stead be recognized from compact articulated controls. We introduce Momentum Human Rig (MHR) pose as a gait rep-resentation, describing each frame using 184 semantically or-ganized body and hand parameters estimated from monoc-ular video. MHRGait groups these heterogeneous controls by anatomy, models their intra-frame coordination and tem-poral evolution, and produces compact body and hand de-scriptors. We further introduce MHRGait++, which combines MHR pose with silhouettes through modality-balanced dis-tance fusion, preventing descriptor count from determining modality importance. Experiments on four benchmarks show that MHRGait attains the best overall performance among compared model-based methods on CCPG and SUSTech1K and transfers effectively across datasets, while its recognition network requires only 2.76M parameters and 0.69 GFLOPs for a 30-frame input. MHRGait++ consistently improves silhouette recognizers with a favorable accuracy–efficiency trade-off. These results establish rig-space articulation as an effective standalone gait representation and a complemen-tary cue to projected body shape. Our code is available at https://github.com/duanhuiran/MHRGait. 
+
+Introduction 
+
+Gait recognition identifies individuals from their characteris-tic walking patterns at a distance and without requiring active cooperation. Its performance depends not only on the recog-nition model but also on the input representation, which de-termines which identity-bearing cues are explicit and which nuisance factors must be suppressed. Existing methods rep-resent gait using silhouettes (Huang et al. 2025; Hou et al. 2026), skeletons (Fu et al. 2023), dense 3D human models (Zheng et al. 2022), RGB videos (Ye et al. 2024), or mul-tiple complementary modalities (Wang et al. 2025a). These representations have enabled substantial progress, but they expose different and incomplete aspects of walking. Despite their success, the dominant gait inputs still de-scribe walking kinematics through geometric carriers (Guo et al. 2025a). Silhouettes encode projected body shape; 
+
+> ∗
+
+These authors contributed equally. 
+
+> †
+
+Corresponding author. Silhouette  Skeleton  3D Mesh  MHR Pose 
+
+Format  Binary mask  Joint coords.  Vertex coords.  Rig params. 
+
+kinematics  Shape -coupled  Scale -coupled  Surface -coupled  Decoupled 
+
+Size  64 × 44 17 × 2 18439 × 3 76 + 108 
+
+Gait  Repr .0.2 0.5 1 3 10 30 100 300 1000 
+
+GFLOPs (log scale) 
+
+> 020 40 60 80 100
+> CCPG Rank-1 Accuracy
+> Representation family
+> Skeleton Coord. Skeleton Map Silhouette RGB Video Multimodal MHR (Ours)
+> Representation family
+> Skeleton Coord. Skeleton Map Silhouette RGB Video Multimodal MHR (Ours)
+> Gait Part
+> 1.2M
+> Gait Graph2
+> 0.35M
+> Gait TR
+> 0.51M
+> MHRGait
+> 2.76M
+> GPGait
+> 3.78M
+> GPGait ++
+> 5.35M
+> GaitGL
+> 3.31M
+> DeepGaitV2
+> 8.45M
+> SkeletonGait
+> 8.45M
+> MHRGait++
+> 11.20M
+> GaitBase
+> 7.41M
+> GaitSet GaitSet
+> 2.6M
+> DenoisingGait
+> 10.27M
+> Gait-X
+> 14.94M
+> MultiGait++
+> 11.51M
+> BigGait
+> 30.78M
+> GaitMax
+> 35.56M
+> SkeletonGait SkeletonGait++ ++
+> 8.52M
+> XGait
+> 20.12M
+
+Figure 1: Overview of gait representations and their accuracy–efficiency trade-offs. Models are positioned by CCPG Rank-1 accuracy and GFLOPs, with colors denoting representation families and bubble sizes indicating trainable parameters. Details are provided in Supplementary Table 12. skeleton-based methods encode sparse joint coordinates; 3D model-based methods encode dense surface vertices or geometry-derived cues. Each representation contains use-ful gait evidence. However, gait-defining articulation is re-vealed only indirectly through representation-specific geom-etry. The recognizer must recover coordinated walking kine-matics from changes that also reflect clothing and segmenta-tion quality, skeletal scale, body proportions, and surface ge-ometry. Recent work has repeatedly improved performance by reorganizing how gait evidence is presented, for exam-ple, through skeleton maps (Fan et al. 2024), contour-pose cues (Guo et al. 2025b), or cross-granularity multimodal fusion (Zhou et al. 2026). Figure 1 makes the remaining bot-tleneck explicit: silhouettes, skeleton coordinates, and mesh vertices couple kinematics to projected shape, skeletal scale, or surface geometry. arXiv:2607.29083v1 [cs.CV] 31 Jul 2026 This observation motivates a different question — Can gait be recognized directly in a compact articulation space? 
+
+Parametric human models make this question increasingly practical. SMPL (Loper et al. 2015) and SMPL-X (Pavlakos et al. 2019) showed that human pose and body form can be represented by structured parameters rather than raw im-age evidence or unstructured geometry. Monocular recovery systems such as ROMP (Sun et al. 2021), OSX (Lin et al. 2023), and 4D Humans (Goel et al. 2023) then made human reconstruction substantially more practical in unconstrained imagery. More recently, ATLAS (Park et al. 2025) explic-itly decoupled the skeleton from outer body shape, and Mo-mentum Human Rig (MHR) (Ferguson et al. 2025) built on this direction with a modern full-body rig and compact ar-ticulated controls. SAM 3D Body (Yang et al. 2026) further made MHR-based recovery of body and hands practical from monocular images. These advances open a new representa-tional opportunity for gait recognition. In this paper, we introduce MHR pose as a new gait rep-resentation. Each frame in a gait sequence is described by a 184-D vector comprising 76 body-pose and 108 hand-pose parameters estimated from monocular video. Frozen track-ing and MHR-recovery models obtain the parameters, and the resulting trajectory is the sole input to the gait recognizer. Unlike Cartesian skeleton coordinates, MHR pose provides semantically structured controls for detailed body, foot, and hand articulation. Unlike dense meshes, it represents motion using compact rig parameters rather than tens of thousands of surface coordinates. MHR pose thus provides a concise articulation space in which gait dynamics can be modeled directly. Building on this representation, we propose MHRGait , a lightweight body-part-aware temporal recognizer. MHRGait first organizes the heterogeneous 184-D MHR parameters into semantic body-part groups, separating body and hand controls by anatomical meaning. It then models their intra-frame dependencies and temporal dynamics , producing one body descriptor and one hand descriptor for retrieval. The design is intentionally compact. Rather than treating all pa-rameters as a homogeneous vector, it respects their semantics from the start and keeps the temporal modeling lightweight. This makes MHRGait a natural testbed for evaluating the simple but important hypothesis that structured articulation parameters alone can serve as a strong gait representation. We further develop MHRGait++ , a compute-efficient multimodal extension that combines MHR pose with sil-houettes. The motivation is straightforward. Silhouettes and MHR pose expose different but related aspects of identity-bearing walking. Silhouettes emphasize projected body shape and contour change; MHR pose emphasizes struc-tured articulation. Their combination should therefore be complementary rather than redundant. However, this com-plementarity can be obscured if retrieval is dominated by the modality that contributes more descriptors. MHRGait++ addresses this issue with modality-balanced retrieval , which aggregates distances at the modality level so that descriptor count does not hide the contribution of MHR pose. Extensive experiments on four benchmarks demonstrate the effectiveness of the proposed representation. As astandalone model-based method, MHRGait achieves the strongest overall results among the compared methods on SUSTech1K and CCPG and shows superior cross-domain generalization among model-based approaches. Its recogni-tion network contains only 2.76M parameters and requires 0.69 GFLOPs for a 30-frame input. When integrated into silhouette recognizers, MHRGait++ consistently improves recognition accuracy. The accuracy–efficiency comparison in Figure 1 situates these results among representative gait recognizers: MHRGait occupies a favorable standalone op-erating point, while MHRGait++ raises multimodal accu-racy without the computation of RGB-heavy alternatives. Together, these results establish MHR pose as both a compact standalone representation for gait recognition and a comple-mentary source of identity evidence beyond projected body shape. Our contributions are three-fold: 
+
+• We introduce MHR pose as a new gait representation that characterizes walking through semantically struc-tured body and hand control trajectories, providing an alternative to projected shapes, sparse joint coordinates, and dense surface geometry. 
+
+• We propose MHRGait , a compact body-part-aware tem-poral recognizer that models semantically grouped MHR parameters through intra-frame dependencies and tem-poral dynamics , and we further develop MHRGait++ ,a compute-efficient multimodal extension with modality-balanced retrieval .
+
+• We establish MHR pose as both a strong standalone model-based representation and a complementary source of identity evidence beyond projected body shape, with the best model-based performance on CCPG and SUSTech1K, strong cross-domain generalization, com-pact model size, and consistent gains when fused with silhouettes. 
+
+Related Work 
+
+Gait Recognition 
+
+Gait recognition has evolved together with its input repre-sentations, which determine what identity-bearing evidence a recognizer can observe more directly. Binary silhouettes remain dominant because they suppress texture and back-ground while preserving projected body shape (Zhu et al. 2021). Set-level GaitSet (Chao et al. 2019), part-level Gait-Part (Fan et al. 2020), global–local GaitGL (Lin, Zhang, and Yu 2021), and deeper spatiotemporal baselines Gait-Base (Fan et al. 2023) and DeepGaitV2 (Fan et al. 2025) have progressively strengthened silhouette modeling. De-spite their effectiveness, silhouettes reduce the body to a fore-ground mask, in which walking kinematics are observed only through contour changes that are also affected by clothing, carried objects, occlusion, and segmentation errors (Wang et al. 2023; Huang et al. 2026a). Model-based methods describe walking mainly through skeletons expressed as Cartesian joint coordinates. Gait-Graph2 (Teepe et al. 2022) uses graph convolution, GaitTR (Zhang et al. 2023) combines spatial attention with temporal convolution, and GPGait++ (Meng et al. 2025) inject human-oriented and part-level structure. Skeleton-Gait (Fan et al. 2024) reorganizes joints and limbs into skele-ton maps, while GaitContour (Guo et al. 2025b) augments keypoints with pose-guided contour samples. These designs improve access to structural cues, but their explicit obser-vations remain sparse joint positions or derived geometry. Local joint rotations and fine-grained foot and hand articu-lation remain implicit. Multimodal methods combine representations with differ-ent physical meanings and increasingly move beyond simple feature concatenation. MMGaitFormer (Cui and Kang 2023) aligns and fuses silhouette and skeleton features across spa-tial and temporal dimensions. SkeletonGait++ (Fan et al. 2024) integrates projected body shape with skeletal structure, XGait (Zheng et al. 2024) aligns silhouette and parsing evi-dence across granularities, and MultiGait++ (Jin et al. 2025a) models common and distinctive cues among silhouettes, hu-man parsing, and optical flow. RGB-based BigGait (Ye et al. 2024) and BiggerGait (Ye et al. 2025) instead use large vi-sion models to extract complementary visual representations. These RGB pipelines retain rich visual evidence (Huang et al. 2026b; Jin et al. 2025b), but their large vision backbones in-crease end-to-end model size and computation. 
+
+Parametric Human Models for Gait Recognition 
+
+Parametric human models offer a structured bridge between sparse joints and dense surface geometry. SMPL (Loper et al. 2015) maps compact pose and shape parameters to a posed body mesh; SMPL+H (Romero, Tzionas, and Black 2017) and SMPL-X (Pavlakos et al. 2019) extend this formula-tion to expressive whole-body modeling with articulated hands. In SMPL-family models, pose parameters drive ar-ticulation while identity shape also determines body form and the surface-derived skeleton (Ferguson et al. 2025); the mesh records the resulting geometry. Monocular recov-ery has made these representations increasingly practical. ROMP (Sun et al. 2021) enables one-stage multi-person re-covery, OSX (Lin et al. 2023) estimates the body, hands, and face in a unified framework, and Humans in 4D (Goel et al. 2023) couples transformer-based recovery with video tracking. Recent models move beyond surface-driven parameteri-zation. ATLAS (Park et al. 2025) explicitly decouples the internal skeleton from external body shape. MHR (Ferguson et al. 2025) builds on this paradigm with a modern full-body rig, compact model parameters, and non-linear pose correc-tives. SAM 3D Body (Yang et al. 2026) then makes MHR practically recoverable from monocular imagery: it estimates the pose of the body, feet, and hands and accepts optional keypoint and mask prompts. These advances are important for gait recognition because they expose structured full-body articulation before it is converted into joint coordinates or surface vertices. They therefore enable gait to be studied in the parameter space of an articulated rig, rather than only through its geometric outputs. Parametric models have entered gait recognition through recovered SMPL parameters or mesh-derived cues. SMPL-Gait (Zheng et al. 2022) uses SMPL parameters only to con-Body pose                     
+
+> Hand pose
+> 𝑡 =1
+> 𝑡 =𝑇
+> Body pose
+> (76 -D)
+> Hand pose
+> (108 -D)
+> ···
+> ···
+> ···
+> RGB frames MHR parameters *
+> MHR
+> estimator
+> MHR pose trajectory
+> ··· ···
+> ··· ···
+> ··· ···
+> ···
+> 𝑇 ··· ···
+> mask
+> estimator
+> (tracking)
+> mask
+> prompts
+> *decoded to
+> dense mesh just
+> for visualization
+
+Figure 2: Offline construction of an MHR pose sequence. dition silhouette features; OpenGait found that this auxiliary cue was not consistently beneficial once the silhouette en-coder was already discriminative (Fan et al. 2023). End-to-end model-based gait recognition (Li et al. 2021) uses fit-ted body-joint and shape features, whereas VM-Gait (Wang et al. 2025b) maps meshes to virtual markers. Together, these methods move gait recognition toward 3D human structure. They remain tied to surface-coupled parameterization and its geometry-, joint-, shape-, or marker-derived cues, leaving decoupled and compact body–hand pose trajectories largely unexplored as a primary representation. 
+
+Method 
+
+Overview 
+
+Given an RGB gait sequence V = {It}Tt=1 , our framework first constructs an MHR pose sequence in an offline pre-processing stage. This stage is independent of gait recogni-tion, and all gait-specific learning is performed by MHRGait and MHRGait++. MHRGait uses the resulting MHR pose sequence as its input representation. It organizes the het-erogeneous parameters according to anatomical semantics, models their interactions within each frame, and captures their evolution over time. MHRGait maps the sequence to one body descriptor and one hand descriptor, written as 
+
+FM = stack( f B , f H ) ∈ R2×d, where d denotes the descrip-tor dimension. MHRGait++ retains the same MHR branch and complements it with a silhouette branch that produces 
+
+FS ∈ R16 ×d. The two branches are jointly optimized, while their distances are balanced at the modality level during re-trieval. We first define the MHR pose representation, then present MHRGait and its multimodal extension. 
+
+MHR Pose 
+
+MHR is a parametric full-body rig that separates articulated pose controls from skeletal and surface attributes (Ferguson et al. 2025). In the underlying model, pose controls vary with body configuration, whereas skeleton-transformation and surface-shape parameters describe structural properties of the performer. We therefore use the body- and hand-pose outputs estimated by SAM 3D Body (Yang et al. 2026), rather than rendered meshes or geometry-derived features, as the input to gait recognition. This choice moves the modeled sig-nal from the geometric result of posing toward the articulated controls themselves. 𝑇𝑇 × 𝑑𝑑 
+
+(c) Temporal Articulation Modeling    
+
+> Input
+> sequence
+> Layer
+> Norm
+> Linear
+> Frame-level
+> embedding
+> 𝐾𝐾 = 6 for body Weighted mu lt iplication
+> Concatenation
+> Hub token
+> K
+> Aggregated
+> token
+> Token weights
+> 2
+> 1
+
+(b) Adaptive Semantic Aggregation             
+
+> Inference
+> BNNeck
+> TP
+> Body branch
+> ℒ𝑡𝑡𝑡𝑡𝑡𝑡𝑡𝑡𝑡𝑡𝑡𝑡𝑡𝑡
+> 𝑋𝑋 𝐻𝐻 ∈ 𝑅𝑅 𝑇𝑇 ×108
+> Hand branch
+> 𝑋𝑋 𝑀𝑀 𝐻𝐻 𝑀𝑀 ∈ 𝑅𝑅 𝑇𝑇 ×184
+> MHR pose sequence
+> 𝑋𝑋 𝐵𝐵 ∈ 𝑅𝑅 𝑇𝑇 ×76
+> Separated
+> FCs
+> ℒ𝑐𝑐 𝑡𝑡
+> 𝑡𝑡 = 1
+
+(a) Overall MHRGait               
+
+> 𝑡𝑡 =𝑇𝑇
+> ···
+> ×𝐿𝐿 Semantic Mixer
+> ··· ···
+> ··· ···
+> ··· ···
+> ··· ···
+> ···
+> 𝑡𝑡 = 1
+> 𝑡𝑡 =𝑇𝑇
+> ···
+> ···
+> ···
+> 𝑡𝑡 = 1
+> 𝑡𝑡 =𝑇𝑇
+> ···
+> ···
+> ···
+> ···
+> ···
+> ···
+> ···
+> hub token
+> flexibility
+> left leg & foot
+> right leg & foot
+> left arm
+> right arm
+> ···
+> torso / head
+> Semantic Group
+> Projection
+> ···
+> right hand
+> left hand
+> Semantic Group
+> Projection
+> ···
+> ···
+> hub token ···
+
++
+
+> C
+
+× 
+
+> Layer Norm
+> Token Mixing
+> Layer Norm
+> Channel Mixing
+
++ Adaptive Semantic  
+
+> Aggregation
+> Temporal
+> Articulation
+> Modeling
+> Stack
+> TP
+> ×𝐿𝐿 Semantic Mixer
+
++Layer Norm  
+
+> Token Mixing
+> Layer Norm
+> Channel Mixing
+
++      
+
+> ···
+> Adaptive Semantic
+> Aggregation
+> ···
+> Layer
+> Norm
+> Temporal
+> Articulation
+> Modeling
+> Layer
+> Norm
+> ···
+> Softmax
+> Frame
+> projection
+> K
+> 2
+> 1
+> ···
+> Body branch (parameters 𝜃𝜃 𝐵𝐵 )
+> Hand branch (parameters 𝜃𝜃 𝐻𝐻 )
+> C
+> ···
+> Physical tokens
+> 𝐾𝐾 = 2 for hand
+> ···
+> ···
+> ···
+> 𝑇𝑇 ×𝑑𝑑
+> Output
+> sequence
+> Down Projection
+> 𝑑𝑑 → 𝑑𝑑 /𝑝𝑝
+> 1D Temporal Conv
+> (kernel size=9)
+> Up
+> Projection
+> 𝑑𝑑 /𝑝𝑝 → 𝑑𝑑
+
+× × Temporal Max     
+
+> Pooling
+> ···
+> ···
+> . . .
+> 𝑇𝑇 ×𝑑𝑑
+> ···
+> 𝑇𝑇 ×𝑑𝑑
+> ···
+
+Figure 3: Architecture of MHRGait, which encodes body and hand articulation into a compact two-part gait descriptor. Fig. 2 summarizes the offline construction. Following SAM-Body4D (Gao, Miao, and Han 2025), we use a frozen SAM 3 video tracker (Carion et al. 2025) to maintain the tar-get identity across frames and supply a target mask for each frame; a frozen SAM 3D Body model estimates MHR pa-rameters from the masked frames. These acquisition modules are not optimized with gait-identity supervision. At frame t, the pose observation consists of a 76-D body vector xBt and a 108-D hand vector xHt (54-D per hand). They are concatenated as 
+
+xMHR 
+
+t = [ xBt , xHt ] ∈ R184 . (1) For a sequence of T frames, we obtain 
+
+XMHR = [ xMHR 1 , . . . , xMHR 
+
+T ] = [ XB , XH ] ∈ RT ×184 ,
+
+(2) where XB ∈ RT ×76 and XH ∈ RT ×108 . The resulting MHR sequence preserves consistent anatomical semantics across frames and serves as the sole input to MHRGait, where body and hand components are further modeled through se-mantic and temporal encoders. 
+
+MHRGait: Semantic and Temporal Modeling 
+
+Building on the MHR pose sequence XMHR obtained of-fline, we introduce MHRGait, a body–hand articulation encoder that produces a compact two-part gait descriptor 
+
+FM ∈ R2×d. As illustrated in Fig. 3, MHRGait processes the body and hand pose streams using architecturally identical but independently parameterized encoders, each comprising anatomy-aware semantic encoding, adaptive semantic aggre-gation, and temporal articulation modeling. 
+
+Anatomy-Aware Semantic Encoding The body and hand pose streams XB and XH contain heterogeneous MHR con-trols associated with distinct anatomical regions or functions, so their frame-level vectors should not be treated as homo-geneous features. According to their anatomical semantics, 
+
+XB is organized into six groups corresponding to the torso and head, right arm, left arm, right leg and foot, left leg and foot, and body flexibility, while XH is divided into left- and right-hand groups. For clarity, we describe the encoding process for one pose stream q ∈ {B, H} at frame t, where xqt denotes the corresponding row of Xq , and omit q and t below. Let {x1, . . . , xK } denote its anatomical parameter groups, where KB = 6 and KH = 2 . Since the groups differ in dimensionality and physical meaning, each is independently projected into a shared hidden space: 
+
+zg = ϕg (xg ) ∈ Rdh . (3) A learnable hub token is appended to capture stream-level context, while token embeddings retain anatomical-group identity and a stream embedding distinguishes the body and hand streams: 
+
+Z0 = [ z1, . . . , zK , zhub ] + Etok + estream , (4) where Z0 ∈ R(K+1) ×dh and dh denotes the semantic-token hidden dimension. Human gait arises from coordinated articulation across anatomical regions, such as the coupling among arm swing, lower-limb motion, and torso rotation. We model these inter-actions using L Mixer-style encoding blocks (Tolstikhin et al. 2021). Token mixing first exchanges information among the anatomical tokens and the hub token: 
+
+Uℓ = Zℓ−1 + Mℓ
+
+tok 
+
+ LN( Zℓ−1)⊤ ⊤ . (5) Channel mixing subsequently refines the latent representa-tion within each token: 
+
+Zℓ = Uℓ + Mℓ
+
+chn 
+
+ LN( Uℓ) . (6) Both mixing operators are implemented as two-layer MLPs with GELU activation and dropout. Token mixing captures coordination among anatomical regions and enables the hub token to accumulate stream-level context, whereas channel mixing refines the pose features carried by each token. Adaptive Semantic Aggregation At each frame, the se-mantic encoder produces K context-enhanced physical to-kens and one hub token. We aggregate them into a frame-level representation for each pose stream. Since uniform aggregation assigns equal importance to all anatomical re-gions despite their varying discriminative relevance, we learn content-dependent weights for the physical tokens. Let zLg de-note the token of anatomical group g after the final encoding block. Its normalized aggregation weight is computed as: 
+
+ag = softmax  w⊤ LN( zLg ) + b . (7) The physical tokens are then aggregated using these weights: 
+
+z =
+
+> K
+
+X
+
+> g=1
+
+ag zLg . (8) We combine the content-weighted pose feature with the hub token to obtain the frame-level representation: 
+
+h = ϕfrm 
+
+ [z, zL
+
+> hub
+
+] ∈ Rd, (9) where [·, ·] denotes feature concatenation and ϕfrm projects the fused features into the frame-level embedding space. 
+
+Temporal Articulation Modeling The frame-level fea-tures describe instantaneous pose states, while gait identity is also reflected in how these states evolve throughout a walking sequence. For q ∈ { B, H}, let Hq = [ hq
+
+> 1
+
+, . . . , hqT ] ∈ RT ×d
+
+denote the body or hand feature sequence. We model its tem-poral evolution using a residual bottleneck that reduces the feature dimension from d to d/ρ , applies one-dimensional temporal convolution, and restores the original dimension: 
+
+bHq = Hq + ϕ2 (Ctemp (ϕ1(Hq ))) . (10) The transformation ϕ1 reduces the channel dimension, after which Ctemp captures local articulation dynamics through temporal convolution in the compact feature space. The trans-formation ϕ2 restores the original dimension, and the residual connection incorporates temporal information while preserv-ing the anatomy-aware frame representation. Following OpenGait (Fan et al. 2023), temporal max pool-ing followed by separate fully connected layers produces the body and hand descriptors f B , f H ∈ Rd, which are stacked as the final MHRGait descriptor FM = stack( f B , f H ) ∈
+
+R2×d. Separate BNNecks (Luo et al. 2019) are used for identity classification, and the model is trained with triplet and cross-entropy losses: 
+
+LM = Ltri + Lce . (11) 
+
+MHRGait++: Joint Shape–Articulation Recognition 
+
+MHRGait++ combines projected body shape with MHR pose for complementary gait representation learning. Deep-GaitV2 (Fan et al. 2025) encodes the binary silhouette se-quence XS into a 16-part silhouette descriptor set FS ∈
+
+R16 ×d, while MHRGait maps XMHR to the two-part MHR descriptor FM ∈ R2×d. The two descriptor sets are concate-nated along the part dimension: 
+
+F++ = [ FS , FM ] ∈ R18 ×d. (12) The silhouette and MHRGait encoders are jointly trained using standard part-wise triplet and cross-entropy losses. ···           
+
+> ···
+> Compute
+> Distance
+> Compute
+> Distance
+> Sum Retrieval
+> De scriptors
+> (query
+> or gallery)
+> 16 Silh .
+> Parts
+> 2MHR
+> Parts
+> Avg.
+> (within modality)
+> Avg.
+> (within modality)
+> 1−α
+> αFinal
+> Distance Matrix
+
+Figure 4: Modality-balanced retrieval in MHRGait++. 
+
+Modality-Balanced Retrieval Conventional part-based gait retrieval computes the Euclidean distance between each pair of corresponding descriptors and averages the distances over all parts. Directly applying this strategy to MHRGait++ assigns total weights of 16 /18 and 2/18 to the silhouette and MHR pose modalities, respectively, making their con-tributions dependent on descriptor count. As illustrated in Fig. 4, we instead average the part-wise distances within each modality to obtain the silhouette distance DS and MHR pose distance DM , and combine them as 
+
+D++ (Vp, Vg ) = (1 −α)DS (Vp, Vg )+ αD M (Vp, Vg ), (13) where Vp and Vg denote the probe and gallery sequences, respectively, and α controls the contribution of the MHR pose modality. We set α = 0 .5 by default, assigning equal overall weights to projected body shape and MHR pose regardless of their descriptor counts. 
+
+Experiments 
+
+Datasets and Metrics 
+
+We evaluate MHRGait and MHRGait++ on four comple-mentary gait benchmarks: SUSTech1K (Shen et al. 2023), CCPG (Li et al. 2023), CCGR-MINI (Zou et al. 2024), and CASIA-B ∗, a re-segmented version of CASIA-B (Yu, Tan, and Tan 2006) introduced by GaitEdge (Liang et al. 2022). These datasets cover extensive clothing changes, di-verse walking conditions, cross-view recognition, and com-plex composite covariates. All experiments follow the official evaluation protocols. Rank-1 accuracy, mean Average Preci-sion (mAP), and mean Inverse Negative Penalty (mINP) are reported. 
+
+Implementation Details 
+
+Our implementation is based on OpenGait (Fan et al. 2023). For MHRGait, the semantic-token hidden dimension dh and the frame-level embedding dimension d are both set to 256. Each semantic encoder consists of four Mixer-style blocks, while the temporal bottleneck uses a reduction ratio of 4 and a temporal kernel size of 9. For MHRGait++, Deep-GaitV2 (Fan et al. 2025) is adopted as the silhouette encoder, and the silhouette and MHR encoders are jointly trained from scratch. During training, standard spatial augmentation is ap-plied to the silhouette stream, whereas the MHR stream is left unchanged. All models are optimized using SGD with an initial learning rate of 0.1, momentum of 0.9, and weight decay of 5 × 10 −4. All experiments are conducted on eight NVIDIA RTX 4090 GPUs. More details can be found in Supplementary Table 9. 
+
+In-Domain Evaluation 
+
+MHRGait results. As shown in Table 1, MHRGait deliv-ers strong model-based gait recognition performance across Input Method Source SUSTech1K CCPG CCGR-MINI CASIA-B ∗
+
+R-1 R-5 CL UP DN BG Mean R-1 mAP mINP NM BG CL Mean Skeleton Coord. GaitGraph2 CVPRW’22 18.6 40.2 5.0 5.3 5.8 6.2 5.6 – – – 80.3 71.4 63.8 71.8 Skeleton Coord. GaitTR ES’23 30.8 56.0 15.7 18.3 18.5 17.5 17.5 – – – 94.7 89.3 86.7 90.2 
+
+Skeleton Coord. GPGait ICCV’23 47.5 – 45.2 50.6 54.5 52.8 50.8 4.4 6.0 2.1 93.6 80.2 69.3 81.0 Skeleton Coord. GPGait++ TPAMI’25 48.8 – 50.5 56.3 57.8 56.4 55.2 8.4 9.6 3.5 93.4 76.2 81.0 83.5 Skeleton Map SkeletonGait AAAI’24 50.1 72.6 51.1 60.4 62.9 67.3 60.4 – – – 93.9 79.3 59.9 77.7 Contour-Pose GaitContour WACV’25 55.5 72.3 – – – – – – – – – – – –MHR MHRGait Ours 67.8 86.9 64.9 67.3 71.9 68.8 68.2 10.9 11.8 4.8 97.2 84.3 81.0 87.5 
+
+Table 1: Comparison of model-based methods. Bold and underline denote the best and second-best results, respectively.                                                                                                                                     
+
+> Input Method Source Normal Bag Clothing Carrying Umbrella Uniform Occlusion Night Rank-1 Rank-5 Silh. GaitSet AAAI’19 69.1 68.2 37.4 65.0 63.1 61.0 67.2 23.0 65.0 84.8 Silh. GaitPart CVPR’20 62.2 62.8 33.1 59.5 57.2 54.8 57.2 21.7 59.2 80.8 Silh. GaitGL ICCV’21 67.1 66.2 35.9 63.3 61.6 58.1 66.6 17.9 63.1 82.8 Silh. GaitBase CVPR’23 81.5 77.5 49.6 75.8 75.5 76.7 81.4 25.9 76.1 89.4 Silh. DeepGaitV2 TPAMI’25 87.4 84.1 53.4 81.3 86.1 84.8 88.5 28.8 82.3 92.5 Silh. Origins-S ICCV’25 91.4 88.1 64.8 86.0 89.8 88.9 92.8 29.6 86.9 94.2 Silh. + Ske. Map SkeletonGait++ AAAI’24 85.1 82.9 46.6 81.9 80.8 82.5 86.2 47.5 81.3 95.5 Silh. + Contour-Pose Contour-Pose++ WACV’25 ––––––––83.3 95.8 Silh. + Pars. + Flow MultiGait++ AAAI’25 92.0 89.4 50.4 87.6 89.7 89.1 93.4 45.1 87.4 95.6 Silh. + MHR MHRGait++ Ours 93.3 92.0 71.8 89.8 92.4 92.7 96.5 57.2 90.6 96.6
+
+Table 2: Comparison with other methods on SUSTech1K. Bold and underline denote the best and second-best results, respectively.                                                                                           
+
+> Input Method CL UP DN BG Mean Silh. GaitSet 60.2 65.2 65.1 68.5 64.8 Silh. GaitPart 64.3 67.8 68.6 71.7 68.1 Silh. GaitGL 68.3 76.2 67.0 76.7 72.1 Silh. GaitBase 71.6 75.0 76.8 78.6 75.5 Silh. DeepGaitV2 78.6 84.8 80.7 89.2 83.3 Silh. Origins-S 84.3 90.2 86.4 93.6 88.6 RGB Videos BigGait 82.6 85.9 87.1 93.1 87.2 RGB Videos GaitMax 86.6 88.2 90.2 93.2 89.6 Silh. + Parsing XGait 72.8 77.0 79.1 80.5 77.4 Silh. + Ske. Map SkeletonGait++ 79.1 83.9 81.7 89.9 83.7 Silh. + Pars. + Flow MultiGait++ 83.9 89.0 86.0 91.5 87.6 Silh. + RGB DenoisingGait 84.0 88.0 90.1 95.9 89.5 Silh. + RGB Gait-X 82.0 86.0 90.7 95.7 88.6 Silh. + MHR MHRGait++ 87.1 90.3 89.1 93.6 90.0
+
+Table 3: Comparison with state-of-the-art methods on CCPG under the gait evaluation protocol. Bold and underline denote the best and second-best results, respectively. all four benchmarks and achieves the best overall results on SUSTech1K and CCPG. On SUSTech1K, it achieves 67.8% Rank-1 and 86.9% Rank-5 accuracy, exceeding the previ-ous best model-based results by 12.3 and 14.3 points, re-spectively. On CCPG, MHRGait raises the best mean Rank-1 accuracy from 60.4% to 68.2%, including a substantial 13.8-point gain under full clothing change. It also improves all reported metrics over GPGait++ on CCGR-MINI and reaches the highest model-based NM accuracy of 97.2% on CASIA-B ∗. These results show that MHRGait outperforms the compared sparse-pose baselines, particularly under cloth-
+
+Input Method Source Rank-1 mAP mINP Silh. GaitSet AAAI’19 13.8 15.4 5.8 Silh. GaitPart CVPR’20 8.0 10.1 3.5 Silh. GaitGL ICCV’21 17.5 18.1 6.9 Silh. GaitBase CVPR’23 27.0 24.9 9.7 Silh. DeepGaitV2 TPAMI’25 39.4 36.0 16.8 Silh. Origins-M ICCV’25 41.5 38.3 24.7 
+
+Silh. GaT AAAI’26 41.1 37.9 –Silh. + Pars. XGait ACM MM’24 41.5 38.1 18.5 Silh. + MHR MHRGait++ Ours 41.6 38.0 23.9 
+
+Table 4: Comparison on CCGR-MINI. Bold and underline denote the best and second-best results, respectively. ing changes and complex covariates. 
+
+MHRGait++ results. As shown in Tables 2, 3, 4, and 5, MHRGait++ consistently strengthens its DeepGaitV2 sil-houette backbone. On SUSTech1K, it improves Rank-1 and Rank-5 accuracy by 8.3 and 4.1 points and achieves the best results under all eight conditions, with particularly large gains of 18.4 points under clothing change and 28.4 points at night. On CCPG, it raises mean Rank-1 accuracy from 83.3% to 90.0%, attaining the best CL, UP, and mean re-sults. It also outperforms SkeletonGait++ and MultiGait++ on both benchmarks, achieves the highest Rank-1 accuracy on CCGR-MINI, and improves the CASIA-B ∗ mean by 7.0 points over DeepGaitV2. The consistent gains over the DeepGaitV2 silhouette backbone, particularly under cloth-ing change condition, verify that articulation dynamics ef-fectively complement projected body shape when appearance cues become less reliable. Input Method Source NM BG CL Mean Silh. GaitSet AAAI’19 92.3 86.1 73.4 83.9 Silh. GaitPart CVPR’20 96.2 91.5 78.7 88.8 Silh. GaitGL ICCV’21 94.2 90.0 81.4 88.5 Silh. GaitBase CVPR’23 96.5 91.5 78.0 88.7 Silh. DeepGaitV2 TPAMI’25 94.3 90.0 78.6 87.6 Silh. Origins-T ICCV’25 99.3 97.4 90.3 95.7 
+
+Silh. + RGB GaitEdge ECCV’22 97.9 96.1 86.4 93.5 Silh. + MHR MHRGait++ Ours 98.7 95.6 89.4 94.6 
+
+Table 5: Comparison on CASIA-B ∗. Bold and underline de-note the best and second-best results, respectively.                                                                                                                                                  
+
+> Input Method Source CASIA-B ∗SUSTech1K NM BG CL Mean CL Rank-1 Ske. Coord. GaitGraph2 CVPRW’22 7.7 6.5 5.5 6.5 –0.8 Ske. Coord. GaitTR ES’23 4.4 4.3 4.4 4.4 –0.6 Ske. Coord. GPGait ICCV’23 40.8 33.1 19.2 31.0 3.2 4.2 Ske. Coord. GPGait++ TPAMI’25 60.3 45.9 41.4 49.2 4.7 6.4 Ske. Map SkeletonGait AAAI’24 60.7 50.4 38.7 49.9 7.6 12.3 MHR MHRGait Ours 86.3 68.9 50.8 68.7 11.0 13.7 Silh. GaitSet AAAI’19 47.4 40.9 25.8 38.0 8.2 12.8 Silh. GaitPart CVPR’20 51.2 41.9 26.0 39.7 8.1 13.5 Silh. GaitGL ICCV’21 63.1 58.5 46.3 56.0 25.4 33.6 Silh. GaitBase CVPR’23 59.1 52.7 30.4 47.4 9.5 16.8 Silh. DeepGaitV2 TPAMI’25 74.6 67.2 50.2 64.0 27.0 38.4 RGB Videos BigGait CVPR’24 77.4 71.5 33.6 60.8 43.7 56.4 RGB Videos GaitMax CVPR’26 85.6 86.9 46.2 72.9 55.0 –Silh. + RGB GaitEdge ECCV’22 66.5 58.7 44.8 56.7 8.9 19.6 Silh. + RGB DenoisingGait CVPR’25 83.9 76.1 34.8 64.9 37.3 59.1 Silh. + RGB Gait-X ICCV’25 81.8 76.9 28.5 62.4 47.9 73.4
+> Silh. + MHR MHRGait++ Ours 88.3 79.8 62.5 76.9 56.5 66.5
+
+Table 6: Cross-domain comparison of models trained on CCPG and evaluated on CASIA-B ∗ and SUSTech1K. 
+
+Cross-Domain Generalization 
+
+Table 6 evaluates direct transfer from CCPG to CASIA-B ∗
+
+and SUSTech1K. MHRGait achieves the strongest cross-domain results among model-based methods on both targets, showing that parametric articulation remains discriminative across datasets. Adding MHR to DeepGaitV2 further raises the CASIA-B ∗ mean Rank-1 accuracy from 64.0% to 76.9% and the SUSTech1K Rank-1 accuracy from 38.4% to 66.5%. The gains under clothing change reach 12.3 and 29.5 points, respectively, confirming that articulation dynamics provide transferable cues complementary to projected body shape. 
+
+ASA TAM CCPG SUSTech1K CL UP DN BG Mean Rank-1 Rank-5 60.3 62.9 68.3 66.5 64.5 63.8 84.3 
+
+✓ 60.9 63.3 70.1 65.8 65.0 65.6 85.4 
+
+✓ 64.2 65.9 71.1 68.0 67.3 65.7 85.5 
+
+✓ ✓ 64.9 67.3 71.9 68.8 68.2 67.8 86.9 
+
+Table 7: Ablation of adaptive semantic aggregation (ASA) and temporal articulation modeling (TAM) in MHRGait. 
+
+Body Hand CCPG SUSTech1K CL UP DN BG Mean Rank-1 Rank-5 
+
+✓ 52.6 55.1 59.7 54.5 55.5 59.8 82.2 
+
+✓ 35.3 38.2 44.7 40.8 39.8 25.4 50.1 
+
+✓ ✓ 64.9 67.3 71.9 68.8 68.2 67.8 86.9 
+
+Table 8: Complementarity of body and hand articulation in MHRGait. 
+
+Ablation Studies 
+
+Effectiveness of the core components. Table 7 verifies the contributions of adaptive semantic aggregation (ASA) and temporal articulation modeling (TAM). Both components improve the anatomy-aware encoder, and their combination delivers the best results, increasing the CCPG mean by 3.7 points and SUSTech1K Rank-1/Rank-5 by 4.0/2.6 points. 
+
+Complementarity of body and hand articulation. Table 8 confirms the complementarity of body and hand articulation. Joint modeling improves the body-only model by 12.7 points on CCPG and by 8.0/4.7 points in SUSTech1K Rank-1/Rank-5, showing that hand dynamics contribute substantial identity information beyond body-only articulation. Additional analyses of modality-balanced retrieval, anatomical grouping, MHR modeling, and qualitative com-parison are presented in the supplementary material. 
+
+Conclusion 
+
+This work studies gait recognition in Momentum Human Rig (MHR) space, representing walking as compact tra-jectories of semantically structured body and hand con-trols rather than projected shapes, sparse joints, or dense geometry. MHRGait exploits anatomical organization to model intra-frame coordination and temporal articulation, while MHRGait++ complements silhouettes with rig-space motion through modality-balanced distance fusion. Experi-ments across four benchmarks demonstrate strong standalone recognition, improved cross-dataset generalization, and con-sistent gains for silhouette-based models, identifying articu-lated rig controls as a promising bridge between sparse pose and dense human geometry. The current pipeline relies on frozen tracking and monocular MHR estimation, so upstream body or hand estimation errors may propagate to recognition without end-to-end correction. Future work should improve temporal recovery, evaluate full pipeline cost, and study ro-bustness and demographic bias under pose-estimation errors. 
+
+Acknowledgments 
+
+This work was partially supported by the National Natu-ral Science Foundation of China (Grant Nos. 62371350 and 62372339), the Research Council of Finland (formerly the Academy of Finland) through the Academy Professor project EmotionAI (Grant Nos. 336116 and 359894), and the Uni-versity of Oulu and the Research Council of Finland under the Profi 7 program (Grant No. 352788). The CUNY authors received no financial or in-kind support from these grants. The authors thank Chuanfu Shen for the helpful discussions. References 
+
+Carion, N.; Gustafson, L.; Hu, Y.-T.; Debnath, S.; Hu, R.; Suris, D.; Ryali, C.; Alwala, K. V.; Khedr, H.; Huang, A.; Lei, J.; Ma, T.; Guo, B.; Kalla, A.; Marks, M.; Greer, J.; Wang, M.; Sun, P.; Rädle, R.; Afouras, T.; Mavroudi, E.; Xu, K.; Wu, T.-H.; Zhou, Y.; Momeni, L.; Hazra, R.; Ding, S.; Vaze, S.; Porcher, F.; Li, F.; Li, S.; Kamath, A.; Cheng, H. K.; Dollár, P.; Ravi, N.; Saenko, K.; Zhang, P.; and Feicht-enhofer, C. 2025. SAM 3: Segment Anything with Concepts. arXiv:2511.16719. Chao, H.; He, Y.; Zhang, J.; and Feng, J. 2019. Gaitset: Regarding gait as a set for cross-view gait recognition. In 
+
+Proceedings of the AAAI conference on artificial intelligence ,volume 33, 8126–8133. Chu, L.; Liu, Y.; Wu, Z.; Tang, S.; Chen, G.; Hao, Y.; Peng, J.; Yu, Z.; Chen, Z.; Lai, B.; and Xiong, H. 2022. PP-HumanSeg: Connectivity-Aware Portrait Segmentation With a Large-Scale Teleconferencing Video Dataset. In Proceed-ings of the IEEE/CVF Winter Conference on Applications of Computer Vision Workshops , 202–209. Cui, Y.; and Kang, Y. 2023. Multi-modal gait recognition via effective spatial-temporal feature fusion. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 17949–17957. Fan, C.; Hou, S.; Liang, J.; Shen, C.; Ma, J.; Jin, D.; Huang, Y.; and Yu, S. 2025. Opengait: A comprehensive benchmark study for gait recognition towards better practicality. IEEE Transactions on Pattern Analysis and Machine Intelligence ,47(10): 8397–8414. Fan, C.; Liang, J.; Shen, C.; Hou, S.; Huang, Y.; and Yu, S. 2023. Opengait: Revisiting gait recognition towards better practicality. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 9707–9716. Fan, C.; Ma, J.; Jin, D.; Shen, C.; and Yu, S. 2024. Skeleton-gait: Gait recognition using skeleton maps. In Proceedings of the AAAI conference on artificial intelligence , volume 38, 1662–1669. Fan, C.; Peng, Y.; Cao, C.; Liu, X.; Hou, S.; Chi, J.; Huang, Y.; Li, Q.; and He, Z. 2020. Gaitpart: Temporal part-based model for gait recognition. In Proceedings of the IEEE/CVF con-ference on computer vision and pattern recognition , 14225– 14233. Ferguson, A.; Osman, A. A. A.; Bescos, B.; Stoll, C.; Twigg, C.; Lassner, C.; Otte, D.; Vignola, E.; Prada, F.; Bogo, F.; et al. 2025. MHR: Momentum Human Rig. arXiv preprint arXiv:2511.15586 .Fu, Y.; Meng, S.; Hou, S.; Hu, X.; and Huang, Y. 2023. Gp-gait: Generalized pose-based gait recognition. In Proceed-ings of the IEEE/CVF International Conference on Computer Vision , 19595–19604. Gao, M.; Miao, Y.; and Han, J. 2025. SAM-Body4D: Training-Free 4D Human Body Mesh Recovery from Videos. 
+
+arXiv preprint arXiv:2512.08406 .Goel, S.; Pavlakos, G.; Rajasegaran, J.; Kanazawa, A.; and Malik, J. 2023. Humans in 4D: Reconstructing and Track-ing Humans with Transformers. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,14783–14794. Guo, X.; Zhu, Z.; Yang, T.; Lin, B.; Huang, J.; Deng, J.; Huang, G.; Zhou, J.; and Lu, J. 2025a. Gait Recognition in the Wild: A Large-Scale Benchmark and NAS-Based Base-line. IEEE Transactions on Pattern Analysis and Machine Intelligence , 47(6): 4535–4552. Guo, Y.; Shah, A.; Liu, J.; Gupta, A.; Chellappa, R.; and Peng, C. 2025b. GaitContour: Efficient Gait Recognition Based on a Contour-Pose Representation. In 2025 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV) ,1051–1061. IEEE. Hou, S.; Lang, W.; Wang, J.; Huang, Y.; Wang, L.; and Huang, Y. 2026. Gait Transformer: End-to-End Transformer Backbone for Gait Recognition. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 40, 4771–4779. Huang, B.; Luo, Y.; Guo, X.; Zheng, X.; Zhu, Z.; Pan, J.; and Zhou, C. 2026a. Watch where you move: Region-aware dy-namic aggregation and excitation for gait recognition. IEEE Transactions on Multimedia , 28: 1241–1252. Huang, P.; Hou, S.; Huang, J.; and Huang, Y. 2025. Learning a unified template for gait recognition. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,12459–12469. Huang, Z.; Ye, D.; Liu, X.; and Kong, Y. 2026b. Unlock-ing motion from large vision models with a semantic and kinematic duality for gait recognition. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 28379–28390. Jin, D.; Fan, C.; Chen, W.; and Yu, S. 2025a. Exploring more from multiple gait modalities for human identification. In Proceedings of the AAAI Conference on Artificial Intelli-gence , volume 39, 4120–4128. Jin, D.; Fan, C.; Ma, J.; Zhou, J.; Chen, W.; and Yu, S. 2025b. On Denoising Walking Videos for Gait Recognition. In Pro-ceedings of the Computer Vision and Pattern Recognition Conference , 12347–12357. Jocher, G.; and Qiu, J. 2024. Ultralytics YOLO11. Version 11.0.0. Li, W.; Hou, S.; Zhang, C.; Cao, C.; Liu, X.; Huang, Y.; and Zhao, Y. 2023. An in-depth exploration of person re-identification and gait recognition in cloth-changing con-ditions. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 13824–13833. Li, X.; Makihara, Y.; Xu, C.; and Yagi, Y. 2021. End-to-End Model-Based Gait Recognition Using Synchronized Multi-View Pose Constraint. In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) Work-shops , 4106–4115. Liang, J.; Fan, C.; Hou, S.; Shen, C.; Huang, Y.; and Yu, S. 2022. Gaitedge: Beyond plain end-to-end gait recognition for better practicality. In European Conference on Computer Vision , 375–390. Springer. Lin, B.; Zhang, S.; and Yu, X. 2021. Gait recognition via ef-fective global-local feature representation and local temporal aggregation. In Proceedings of the IEEE/CVF international conference on computer vision , 14648–14656. Lin, J.; Zeng, A.; Wang, H.; Zhang, L.; and Li, Y. 2023. One-Stage 3D Whole-Body Mesh Recovery with Compo-nent Aware Transformer. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,21159–21168. Loper, M.; Mahmood, N.; Romero, J.; Pons-Moll, G.; and Black, M. J. 2015. SMPL: A Skinned Multi-Person Lin-ear Model. ACM Transactions on Graphics , 34(6): 248:1– 248:16. Luo, H.; Gu, Y.; Liao, X.; Lai, S.; and Jiang, W. 2019. Bag of Tricks and a Strong Baseline for Deep Person Re-Identification. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Work-shops .Meng, S.; Fu, Y.; Hou, S.; Hu, X.; Cao, C.; Liu, X.; and Huang, Y. 2025. From FastPoseGait to GPGait++: Bridging the Past and Future for Pose-Based Gait Recognition. IEEE Transactions on Pattern Analysis and Machine Intelligence ,47(9): 8231–8248. Park, J.; Romero, J.; Saito, S.; Prada, F.; Shiratori, T.; Xu, Y.; Bogo, F.; Yu, S.-I.; Kitani, K.; and Khirodkar, R. 2025. ATLAS: Decoupling Skeletal and Shape Parameters for Ex-pressive Parametric Human Modeling. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,6508–6518. Pavlakos, G.; Choutas, V.; Ghorbani, N.; Bolkart, T.; Osman, A. A. A.; Tzionas, D.; and Black, M. J. 2019. Expressive Body Capture: 3D Hands, Face, and Body from a Single Image. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 10975–10985. Romero, J.; Tzionas, D.; and Black, M. J. 2017. Embodied Hands: Modeling and Capturing Hands and Bodies Together. 
+
+ACM Transactions on Graphics , 36(6): 245:1–245:17. Shen, C.; Fan, C.; Wu, W.; Wang, R.; Huang, G. Q.; and Yu, S. 2023. Lidargait: Benchmarking 3d gait recognition with point clouds. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 1054–1063. Sun, Y.; Bao, Q.; Liu, W.; Fu, Y.; Black, M. J.; and Mei, T. 2021. Monocular, One-Stage, Regression of Multiple 3D People. In Proceedings of the IEEE/CVF International Con-ference on Computer Vision , 11179–11188. Teepe, T.; Gilg, J.; Herzog, F.; Hörmann, S.; and Rigoll, G. 2022. Towards a Deeper Understanding of Skeleton-based Gait Recognition. In 2022 IEEE/CVF Conference on Com-puter Vision and Pattern Recognition Workshops (CVPRW) ,1568–1576. Tolstikhin, I. O.; Houlsby, N.; Kolesnikov, A.; Beyer, L.; Zhai, X.; Unterthiner, T.; Yung, J.; Steiner, A.; Keysers, D.; Uszkoreit, J.; Lucic, M.; and Dosovitskiy, A. 2021. MLP-Mixer: An all-MLP Architecture for Vision. In Advances in Neural Information Processing Systems , volume 34, 24261– 24272. Wang, M.; Guo, X.; Lin, B.; Yang, T.; Zhu, Z.; Li, L.; Zhang, S.; and Yu, X. 2023. DyGait: Exploiting Dynamic Repre-sentations for High-performance Gait Recognition. In 2023 IEEE/CVF International Conference on Computer Vision (ICCV) , 13424–13433. Wang, Z.; Hou, S.; Li, J.; Liu, X.; Cao, C.; Huang, Y.; Wang, S.; and Zhang, M. 2025a. Gait-X: Exploring x modal-ity for generalized gait recognition. In Proceedings of the IEEE/CVF International Conference on Computer Vision ,13259–13269. Wang, Z. Y.; Liu, J.; Chen, J.; and Chellappa, R. 2025b. VM-Gait: Multi-Modal 3D Representation Based on Vir-tual Marker for Gait Recognition. In Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision , 5326–5335. Yang, X.; Kukreja, D.; Pinkus, D.; Fan, T.; Park, J.; Shin, S.; Cao, J.; Liu, J.-W.; Ugrinovic, N.; Sagar, A.; Malik, J.; Feiszli, M.; Dollár, P.; and Kitani, K. 2026. SAM 3D Body: Robust Full-Body Human Mesh Recovery. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 7209–7219. Ye, D.; Fan, C.; Huang, Z.; Luo, C.; Li, J.; Yu, S.; and Liu, X. 2025. Biggergait: Unlocking gait recognition with layer-wise representations from large vision models. In Advances in neural information processing systems , volume 38, 73569– 73590. Ye, D.; Fan, C.; Ma, J.; Liu, X.; and Yu, S. 2024. Biggait: Learning gait representation you want by large vision models. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 200–210. Yu, S.; Tan, D.; and Tan, T. 2006. A Framework for Evaluat-ing the Effect of View Angle, Clothing and Carrying Condi-tion on Gait Recognition. In 18th International Conference on Pattern Recognition (ICPR’06) , volume 4, 441–444. Zhang, C.; Chen, X.-P.; Han, G.-Q.; and Liu, X.-J. 2023. Spa-tial transformer network on skeleton-based gait recognition. 
+
+Expert Systems , 40(6): e13244. Zheng, J.; Liu, X.; Liu, W.; He, L.; Yan, C.; and Mei, T. 2022. Gait Recognition in the Wild with Dense 3D Representa-tions and a Benchmark. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,20228–20237. Zheng, J.; Liu, X.; Zhang, B.; Yan, C.; Zhang, J.; Liu, W.; and Zhang, Y. 2024. It Takes Two: Accurate Gait Recognition in the Wild via Cross-granularity Alignment. In Proceedings of the 32nd ACM International Conference on Multimedia ,8786–8794. New York, NY, USA: Association for Comput-ing Machinery. ISBN 9798400706868. Zhou, Q.; Zou, H.; Wu, G.; Liang, C.; Han, Z.; and Wang, Z. 2026. GaitFuse: A Hierarchical Cross-Modal Alignment and Uncertainty-Aware Fusion Framework for Multi-Modal Gait Recognition. Information Fusion , 137: 104615. Zhu, Z.; Guo, X.; Yang, T.; Huang, J.; Deng, J.; Huang, G.; Du, D.; Lu, J.; and Zhou, J. 2021. Gait recognition in the wild: A benchmark. In 2021 IEEE/CVF International Conference on Computer Vision (ICCV) , 14769–14779. Zou, S.; Fan, C.; Xiong, J.; Shen, C.; Yu, S.; and Tang, J. 2024. Cross-Covariate Gait Recognition: A Benchmark. In 
+
+Proceedings of the AAAI Conference on Artificial Intelli-gence , volume 38, 7855–7863. Supplementary Material 
+
+Dataset Details 
+
+SUSTech1K (Shen et al. 2023) comprises 25,239 sequences from 1,050 identities. It covers eight conditions: normal walking (NM), bag carrying (BG), clothing change (CL), carrying objects (CR), umbrella (UB), uniform (UN), occlu-sion (OC), and nighttime (NT). 
+
+CCPG (Li et al. 2023) contains 16,566 sequences from 200 identities, evenly divided into training and test sets. It pro-vides rich clothing variations in indoor and outdoor scenes, including full clothing change (CL), upper-clothing change (UP), lower-clothing change (DN), and bag carrying (BG). 
+
+CCGR-MINI (Zou et al. 2024) is the official compact subset of CCGR, containing 47,884 sequences from 970 identities. It retains 53 covariates and 33 viewpoints, covering variations in clothing, carrying status, walking speed, ground condition, viewpoint, and their combinations. 
+
+CASIA-B ∗ (Liang et al. 2022) is a re-segmented version of CASIA-B (Yu, Tan, and Tan 2006), retaining its 124 iden-tities, 11 viewpoints, and three conditions: normal walking (NM), bag carrying (BG), and clothing change (CL). Follow-ing the standard large-sample protocol, the first 74 identities are used for training and the remaining 50 for testing. The learning rate is reduced by a factor of 0.1 at the dataset-specific milestones listed in Table 9.                 
+
+> Dataset Batch (P, K )Milestones Iterations SUSTech1K (8,8) (20k,30k,40k) 50k CCPG (8,16) (20k,40k,50k) 60k CCGR-MINI (8,16) (30k,55k,65k) 80k CASIA-B ∗(8,16) (20k,40k,50k) 60k
+
+Table 9: Dataset-specific training settings. The batch con-figuration (P, K ) denotes P identities and K sequences per identity. Milestones and iterations are reported in thousands.                                                                 
+
+> MHR Weight CCPG SUSTech1K CL UP DN BG Mean Rank-1 Rank-5
+> 1/9∗80.8 86.5 82.8 90.9 85.2 84.9 93.9
+> 0†78.7 84.7 80.8 89.7 83.5 82.3 92.6 0.1 80.6 86.3 82.6 90.8 85.1 84.6 93.8 0.3 84.2 88.9 86.2 92.6 88.0 88.4 95.6 0.5 87.1 90.3 89.1 93.6 90.0 90.6 96.6
+> 0.7 86.7 88.8 89.7 92.5 89.4 90.0 96.5 0.9 76.4 79.1 81.9 82.1 79.9 81.7 93.6
+> 1‡62.5 64.5 69.6 65.4 65.5 68.0 87.0
+
+Table 10: Effect of the MHR modality weight α during MHRGait++ retrieval. ∗ denotes conventional equal-part re-trieval, which assigns the MHR modality a total weight of 
+
+2/18 = 1 /9. † and ‡ denote silhouette-only and MHR-only inference after multimodal training, respectively.                           
+
+> Architecture Grouping CCPG SUSTech1K CL UP DN BG Mean Rank-1 Rank-5 MLP None 36.1 37.3 41.2 41.2 39.0 21.3 47.5 GNN ✓63.4 66.2 71.2 67.8 67.2 61.3 82.8 MLP-Mixer None 57.9 58.1 63.1 61.0 60.0 42.1 69.0 MLP-Mixer ✓64.9 67.3 71.9 68.8 68.2 67.8 86.9
+
+Table 11: Comparison of different MHR architectures and grouping strategies. All variants use four encoder layers and the same effective 184-D input comprising 76 body and 108 hand parameters. None denotes using the raw 184-D flattened input without grouping. 
+
+Effect of Modality-Balanced Retrieval. 
+
+Table 10 shows that intermediate fusion weights consis-tently outperform the two single-modality settings at α = 0 
+
+(silhouette-only) and α = 1 (MHR-only), confirming the complementarity between silhouette shape and MHR artic-ulation. Because distances are first averaged within each modality, we fix α = 0 .5 to assign equal total weight to silhouette shape and MHR articulation, independent of their 16 and two descriptors, respectively. The same fixed value is used across datasets; the sweep therefore evaluates sensi-tivity to the retrieval weight rather than performing dataset-specific tuning. The best overall performance is achieved at 
+
+α = 0 .5, reaching 90.0% mean Rank-1 accuracy on CCPG and 90.6/96.6% Rank-1/Rank-5 accuracies on SUSTech1K. Compared with conventional equal-part retrieval, this set-ting improves the corresponding results by 4.8 and 5.7/2.7 percentage points, respectively. This confirms that the two modalities should be balanced according to their comple-mentary information rather than the number of descriptors they contribute. 
+
+Comparison of MHR Encoders and Grouping 
+
+Table 11 compares four MHR encoders, each comprising four encoding layers and using the same 184-D input con-sisting of 76 body and 108 hand parameters. The plain MLP directly processes the flattened MHR vector and achieves only 39.0% mean accuracy on CCPG and 21.3/47.5% Rank-1/Rank-5 accuracy on SUSTech1K, indicating that frame-wise channel transformations alone are insufficient to cap-ture the interactions among heterogeneous MHR parameters. The ungrouped MLP-Mixer improves these results to 60.0% on CCPG and 42.1/69.0% on SUSTech1K, demonstrating its stronger capability in modeling MHR parameter inter-actions. The grouped GNN and grouped MLP-Mixer use the same six body groups and two hand groups, differing only in their encoder architectures. The MLP-Mixer outper-forms the GNN by 1.0 percentage point on CCPG and by 6.5/4.1 points in Rank-1/Rank-5 accuracy on SUSTech1K, indicating that learnable token mixing is more effective than fixed graph propagation for modeling interactions among anatomical groups. Compared with the ungrouped MLP-Mixer, the grouped MLP-Mixer improves the CCPG mean accuracy by 8.2 points and the SUSTech1K Rank-1/Rank-5 accuracy by 25.7/17.9 points, demonstrating the effective-ness of anatomy-aware grouping for MHR parameters. Input Method Source Params (M) FLOPs (G) GPU Memory (G) Final Embedding CCPG Mean Skeleton Coord. GaitGraph2 CVPRW’22 0.35 0.22 0.011 1 × 128 5.6 Skeleton Coord. GaitTR ES’23 0.51 0.49 0.013 1 × 128 17.5 Skeleton Coord. GPGait ICCV’23 3.78 2.03 0.026 19 × 256 50.8 Skeleton Coord. GPGait++ TPAMI’25 5.35 3.52 0.031 19 × 256 55.2 Skeleton Map SkeletonGait AAAI’24 8.45 83.25 0.157 16 × 256 60.4 MHR MHRGait Ours 2.76 0.69 0.021 2 × 256 68.2                                                                                                                      
+
+> Silh. GaitSet AAAI’19 2.60 6.52 0.041 62 ×256 64.8 Silh. GaitPart CVPR’20 1.20 6.40 0.033 16 ×128 68.1 Silh. GaitGL ICCV’21 3.31 25.24 0.059 64 ×128 72.1 Silh. GaitBase CVPR’23 7.41 70.69 0.098 16 ×256 75.5 Silh. DeepGaitV2 TPAMI’25 8.45 83.16 0.114 16 ×256 83.3 RGB Videos BigGait CVPR’24 30.78 869.37 1.058 16 ×256 87.2 RGB Videos GaitMax CVPR’26 35.56 1064.69 1.105 27 ×256 89.6 Silh. + Parsing XGait ACM MM’24 20.12 141.45 0.156 64 ×256 77.4 Silh. + Skeleton Map SkeletonGait++ AAAI’24 8.52 96.02 0.230 16 ×256 83.7 Silh. + Parsing + Flow MultiGait++ AAAI’25 11.51 145.36 0.296 16 ×256 87.6 Silh. + RGB Gait-X ICCV’25 14.94 645.70 2.006 32 ×256 88.6 Silh. + RGB DenoisingGait CVPR’25 10.27 268.48 1.036 24 ×256 89.5 Silh. + MHR MHRGait++ Ours 11.20 83.84 0.121 18 ×256 90.0
+
+Table 12: Efficiency comparison with representative gait recognition methods. Parameters, FLOPs, and GPU Memory are measured for gait recognition models using 30-frame input sequences. The final embedding is represented as the number of part-level descriptors multiplied by the dimension of each descriptor. The gait recognition performance is reported as the mean Rank-1 accuracy (%) on CCPG.                       
+
+> Pipeline Runtime (ms/f) GPU Memory (G)
+> Full RGB preprocessing
+> RGB →MHR 91.6 / 93.0 18.55 / 18.55 RGB →silhouette 12.4 / 26.0 12.29 / 12.29 RGB →Skeleton coordinates 3.2 / 4.2 14.60 / 15.56 RGB →SkeletonMap 5.8 / 6.9 14.60 / 15.56
+> Cached-mask MHR recovery
+> RGB + cached mask →MHR 47.4 / 49.0 12.87 / 12.87
+
+Table 13: Offline representation-construction cost. Values are reported as CCPG / CCGR-MINI. Full RGB pipelines are timed end-to-end from RGB frames to their retained representations; the cached-mask row isolates MHR pose recovery. 
+
+Efficiency Analysis 
+
+Table 12 compares recognition accuracy and computa-tional efficiency using 30-frame sequences. Within the up-per model-based block and the lower appearance/multimodal block, bold and underlined values denote the highest and second-highest CCPG mean Rank-1 accuracies, respectively. The reported computational costs correspond to the recogni-tion networks, excluding offline tracking and MHR recovery. MHRGait achieves the strongest performance among model-based methods while remaining highly compact. Compared with SkeletonGait, it improves the CCPG mean Rank-1 accu-racy by 7.8 percentage points while using approximately one-third of the parameters, only 0.69 GFLOPs, and a gait embed-ding one-eighth the size. MHRGait++ further achieves the best overall accuracy of 90.0% with nearly the same recog-nition cost as its DeepGaitV2 silhouette encoder: adding the MHR stream increases FLOPs by less than 1% and GPU memory by only 0.007 GB, while improving accuracy by 6.7 points. It also requires substantially fewer FLOPs and less memory than existing RGB-based and multimodal rec-ognizers. These results demonstrate a favorable accuracy– efficiency trade-off at the recognition stage for both stan-dalone and multimodal gait recognition. 
+
+Offline Representation-Construction Cost 
+
+Table 13 compares the one-time offline cost of constructing different gait representations on CCPG and CCGR-MINI. Runtime and peak GPU memory are reported in the order of CCPG/CCGR-MINI. For the silhouette and skeleton-based representations, PP-HumanSegV1 (Chu et al. 2022) gener-ates aligned silhouettes, while YOLO11x-pose (Jocher and Qiu 2024) estimates 2D skeleton coordinates; SkeletonMap is subsequently rendered from these coordinates. The complete MHR construction pipeline contains two frozen stages. SAM 3 (Carion et al. 2025) first performs person tracking and propagates instance masks throughout each sequence, after which SAM 3D Body (Yang et al. 2026) recovers the MHR kinematic parameters for each frame. To distinguish the cost of kinematic recovery from that of video tracking and mask generation, we additionally report a cached-mask setting, in which the SAM 3 masks have already been computed. Under this setting, the run-time decreases from 91 .6/93 .0 to 47 .4/49 .0 ms per frame, RGB video 
+
+30  35  40  45  50  55  60  14  19  24  29  34  39  44 
+
+sub -133_condition -U3_D3_view -02_0              
+
+> 62.1 °10.5 °18.5 °18.0 °52.0 °51.1 °1.7 °71.7 °20.6 °10.0 °17.1 °54.8 °60.8 °6.1 °
+
+Silhouette 
+
+SkeletonMap 
+
+Skeleton 
+
+MHR pose 
+
+(decoded) 
+
+Estimated 
+
+left -knee 
+
+bend control 
+
+(a) Clothing configuration  𝚄𝟶 _𝙳𝟶  (b) Clothing configuration  𝚄𝟹 _𝙳𝟹 
+
+sub -133_condition -U0_D 0_view -02_0 Figure 5: Representation comparison on CCPG under clothing change. Silhouettes, Cartesian body representations, decoded MHR pose, and the left-knee bend control are shown for two clothing trials of the same identity. RGB video 
+
+40  45  50  55  60  15  20  25  30  35 
+
+sub -0639_seq -01 -cr -nt_view -270 
+
+Silhouette 
+
+SkeletonMap 
+
+Skeleton 
+
+MHR pose 
+
+(decoded) 
+
+Left hand part 
+
+of decoded MHR 
+
+sub -0604_seq -01 -cr -cl_view -045 
+
+(a) Clothing + Carrying  (b) Nighttime + Carrying 
+
+Figure 6: Representation comparison on SUSTech1K under compound covariates. Silhouette, Cartesian-body, and decoded MHR representations are shown for clothing-plus-carrying and nighttime-plus-carrying sequences; the last row visualizes decoded left-hand pose. 0000 0001 0002 0003 0004 0005 0006 0007 0008 0009         
+
+> Subject ID
+> 20
+> 25
+> 30
+> 35
+> 40
+> Cycle period (frames)  Cycle Period Before Normalization
+> 5.0
+> 7.5
+> 10.0
+> 12.5
+> 15.0
+> 17.5
+> 20.0
+> MHR control angle (deg)
+> Spine bend
+> −50
+> 0
+> 50
+> 100
+> MHR control angle (deg)
+> Left elbow bend
+> −50
+> 0
+> 50
+> 100
+> MHR control angle (deg)
+> Right elbow bend
+> −20
+> 0
+> 20
+> 40
+> 60
+> 80
+> MHR control angle (deg)
+> Left knee bend
+> −20
+> 0
+> 20
+> 40
+> 60
+> 80
+> MHR control angle (deg)
+> Right knee bend
+> 025 50 75 100
+> Normalized cycle progress (%)
+> −20
+> −10
+> 0
+> 10
+> 20
+> 30
+> 40
+> MHR control angle (deg)
+> Left foot bend
+> 025 50 75 100
+> Normalized cycle progress (%)
+> −20
+> −10
+> 0
+> 10
+> 20
+> 30
+> 40
+> MHR control angle (deg)
+> Right foot bend
+> Subject ID (all sequences)
+> 0000
+> 0001
+> 0002
+> 0003
+> 0004
+> 0005
+> 0006
+> 0007
+> 0008
+> 0009
+
+Figure 7: Subject-level MHR articulation dynamics on SUSTech1K. Gait-cycle periods and selected MHR-control trajectories for identities 0000–0009. while the peak GPU memory decreases from 18 .55 /18 .55 to 
+
+12 .87 /12 .87 GB. Although full MHR construction is more expensive than silhouette or skeleton preprocessing, these results show that approximately half of its runtime is associ-ated with the one-time tracking and mask-generation stage. All representation-construction procedures are performed of-fline and therefore do not introduce additional computation during gait-recognition inference. 
+
+Qualitative Analysis 
+
+Representation Comparison. Figures 5 and 6 contrast the evidence made explicit by silhouettes, Cartesian body geom-etry, and MHR pose. In both figures, frames are sampled in chronological order from left to right. The SkeletonMap and Skeleton rows provide two forms of Cartesian body geome-try, whereas the decoded MHR row renders the articulated rig estimated from the same frames. In Figure 5, the two walking trials of one CCPG identity use the U0_D0 and U3_D3 clothing configurations, where 
+
+U and D denote upper- and lower-body clothing IDs, re-spectively. U0_D0 is the original upper–lower combination, whereas U3_D3 is the third upper–lower combination; the pair therefore represents a full-clothing change. The cloth-ing change alters the silhouette, whereas the estimated left-knee bend control exhibits a comparable recurrent flexion– extension pattern in both trials. Rather than encoding this ar-ticulation only through its geometric manifestation, MHR ex-poses the corresponding local control with the same anatom-ical meaning throughout the sequence. This semantically an-chored trajectory provides directly interpretable evidence for the anatomy-aware encoding and temporal articulation mod-eling in MHRGait. Figure 6 extends this comparison to two compound covari-ates: the combination of clothing variation and carrying in panel (a), and nighttime and carrying in panel (b). The long garment reshapes the projected contour in panel (a), while low illumination severely fragments the silhouette in panel (b). In contrast, the SkeletonMap, Skeleton, and decoded MHR rows retain articulated body configurations in the il-lustrated frames. The bottom row enlarges the decoded left hand, showing that MHR also represents hand pose that is ab-sent from a standard body skeleton. These examples provide a qualitative counterpart to the gains from joint body–hand modeling and illustrate why articulation dynamics comple-ment projected body shape in MHRGait++. 
+
+Subject-Level Articulation Dynamics. Figure 7 extends the case-level comparison to all 240 sequences from the first ten SUSTech1K identities (0000–0009). For each sequence, one gait cycle is defined by a right-knee peak-to-peak inter-val, and the selected controls are normalized to this com-mon cycle reference. Because the normalization removes the absolute duration, the upper-left panel reports the original gait-cycle period in frames. For each control, thin translu-cent curves show individual sequences in their subject col-ors, and thicker curves show the corresponding subject-wise pointwise medians. The lower-limb controls exhibit smooth periodic trajec-tories with approximately alternating bilateral timing. Their subject-wise summaries also retain differences in cycle pe-riod and waveform shape, while the sequence-level curves reveal variation within each identity. These distinct dynam-ics across anatomical controls motivate semantic grouping, adaptive aggregation, and temporal articulation modeling. 
+
+Semantic group Original MHR indices Dim. 
+
+Torso and head 3–26 24 Right arm 27 –36 10 Left arm 37 –46 10 Right leg and foot 47 –55 , 123 –126 13 Left leg and foot 56 –64 , 119 –122 13 Body flexibility 127 –132 6Left hand 136 –189 54 Right hand 190 –243 54 
+
+Total 184 
+
+Table 14: Semantic grouping of the retained 184-D MHR pose vector. Indices are zero-based and refer to the original 389-D MHR parameter vector; all ranges are inclusive. 
+
+MHR Parameters and Semantic Grouping 
+
+For each frame, SAM 3D Body returns a 389-D MHR pa-rameter vector composed, in order, of global rotation (3-D), body pose (133-D), hand pose (108-D), scale (28-D), shape (45-D), and facial expression (72-D). In this output, all 72 facial-expression dimensions and 57 dimensions of the body-pose block are identically zero. The zero-valued body-pose dimensions correspond to indices 65 –118 and 133 –135 of the 389-D vector. To form the MHR pose used for recognition, we first re-move all parameter entries fixed at zero. We also omit global rotation because it describes whole-body orientation and can encode explicit view-dependent information. We further ex-clude the scale and shape blocks as they encode skeletal and surface morphology rather than articulation. This choice also keeps the representation compact. The resulting MHR pose therefore comprises 76 body-pose controls and the full 108-D hand-pose block, with 54 dimensions per hand. At frame t, let xBt ∈ R76 and xHt ∈ R108 denote the retained body and hand controls, respectively, where xHt
+
+concatenates the left- and right-hand blocks. The resulting MHR pose vector is 
+
+xMHR  
+
+> t
+
+= xBt , xHt
+
+ ∈ R184 . (14) Throughout the paper, body pose denotes this retained 76-D vector. We organize the retained controls into eight semantic groups. The body vector is divided into six groups corre-sponding to the torso and head, right arm, left arm, right leg and foot, left leg and foot, and body flexibility, while the hand vector is divided into one group for each hand. The resulting eight-group partition is summarized in Table 14. MHRGait operates directly on these controls in the native MHR parameterization returned by SAM 3D Body. Meshes decoded from the parameters are used only for visualiza-tion and are not provided to the recognition network. In MHRGait++, the same 184-D MHR pose sequence forms the MHR branch and is paired with the silhouette branch.

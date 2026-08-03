@@ -1,0 +1,237 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-03T21:40:43.949316+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 2,
+    "deep_cap": 7,
+    "deep_selected": 2,
+    "quick_candidates": 3,
+    "quick_skim_target": 12,
+    "quick_selected": 3
+  },
+  "deep_dive": [
+    {
+      "id": "2607.29180v1",
+      "source": "arxiv",
+      "title": "MoRAE: Flow-Friendly Self-Supervised Latents for Text-to-Motion Generation",
+      "abstract": "Text-to-motion generation must produce motions that are semantically correct, temporally coherent, and physically plausible. A natural approach is to first project motion data into a structured semantic space and then train a generative model within that space. Such a paradigm has been highly successful in image generation through Representation Autoencoders (RAEs), where a frozen self-supervised encoder provides semantic features for diffusion or flow models to learn from. However, direct transfer of such a paradigm to motion space using Motion-JEPA as the frozen encoder fails dramatically. We diagnose this failure geometrically and identify two motion-specific bottlenecks: (1) the JEPA feature space is spectrally ill-conditioned, making the Gaussian-to-data transport unstable; and (2) even with a well-conditioned spectrum, flow residuals tend to align with decoder-sensitive directions, where small latent errors are amplified into large motion artifacts after decoding. Based on these insights, we propose MoRAE. MoRAE addresses the two bottlenecks separately. A compact bottleneck distills the structured JEPA representation while removing weak and redundant directions, bringing the latent spectrum into a transport-stable regime. Motion-coupled training then aligns the retained latent geometry with the decoder, making characteristic flow errors less costly after decoding. With this flow-friendly latent, a standard non-autoregressive Flow-Matching DiT achieves state-of-the-art performance.",
+      "authors": [
+        "Yifei Zhu",
+        "Mingyi Shi",
+        "Yangyang Cai",
+        "Miao Cheng",
+        "Yoshifumi Kitamura",
+        "Taku Komura"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-07-31T09:01:25+00:00",
+      "link": "https://arxiv.org/pdf/2607.29180v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "text-to-motion generation of articulated human skeletons with realistic kinematic motion parameters",
+      "llm_evidence_cn": "通过文本生成人体关节运动，涉及真实运动学参数",
+      "llm_evidence": "通过文本生成人体关节运动，涉及真实运动学参数",
+      "canonical_evidence": "通过文本生成人体关节运动，涉及真实运动学参数",
+      "llm_tldr_en": "MoRAE introduces a flow-friendly self-supervised latent space for text-to-motion generation, fixing JEPA spectral issues to produce semantically correct, temporally coherent, physically plausible articulated motions.",
+      "llm_tldr_cn": "该论文针对文本到动作生成中的语义正确性、时间连贯性和物理合理性挑战，提出MoRAE方法。方法先将动作数据投影到结构化的语义空间，再训练生成模型，并诊断了Motion-JEPA特征空间在谱条件上的不足。实验表明改进后的表示有利于扩散/流模型，生成的动作质量更高。这项工作为人体等关节对象的运动参数生成提供了高效表示学习基础。",
+      "llm_tldr": "该论文针对文本到动作生成中的语义正确性、时间连贯性和物理合理性挑战，提出MoRAE方法。方法先将动作数据投影到结构化的语义空间，再训练生成模型，并诊断了Motion-JEPA特征空间在谱条件上的不足。实验表明改进后的表示有利于扩散/流模型，生成的动作质量更高。这项工作为人体等关节对象的运动参数生成提供了高效表示学习基础。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.23491v1",
+      "source": "arxiv",
+      "title": "PlanCraft: Sketch, Refine, and Furnish for Architect-Inspired Progressive 3D Residential Scene Generation",
+      "abstract": "Two structural insights have been overlooked in automated residential floor plan generation. First, design is inherently progressive. Architects begin with rough strokes and refine them over time, whereas existing methods typically require their conditioning representation to be fully specified before generation, a fundamental mismatch with how design actually works. Second, the 2D floor plan is not an optional intermediate but an irreplaceable spatial contract. Once room boundaries, doors, and windows are fixed, furnishing reduces from open-ended spatial reasoning to bounded constraint satisfaction. Bypassing this contract, as existing 3D systems do by delegating layout to language models, yields overlapping rooms and implausible proportions; directly calling general-purpose language models likewise produces geometrically invalid layouts. Guided by these insights, we present PlanCraft. SketchPlan supplies the missing training signal by replaying the architect's drawing process on 80K real floor plans, producing partial sketches at every completeness level. PlanCraft-Diff progressively sharpens an incomplete sketch into a geometrically precise, vectorizable floor plan through a coarse-to-fine strategy. With the spatial contract established, PlanCraft-Agent then furnishes the scene within well-defined room boundaries. Experiments show that PlanCraft achieves a 61.1\\% lower FID than the best existing 2D method and surpasses existing 3D systems by 15 points in expert-rated spatial rationality, with a sketch at only 25\\% completion already outperforming all fully specified baselines.",
+      "authors": [
+        "Pengyu Zeng",
+        "Yuqin Dai",
+        "Jun Yin",
+        "Ziyang Han",
+        "Ng Cheuk Hei",
+        "Jing Zhong",
+        "Chaoyang Shi",
+        "ZhanXiang Jin",
+        "Maowei Jiang",
+        "Yuxing Han",
+        "Shuai Lu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CL"
+      ],
+      "published": "2026-07-26T06:35:14+00:00",
+      "link": "https://arxiv.org/pdf/2607.23491v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "architect-inspired progressive 3D residential scene generation using 2D floor plan as spatial contract",
+      "llm_evidence_cn": "受建筑师启发的渐进式三维住宅场景生成，以2D平面图作为空间契约",
+      "llm_evidence": "受建筑师启发的渐进式三维住宅场景生成，以2D平面图作为空间契约",
+      "canonical_evidence": "受建筑师启发的渐进式三维住宅场景生成，以2D平面图作为空间契约",
+      "llm_tldr_en": "Introduces PlanCraft, a progressive architect-inspired approach for 3D residential scene generation that first sketches, refines, then furnishes using a 2D floor plan as an irreplaceable spatial contract, avoiding layout overlaps from LLM-delegated generation.",
+      "llm_tldr_cn": "现有自动户型生成方法要求条件在生成前完全指定，不符合建筑师先草图后细化的渐进设计过程；部分三维系统绕过2D平面图直接让语言模型决定布局，导致房间重叠等问题。PlanCraft模拟建筑师的工作方式：先由粗到细地绘制并细化平面图，再基于平面图约束进行家具布置。2D平面图被视为不可替代的空间契约，使家具布置从开放式推理退化为有界约束满足。实验表明该渐进式方法能避免布局重叠并生成更合理的住宅场景。",
+      "llm_tldr": "现有自动户型生成方法要求条件在生成前完全指定，不符合建筑师先草图后细化的渐进设计过程；部分三维系统绕过2D平面图直接让语言模型决定布局，导致房间重叠等问题。PlanCraft模拟建筑师的工作方式：先由粗到细地绘制并细化平面图，再基于平面图约束进行家具布置。2D平面图被视为不可替代的空间契约，使家具布置从开放式推理退化为有界约束满足。实验表明该渐进式方法能避免布局重叠并生成更合理的住宅场景。",
+      "llm_tags": [
+        "query:d-scn-gen:composite"
+      ],
+      "matched_query_tag": "query:d-scn-gen:composite",
+      "matched_query_text": "Papers central to 请帮我查找基于llm以及vlm的agent/harness的三维场景生成/三维场景构建的相关论文，最好是training free的, especially work that connects or combines: large language model 3d scene generation; vision language model 3d scene generation; training free 3d scene generation method; language model agent for 3d scene construction; harness for 3d scene generation using language models; interactive 3d scene generation natural language; agent based 3d scene generation; training free 3d scene generation using large language model agent; vision language model harness for 3d scene construction; zero shot 3d scene generation with natural language interface.",
+      "matched_requirement_id": "req-composite-d-scn-gen",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.26910v1",
+      "source": "arxiv",
+      "title": "CinemaTraj: Composing Atomic Camera Trajectories for 3D Scenes with LLM Agents",
+      "abstract": "Automatically generating cinematically expressive camera trajectories through 3D scenes from natural language descriptions is a challenging task of high practical value, with applications ranging from real-estate advertising to virtual tour creation. Existing methods either lack true 3D spatial awareness by relying on 2D image priors, or treat trajectory generation as a geometric path planning problem divorced from cinematographic semantics. We present CinemaTraj, a framework that reframes camera trajectory planning as a language-grounded spatial reasoning problem. Given a set of RGB-D images and a user prompt, CinemaTraj equips an LLM agent with a structured 3D scene graph: the agent decomposes the prompt into a sequence of atomic cinematographic movements (dolly, orbit, crane, pan, tilt, zoom, arc). Each movement is instantiated via a novel parametric trajectory representation that is both cinematographically expressive and optimizable for collision avoidance. The scene graph acts as a structured spatial prior, grounding the agent's reasoning in accurate geometric and semantic knowledge of the environment. CinemaTraj further generates synchronized voiceover and subtitles aligned with camera motion, producing narrated cinematic video outputs. We evaluate CinemaTraj on real-world ScanNet++ environments, and show that it produces prompt-faithful, collision-free trajectories with high cinematographic quality, outperforming existing approaches on prompt alignment, trajectory quality, and safety metrics.",
+      "authors": [
+        "Qianru Li",
+        "Xuyang Chen",
+        "Erkin Türköz",
+        "Lu Liu",
+        "Xuqin Wang",
+        "Liqiu Meng",
+        "Tao Wu",
+        "Yanfeng Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-29T13:41:52+00:00",
+      "link": "https://arxiv.org/pdf/2607.26910v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "LLM agent composing camera trajectories in 3D scenes from natural language",
+      "llm_evidence_cn": "利用LLM代理根据自然语言在3D场景中组合相机轨迹",
+      "llm_evidence": "利用LLM代理根据自然语言在3D场景中组合相机轨迹",
+      "canonical_evidence": "利用LLM代理根据自然语言在3D场景中组合相机轨迹",
+      "llm_tldr_en": "CinemaTraj reframes camera trajectory planning as language-grounded spatial reasoning, equipping an LLM agent with a 3D scene graph to decompose prompts into atomic cinematographic trajectories for expressive 3D scene visualization.",
+      "llm_tldr_cn": "该论文针对从自然语言自动生成3D场景中电影级相机轨迹的任务，提出CinemaTraj框架。它将轨迹规划重构为语言引导的空间推理问题，为LLM代理提供结构化的3D场景图，把用户提示分解为原子电影动作序列。该方法避免了依赖2D图像先验或纯几何路径规划，实现了兼具3D空间意识和电影语义的轨迹生成，在房产展示、虚拟导览等场景具有应用价值。",
+      "llm_tldr": "该论文针对从自然语言自动生成3D场景中电影级相机轨迹的任务，提出CinemaTraj框架。它将轨迹规划重构为语言引导的空间推理问题，为LLM代理提供结构化的3D场景图，把用户提示分解为原子电影动作序列。该方法避免了依赖2D图像先验或纯几何路径规划，实现了兼具3D空间意识和电影语义的轨迹生成，在房产展示、虚拟导览等场景具有应用价值。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "language model agent for 3d scene construction",
+      "matched_requirement_id": "req-14",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.29083v1",
+      "source": "arxiv",
+      "title": "MHRGait: Gait Recognition from Momentum Human Rig Pose",
+      "abstract": "Gait recognition is shaped by its input representation. Silhouettes encode projected body shape, skeletons encode sparse joint coordinates, and 3D meshes encode dense surface geometry. In each case, identity-bearing articulation is observed through geometric carriers that also vary with clothing, skeletal scale, or body shape. We investigate whether gait can instead be recognized from compact articulated controls. We introduce Momentum Human Rig (MHR) pose as a gait representation, describing each frame using 184 semantically organized body and hand parameters estimated from monocular video. MHRGait groups these heterogeneous controls by anatomy, models their intra-frame coordination and temporal evolution, and produces compact body and hand descriptors. We further introduce MHRGait++, which combines MHR pose with silhouettes through modality-balanced distance fusion, preventing descriptor count from determining modality importance. Experiments on four benchmarks show that MHRGait attains the best overall performance among compared model-based methods on CCPG and SUSTech1K and transfers effectively across datasets, while its recognition network requires only 2.76M parameters and 0.69 GFLOPs for a 30-frame input. MHRGait++ consistently improves silhouette recognizers with a favorable accuracy-efficiency trade-off. These results establish rig-space articulation as an effective standalone gait representation and a complementary cue to projected body shape. Our code is available at https://github.com/duanhuiran/MHRGait.",
+      "authors": [
+        "Huiran Duan",
+        "Qian Zhou",
+        "Xianda Guo",
+        "Hua Zou",
+        "Guoying Zhao",
+        "Zhongyuan Wang",
+        "Yingli Tian"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-31T07:10:37+00:00",
+      "link": "https://arxiv.org/pdf/2607.29083v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "learns kinematic body/hand parameters from video for gait recognition",
+      "llm_evidence_cn": "从视频学习人体与手部运动学参数用于步态识别",
+      "llm_evidence": "从视频学习人体与手部运动学参数用于步态识别",
+      "canonical_evidence": "从视频学习人体与手部运动学参数用于步态识别",
+      "llm_tldr_en": "Proposes gait recognition from momentum human rig pose, using 184 articulated body and hand parameters estimated from monocular video.",
+      "llm_tldr_cn": "现有步态识别依赖轮廓、骨架或网格等几何载体，但容易受衣物和体型干扰。本文提出动量人体绑定（MHR）姿态表示，用184个语义化身体与手部参数描述每帧，并按解剖学分组建模帧内协调与时间演化，得到紧凑的身体和手部描述子。在步态识别中验证了该表示的潜力。",
+      "llm_tldr": "现有步态识别依赖轮廓、骨架或网格等几何载体，但容易受衣物和体型干扰。本文提出动量人体绑定（MHR）姿态表示，用184个语义化身体与手部参数描述每帧，并按解剖学分组建模帧内协调与时间演化，得到紧凑的身体和手部描述子。在步态识别中验证了该表示的潜力。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.29633v1",
+      "source": "arxiv",
+      "title": "OASIS: Occlusion-aware Single-image Hand Avatar Reconstruction via 3D Gaussian Splatting",
+      "abstract": "Single-image 3D hand avatar reconstruction is fundamentally ill-posed and particularly challenging due to limited visual evidence under severe self-occlusion and the complex pose-dependent deformation of highly articulated hands. Existing methods predominantly rely on implicit NeRF-style representations, whose volumetric fitting is computationally expensive and often struggles to preserve fine-grained hand details. In this work, we present OASIS, a tailored 3D Gaussian Splatting framework for single-image hand avatar reconstruction. To faithfully encode sparse image-specific appearance cues in single-view reconstruction, we construct geometry-aligned visual evidence tokens by explicitly aligning input image observations with 3D hand geometry and context-adaptively tokenizing the resulting visual evidence. Since severe self-occlusion makes the reliability of image evidence inherently visibility-dependent, we introduce a visibility-conditioned point-image attention to reliably transfer visual evidence to geometric tokens, yielding occlusion-aware Gaussian features for faithful and robust reconstruction. To further capture non-rigid deformation of articulated hands, we introduce a Feature-on-Mesh representation to enable Gaussian deformation to be guided by local surface stretching. Under this framework, we adopt a one-shot adaptation scheme that learns a shared hand prior from multi-identity training data and then fits it to a target image for target-specific reconstruction. Extensive experiments show that OASIS outperforms existing baselines in both visual fidelity and efficiency across challenging poses and in-the-wild scenarios, and further demonstrates strong versatility in downstream applications such as text-to-avatar generation and texture editing.",
+      "authors": [
+        "Zhisheng Han",
+        "Shiyao Wu",
+        "Jiayan Qiu",
+        "Yakun Ju",
+        "Lu Liu",
+        "Le Zhang",
+        "Pengfei Feng",
+        "Huiyu Zhou",
+        "Zheheng Jiang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-31T17:09:46+00:00",
+      "link": "https://arxiv.org/pdf/2607.29633v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Reconstructs a 3D hand avatar from a single image, tackling pose-dependent deformation of highly articulated hands via 3D Gaussian Splatting",
+      "llm_evidence_cn": "针对高度铰接手的姿态相关形变，从单图重建3D手部虚拟人，利用3D高斯溅射技术",
+      "llm_evidence": "针对高度铰接手的姿态相关形变，从单图重建3D手部虚拟人，利用3D高斯溅射技术",
+      "canonical_evidence": "针对高度铰接手的姿态相关形变，从单图重建3D手部虚拟人，利用3D高斯溅射技术",
+      "llm_tldr_en": "OASIS presents a 3D Gaussian Splatting framework for single-image hand avatar reconstruction, aligning visual tokens with hand geometry to capture sparse appearance cues under occlusion and articulation.",
+      "llm_tldr_cn": "针对单张图像重建3D手部虚拟人的病态问题，尤其是自遮挡和高度铰接带来的姿态相关形变，现有隐式NeRF方法计算昂贵且难以保持细节。本文提出OASIS，一个基于3D高斯溅射的定制化框架，通过将输入图像观测与3D手部几何显式对齐，构建几何对齐的视觉证据token，从而在单视图重建中充分编码稀疏的外观线索。实验表明，该方法能高效且鲁棒地重建高保真手部模型，优于现有方法，为铰接物体的理解与重建提供了新的高效范式。",
+      "llm_tldr": "针对单张图像重建3D手部虚拟人的病态问题，尤其是自遮挡和高度铰接带来的姿态相关形变，现有隐式NeRF方法计算昂贵且难以保持细节。本文提出OASIS，一个基于3D高斯溅射的定制化框架，通过将输入图像观测与3D手部几何显式对齐，构建几何对齐的视觉证据token，从而在单视图重建中充分编码稀疏的外观线索。实验表明，该方法能高效且鲁棒地重建高保真手部模型，优于现有方法，为铰接物体的理解与重建提供了新的高效范式。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

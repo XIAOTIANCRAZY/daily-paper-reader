@@ -1,0 +1,384 @@
+Title: MoRAE: Flow-Friendly Self-Supervised Latents for Text-to-Motion Generation
+
+URL Source: https://arxiv.org/pdf/2607.29180v1
+
+Published Time: Mon, 03 Aug 2026 00:38:19 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# MoRAE: Flow-Friendly Self-Supervised Latents for Text-to-Motion Generation 
+
+## Yifei Zhu, 1 Mingyi Shi, 2 Yangyang Cai, 1 Miao Cheng, 1 Yoshifumi Kitamura, 1 Taku Komura 2
+
+> 1
+
+Tohoku University, Sendai, Japan 
+
+> 2
+
+The University of Hong Kong, Hong Kong 
+
+zhuyifei.q4@dc.tohoku.ac.jp 
+
+Project page: https://github.com/zhuyifeiabcd1/MoRAE 
+
+Abstract 
+
+Text-to-motion generation must produce motions that are se-mantically correct, temporally coherent, and physically plau-sible. A natural approach is to first project motion data into a structured semantic space and then train a generative model within that space. Such a paradigm has been highly suc-cessful in image generation through Representation Autoen-coders (RAEs) , where a frozen self-supervised encoder pro-vides semantic features for diffusion or flow models to learn from. However, direct transfer of such a paradigm to motion space using Motion-JEPA as the frozen encoder fails dra-matically. We diagnose this failure geometrically and identify two motion-specific bottlenecks: (1) the JEPA feature space is spectrally ill-conditioned, making the Gaussian-to-data trans-port unstable; and (2) even with a well-conditioned spectrum, flow residuals tend to align with decoder-sensitive directions, where small latent errors are amplified into large motion ar-tifacts after decoding. Based on these insights, we propose MoRAE. MoRAE addresses the two bottlenecks separately. A compact bottleneck distills the structured JEPA representa-tion while removing weak and redundant directions, bringing the latent spectrum into a transport-stable regime. Motion-coupled training then aligns the retained latent geometry with the decoder, making characteristic flow errors less costly af-ter decoding. With this flow-friendly latent, a standard non-autoregressive Flow-Matching DiT achieves state-of-the-art performance. 
+
+## 1 Introduction 
+
+Valid human motions constitute an exceptionally thin man-ifold within the ambient feature space, which fundamen-tally complicates generative transport. For example, text-to-motion models must satisfy not only semantic alignment with the language prompt but also strict physical constraints: bone lengths must remain fixed, joint rotations must remain valid, and foot contacts must be consistent with body trajec-tories. These constraints are largely implicit in the text, yet violating any of them immediately breaks the generated mo-tion. From a geometric perspective, the valid region occupies only a negligible fraction of the high-dimensional space (e.g., 263 dimensions in HumanML3D). Consequently, diffusion or flow models must transport full-dimensional Gaussian noise toward this thin region before they can model text-controlled semantic variation. Near the manifold boundary, invalid directions demand sharp corrective velocities, mak-ing the transport field difficult to learn (De Bortoli 2022; Pidstrigach 2022) and consuming much of the generator’s capacity on enforcing physical plausibility rather than fol-lowing the user’s semantic command. A natural remedy to this geometric difficulty is to project data into a semantically structured feature space, where the valid distribution becomes more isotropic and easier for gen-erative models to learn. Instead of training directly in the raw physical space, one can map motion data into a higher-level representation that captures temporal dynamics, inter-joint dependencies, and action semantics. In image generation, this paradigm has been established through Representation Au-toencoders (RAEs) (Zheng et al. 2025; Singh et al. 2026): a strong self-supervised visual encoder (e.g., DINOv2 (Oquab et al. 2024)) is pretrained and then frozen to extract high-dimensional semantic features, a decoder reconstructs the original pixels from these features, and a diffusion or flow model operates directly in this frozen feature space. This recipe has proven remarkably successful in images, yielding stable training and high-quality generations without requir-ing the generative model to handle low-level pixel correla-tions. Encouraged by the image-domain success, we directly transfer the RAE recipe to human motion using a frozen Motion-JEPA (Assran et al. 2023), a self-supervised joint-embedding predictive encoder pretrained on motion data, as our frozen feature extractor. We then learn a decoder to re-construct the original motion from these features and train a standard Flow-Matching DiT (Lipman et al. 2023; Ma et al. 2024) in this feature space. Although reconstruction accu-racy is competitive with existing methods, generation quality degrades substantially—the flow model produces physically implausible and semantically mismatched motions, perform-ing far worse than when trained in a compact autoencoder latent space. To explain why the motion RAE fails, we perform a diagnostic analysis that uncovers two motion-specific geo-metric bottlenecks. First, the JEPA feature space remains spectrally ill-conditioned: despite per-coordinate normaliza-tion, its covariance spectrum has a large condition number (κflow ≈ 1.3×10 4), destabilizing the Gaussian-to-data trans-port. Second, spectral conditioning alone is insufficient— even when we artificially correct the spectrum, flow predic-tion residuals tend to align with decoder-sensitive direc-arXiv:2607.29180v1 [cs.CV] 31 Jul 2026 tions , where the motion decoder has high Jacobian gain. A small latent error in these directions is amplified into large motion artifacts after decoding, severely hurting generation quality even when reconstruction error is minimal. Guided by these findings, we propose MoRAE (Motion-optimized Representation Autoencoder) , a framework that reshapes the latent space to be explicitly flow-friendly. Instead of generating directly in the raw JEPA feature space, we first compress its frozen features into a com-pact 32-dimensional latent space using a variational en-coder. Crucially, we introduce coupled learning : the mo-tion reconstruction loss is backpropagated through the en-tire tokenizer—including both the feature decoder and the encoder—so that the latent space is explicitly shaped to be both transport-stable and robust to decoder amplifica-tion. With this flow-friendly latent space, a standard non-autoregressive Flow-Matching DiT achieves state-of-the-art performance on HumanML3D (Guo et al. 2022) and KIT-ML (Plappert, Mandery, and Asfour 2016), outperforming prior diffusion and VQ-based methods in both semantic met-rics (FID, R-Precision) and physical plausibility (foot skat-ing, jerk, bone variation), all without relying on vector quan-tization or autoregressive factorization. 
+
+## 2 Related Work 
+
+Text-to-Motion Generation. Text-to-Motion Generation is a topic that is widely attracting researchers for synthesiz-ing single human motion (Tevet et al. 2023), human-object interaction (Xu et al. 2023), human-scene interaction (Wang et al. 2022) and multi-person interaction (Liang et al. 2024). In addition to simply using text prompts as inputs, methods to use trajectories (Xie et al. 2024) or style motion (Guo et al. 2024b) are useful for controlling the details of the motion. In terms of the representation of motion, it has been ap-proached through three main paradigms. The first family generates motions directly in the raw feature space using diffusion or flow models (e.g., MDM (Tevet et al. 2023), MotionDiffuse (Zhang et al. 2022), FLAME (Kim, Kim, and Choi 2023)). While straightforward, these methods must learn both high-level semantics and low-level physical con-straints simultaneously, often leading to unstable training or physical artifacts. The second family quantizes motion into discrete tokens and generates sequences autoregres-sively or via masked prediction (e.g., T2M-GPT (Zhang et al. 2023), MoMask (Guo et al. 2024a), MMM (Pinyoanun-tapong et al. 2024)). Although effective at capturing multi-modal distributions, these methods suffer from quantization errors, restricted continuous variation, and typically require sequential prediction. The third family operates in a con-tinuous latent space learned by autoencoders or VAEs (e.g., MLD (Chen et al. 2023), MARDM (Meng et al. 2024)), offer-ing a compromise between raw-space flexibility and discrete-token efficiency. In this work, we adopt the continuous-latent paradigm based on a semantically structured space and then learn a compact, flow-friendly latent representation through a coupled autoencoder. 
+
+From Reconstruction to Structured Representations. 
+
+Conventional continuous motion latents—whether determin-istic autoencoders or VAEs—are optimized primarily for reconstruction fidelity, with VAEs additionally matching a Gaussian prior. While this yields compact representations, reconstruction alone does not guarantee that the latent space is well-suited for generative modeling; as we will show in Sec. 3, such spaces often exhibit poor spectral conditioning and decoder sensitivity. In contrast, self-supervised learning (SSL) offers an alter-native: instead of reconstructing raw inputs, SSL methods learn structured features through invariance, masked pre-diction, or joint-embedding objectives (Caron et al. 2021; Oquab et al. 2024; He et al. 2022; Assran et al. 2023). These representations capture high-level content and structural re-lations—such as temporal dynamics and inter-joint depen-dencies in motion—but are typically high-dimensional and not directly decodable to the original domain. Recent image-generation methods bridge this gap through 
+
+representation autoencoders (RAEs) (Zheng et al. 2025; Singh et al. 2026): they retain a pretrained SSL encoder, freeze it, and learn a decoder that maps its features back to the input space, enabling generative models to operate on seman-tically structured features. Our work adopts this philosophy for motion, using Motion-JEPA (Assran et al. 2023) as the frozen encoder. However, motion introduces additional diffi-culty: its features are temporally and kinematically coupled, and raw SSL representations remain wide and redundant. Our MoRAE therefore does not merely freeze and decode JEPA features; it compresses them into a compact contin-uous latent and couples its learning to the motion decoder, ensuring that the resulting space is both transport-stable and decoder-compatible. 
+
+## 3 Diagnosis 
+
+To understand why accurate motion tokenizers can still re-sult in poor motion synthesis, we dissect three geometric factors: spectral conditioning, residual magnitude, and de-coder alignment. We first quantify the spectral anisotropy of motion representations (§3.1), then introduce a framework to decompose decoded error into interpretable components (§3.2). Using this framework, Probe 1 isolates the causal ef-fect of spectral conditioning (§3.3), while Probe 2 reveals that residual–decoder alignment is an independent bottle-neck (§3.4). We conclude by synthesizing these findings into design principles that motivate MoRAE (§3.5). 
+
+3.1 Spectral Bias in Motion Representations 
+
+Motion representations are high-dimensional but strongly constrained by kinematics, temporal consistency, and con-tact. Consequently, valid motions occupy only a thin subset of the ambient space. For example, local PCA on the raw 
+
+263 -D HumanML3D representation and its 67 -D relative-position subset gives local-d95 = 26 and 17 , respectively, where local-d95 denotes the number of local principal com-ponents explaining 95% of neighborhood variance. A low intrinsic dimension, however, does not necessarily make full-dimensional generative transport easier. When data variance is concentrated in a small dominant subspace, the remaining directions have little variance but must still be contracted from an isotropic Gaussian prior. The resulting transport becomes difficult when the covariance spectrum contains many weak directions. We measure this anisotropy after applying the same per-coordinate normalization used at the generator input: 
+
+˜z = diag( s)−1(z − μ), C = Cov( ˜ z),κflow = cond  C + σ2pI = λ1 + σ2p
+
+λd + σ2p
+
+, σp = 0 .02 ,
+
+(1) where λ1 ≥ · · · ≥ λd are the eigenvalues of C. Per-coordinate normalization removes marginal scale differ-ences but not cross-coordinate correlations. The perturbation floor prevents unresolved near-zero directions from domi-nating the estimate. Thus, κflow measures the joint spectral anisotropy actually seen by the generator. Table 1 yields three observations. First, SSL improves representation content without guaranteeing transport-ready geometry. Motion-JEPA reduces κflow relative to raw motion (1.3·10 4 versus 6.8·10 4), but its 768 -D representation has local-d95 = 43 . Predictable motion factors therefore occupy a small dominant subspace, while many remaining directions are weak or correlated. Second, a compact bottleneck can improve conditioning by removing such weak directions. If an information-preserving compression retains k dominant directions, the relevant spec-tral ratio changes approximately from λ1/λ d to λ1/λ k. The gain therefore comes from discarding near-null directions, rather than from reducing dimensionality itself. Indeed, re-ducing the raw representation from 263 to 67 dimensions barely improves conditioning, and the 32 -D VAE remains severely ill-conditioned. Third, the retained spectrum depends on what the bottle-neck is trained to preserve. MoRAE latent and the standard AE have the same width and local dimension ( d = 32 , local-
+
+d95 = 18 ), yet their condition numbers differ by a factor of five ( 27 versus 136 ). This suggests that compressing con-textualized JEPA features organizes the retained information more evenly than directly reconstructing motion. Thus, se-mantic pretraining supplies structured content, while com-pact distillation removes weak directions; neither component alone guarantees a flow-friendly latent.                                       
+
+> latent dlocal-d95 d95 /d κflow ↓
+> raw (HumanML3D feature) 263 26 9.9% 6.8·10 4
+> essential (relative position) 67 17 25.4% 3.7·10 4
+> AE 512 40 7.8% 7.2·10 4
+> AE 32 18 56.3% 136
+> VAE 256 53 20.7% 1.1·10 3
+> VAE 32 14 43.8% 1.2·10 4
+> SSL (raw H)768 43 5.6% 1.3·10 4
+> SSL (MoRAE latent) 32 18 56.3% 27
+
+Table 1: Geometry of continuous HumanML3D representa-tions. The AE and VAE architectures follow MARDM (Meng et al. 2024) and MLD (Chen et al. 2023), respectively; the latent width is varied as indicated. 
+
+3.2 A Generative-Error View of Latent Quality 
+
+Spectral conditioning alone does not guarantee accurate de-coding, as the decoder may amplify residuals in direction-dependent ways. To separate the effects of residual magni-tude, decoder sensitivity, and their directional alignment, we introduce a decomposition of the decoded error. Our generative process consists of two stages: a flow model transports Gaussian noise N (0, I), to a latent variable z, and the decoder D then maps z to motion x. The encoder E
+
+is used only during training to provide the target latents z
+
+for the flow. Let (z, ˆz) be a pair of a ground-truth latent encoded from a motion x and its inference produced from the Gaussian noise. The residual can be defined as 
+
+δ = ˆ z − z. (2) We now analyze the effect the residual δ to the final mo-tion during inference. The effect of δ depends on both its magnitude and direction. The decoder Jacobian induces the local pullback metric 
+
+G(z) = JD (z)⊤JD (z), JD (z) = ∂D ∂z . (3) For a sufficiently small residual, 
+
+∥D(z + δ) − D(z)∥22 = δ⊤G(z)δ + O(∥δ∥32). (4) Thus, residuals with the same Euclidean norm can produce very different motion errors when they point along decoder directions with different local gains. To separate the generator and decoder contributions, define the conditional residual covariance 
+
+Ce(z) = E[δδ ⊤ | z], (5) which captures where the flow places residual energy. The expected decoded error is then approximately 
+
+E ∥D(z + δ) − D(z)∥22 ≈ Ez
+
+Tr  G(z)Ce(z) . (6) This is our central diagnostic: the generator determines 
+
+Ce(z), while the decoder determines G(z).To make this interaction interpretable, we factor the de-coded error into three scalar quantities for tokenizers in a common standardized coordinate system: 
+
+Mdec 
+
+| {z } 
+
+> decoded residual cost
+
+= Mlat 
+
+|{z} 
+
+> residual magnitude
+
+· giso 
+
+|{z} 
+
+> mean decoder gain
+
+· ρalign 
+
+| {z } 
+
+> directional alignment
+
+,
+
+(7) where 
+
+Mlat = 1
+
+d E∥δ∥22, giso = 1
+
+d E[Tr G(z)] ,ρalign = E[δ⊤G(z)δ]
+
+E∥δ∥22 E[Tr G(z)] /d , Mdec = 1
+
+d E[δ⊤G(z)δ].
+
+(8) Here, Mlat measures the generator error, giso measures the decoder’s average sensitivity, and ρalign measures whether residual energy is concentrated in decoder-sensitive direc-tions. In particular, ρalign > 1 indicates a larger decoded cost than an isotropically oriented residual with the same av-erage energy. This decomposition allows Probe 2 to attribute the generation gap to residual magnitude, decoder sensitivity, or directional alignment. The individual factors are coordinate-dependent, so we compare them only after placing all tokenizers in the same standardized coordinates. Reconstruction FID is used as an information-preservation control, while generation FID and R@1 evaluate generative quality. Probe 1 isolates the effect of spectral conditioning with information and the decoder fixed; Probe 2 uses Eq. (7) to attribute the remaining generation gap to residual magnitude, decoder sensitivity, or directional alignment. 
+
+3.3 Probe 1: Spectral Conditioning 
+
+In this probe, we show that a poor spectral condition num-ber causally degrades flow-based generation. To isolate this causal effect, we artificially manipulate the condition number of a fixed latent space while keeping its information content and decoder unchanged, then retrain the flow in each manip-ulated space. To this end, we apply an invertible reparameterization to a fixed centered and standardized latent z. Let W be its ZCA-whitening transform and R a fixed random orthogonal matrix. For a target condition number κ,
+
+z′ 
+
+> κ
+
+= Aκz, Aκ = RS κW ,
+
+[Sκ]ii = κ− i−12( d−1) , i = 1 , . . . , d. (9) The resulting covariance eigenvalues are geometrically spaced from 1 to 1/κ .For each κ, we retrain the same flow in the transformed coordinates, map its endpoints back through A−1 
+
+> κ
+
+, and use the unchanged decoder. Only Sκ varies. Round-trip error is below 2·10 −6 and rFID remains 0.068 . The rotated-natural control preserves the natural spectrum while changing its basis. Target κ is imposed before flow-input normalization, while κflow is measured afterward using Eq. (1). Follow-ing Sec. 3.2, we evaluate the latent residual in the flow coordinates ( Mtrans ) and after mapping it back to the na-tive coordinates ( Morig ). We also report their ratio and the native-coordinate SWD.                                                                                        
+
+> variant κflow rFID Mtrans Morig amp. SWD ↓gen FID ↓R@1 ↑
+> whitened 10.068 0.047 0.035 0.7×0.074 0.170 0.513
+> natural 27 0.068 0.042 0.042 1.0×0.082 0.227 0.504
+> rotated natural 23 0.068 0.045 0.041 0.9×0.083 0.218 0.513
+> κ= 27 (geom.) 25 0.068 0.028 0.086 3.1×0.078 0.160 0.508
+> κ= 10 289 0.068 0.022 0.121 5.4×0.125 0.174 0.504
+> κ= 10 3793 0.068 0.020 0.302 15 .5×0.113 0.163 0.501
+> κ= 10 3.52.2·10 30.068 0.018 0.601 32 .8×0.156 0.534 0.496
+> κ= 10 45.4·10 30.068 0.017 1.28 73 ×0.284 8.05 0.356
+> κ= 10 62.3·10 40.068 0.013 82 .46112 ×4.96 87 .40.066
+
+Table 2: Probe 1: invertible spectral reparameterization with represented information and decoder fixed. Amp. is 
+
+Morig /M trans . All variants use the same DiT-S protocol for 
+
+500 epochs. Table 2 shows a broad stable regime followed by a sharp collapse. Generation FID remains between 0.160 and 0.227 
+
+for κflow ≤ 793 , degrades at 2.2·10 3, and becomes catas-trophic under stronger squeezing despite unchanged rFID. Whitening is therefore not required; the spectrum only needs to remain within a transport-stable regime. The natural and rotated-natural controls perform similarly, indicating a small basis effect. However, spectra with similar 
+
+κflow still differ slightly, so condition number does not fully characterize spectral shape. As squeezing increases, Mtrans decreases from 0.047 to 
+
+0.013 , while Morig rises from 0.035 to 82 .4 and SWD rises to 4.96 . Thus, small residuals in the flow coordinates can conceal large errors along squeezed directions after mapping back to the native latent space. 
+
+3.4 Probe 2: Directional Alignment 
+
+Probe 1 established that poor spectral conditioning can cause catastrophic generation, but not whether good conditioning alone suffices. To localize the remaining gap, we compare two similarly conditioned tokenizers. In coupled MoRAE (Sec. 4.2), the motion loss backpropagates through the fea-ture decoder and encoder, shaping the latent by its motion-space consequences. The decoupled control uses the same architecture and objectives but stops this gradient before the feature decoder and encoder, leaving the latent optimized only for feature reconstruction. Both lie in the stable regime (κflow = 27 and 29 .5), yet the decoupled variant generates worse motion despite better reconstruction and a smaller residual. Spectral conditioning, reconstruction quality, and residual magnitude therefore cannot explain the remaining gap. We apply the decoder-aware decomposition of Eq. (7) to held-out endpoint pairs under the fixed evaluation coupling. All terms are evaluated at guidance scale 1 in the standard-ized coordinates of Sec. 3.2. At the observed residual scale, the local approximation is accurate: δ⊤Gδ correlates with realized decoded error at Pearson r ≥ 0.92 , with an actual-to-predicted ratio of 0.8–1.1.Table 3 localizes the gap. The decoupled flow has a slightly smaller residual ( Mlat = 0 .055 vs. 0.059 ) and similar mean decoder gain ( giso = 0 .59 vs. 0.55 ). The main difference is directional: its residual alignment is about 25% higher (ρalign = 6 .08 vs. 4.85 ), indicating that more residual energy falls along decoder-sensitive directions. This raises the de-coded cost ( Mdec = 0 .195 vs. 0.157 ) and worsens generation FID ( 0.243 vs. 0.160 ), while R@1 remains nearly unchanged. The gap therefore lies primarily in motion-distribution qual-ity rather than semantic retrieval. Coupled training improves generation not by reducing residual magnitude or mean decoder sensitivity, but by mak-ing the flow’s characteristic errors less aligned with direc-tions strongly amplified by the decoder. 
+
+3.5 Implications for Continuous Motion Latents 
+
+The two probes provide a geometric interpretation of com-mon representation choices in motion generation. This view also refines the representation diagnosis of MARDM (Meng et al. 2024). MARDM removes the derived channels of the canonical 263 -D HumanML3D format and retains the 67 -D animation-relevant state; Table 1 shows that even this es-sential representation remains spectrally thin and severely ill-conditioned. Thus, removing explicit channel redundancy tokenizer decoder training κflow rFID Mlat giso ρalign Mdec gen FID ↓ R@1 ↑                  
+
+> coupled (MoRAE) joint 27 0.068 0.059 0.55 4.85 0.157 0.160 0.508
+> decoupled detached 29 .50.057 0.055 0.59 6.08 0.195 0.243 0.503
+
+Table 3: Probe 2: decoder-aware decomposition of held-out transport residuals. Both tokenizers lie in the transport-stable spectral regime and use the same DiT-S protocol for 500 epochs. helps, but does not eliminate the weak continuous directions that make global Gaussian transport difficult. A wide deterministic autoencoder can therefore recon-struct accurately while leaving many weak latent direc-tions for the generator to model. Autoregressive or masked-autoregressive generation provides a practical workaround by decomposing one global transport problem into a sequence of restricted conditional predictions. Reducing latent width instead can improve spectral conditioning, but does not by itself make the remaining transport errors compatible with the decoder. The same view explains why Gaussian prior matching is insufficient: a VAE may regularize coordinate marginals while leaving the joint spectrum poorly conditioned. VQ to-kenizers avoid continuous transport through weak directions by restricting generation to discrete codes. This helps explain their empirical robustness, and complements MARDM’s observation that redundant motion channels can regularize codebook learning, but comes at the cost of quantization, re-stricted continuous variation, and typically sequential predic-tion (van den Oord, Vinyals, and Kavukcuoglu 2017; Meng et al. 2024). MoRAE instead uses a compact continuous la-tent for transport stability, while coupled decoding makes the generator’s characteristic errors less costly in motion space. 
+
+## 4 Method 
+
+As shown in Fig. 1, MoRAE is trained in three stages. We first pretrain a self-supervised Motion-JEPA encoder f . With 
+
+f frozen, we then train a compact tokenizer consisting of a variational encoder E, a feature decoder Df , and a motion decoder Dm. Finally, all tokenizer modules are frozen and a standard flow-matching DiT is trained on the resulting latent sequence. The complete reconstruction path is 
+
+x f
+
+−−−−→ 
+
+> frozen
+
+H E
+
+−→ z Df
+
+−−→ ˆH Dm
+
+−−→ ˆx. (10) 
+
+4.1 Motion-JEPA Pretraining 
+
+We pretrain the source representation through masked la-tent prediction in the joint-embedding predictive framework (Assran et al. 2023). An online encoder fθ predicts the clean-motion features of an exponential-moving-average teacher f¯θ
+
+at masked positions: 
+
+LJEPA = X
+
+> t∈M
+
+smooth -ℓ1 (P (fθ (x ⊙ m)) t, sg[ f¯θ (x)t]) ,
+
+(11) where P is the predictor, M denotes masked positions, and 
+
+¯θ ← μ¯θ + (1 − μ)θ.We use temporal-span masking over contiguous frames and joint-group masking over selected joints across time, en-couraging the encoder to infer temporal dynamics and inter-joint dependencies. After pretraining, we freeze f and obtain contextual features H = f (x) ∈ RT ×768 . Although struc-turally informative, these features remain wide and spectrally ill-conditioned (Table 1); the following tokenizer compresses them into a compact generative latent. 
+
+4.2 Compact Coupled Tokenizer 
+
+With f frozen, a single-attention variational encoder maps 
+
+H to 
+
+qϕ(z | H) = N  μ, diag( σ2) ,
+
+z = μ + σ ⊙ ϵ ∈ RT ×32 , (12) where ϵ ∼ N (0, I). A feature decoder Df reconstructs the frozen representation, ˆH = Df (z), and a motion decoder 
+
+Dm maps it back to motion. During tokenizer training, we add a small Gaussian perturbation to the reconstructed fea-ture before motion decoding: 
+
+ˆx = Dm
+
+ ˆH + ηϵ′
+
+, ϵ′ ∼ N (0, I). (13) The tokenizer objective is 
+
+Ltok = ∥ ˆH − H∥
+
+| {z }
+
+> Lfeat
+
++λ Dm( ˆH + ηϵ′) − x
+
+| {z }
+
+> Lmot
+
++ β KL ( qϕ(z | H) ∥ N (0, I)) .
+
+(14) The compact bottleneck and feature loss preserve the frozen representation in a low-dimensional latent, while the KL regularizes its marginal distribution. Crucially, Lmot back-propagates through Dm, Df , and E, coupling the latent rep-resentation to motion decoding. The decoupled control in Probe 2 uses the same architecture and objective but stops the motion-loss gradient before it reaches Df and E.
+
+4.3 Latent Flow Matching 
+
+After tokenizer training, f , E, Df , and Dm are frozen. We train a DiT-based flow-matching model (Lipman et al. 2023; Ma et al. 2024) over the full sequence of latent tokens. Given 
+
+z0 ∼ N (0, I), z1 ∼ qϕ(z | f (x)) , (15) we use the linear interpolant zt = tz1 +(1 −t)z0 and regress the constant target velocity: 
+
+LFM = Et, z0,z1,c 
+
+h
+
+∥vθ (zt, t, c ) − (z1 − z0)∥22
+
+i
+
+. (16) At inference, we integrate the probability-flow ODE from Gaussian noise to a generated latent ˆz1, then decode ˆx =
+
+Dm(Df ( ˆ z1)) . Text condition c is encoded by a frozen CLIP Figure 1: Overview of MoRAE. (a) Motion-JEPA predicts EMA-teacher features under temporal-span and joint-group masks. (b) Frozen features are compressed into a 32 -D latent and jointly decoded back to features and motion. (c) After freezing the tokenizer, a non-autoregressive DiT learns flow matching in the compact latent space, and the frozen decoder maps generated latents back to motion. text encoder (Radford et al. 2021) and injected through adap-tive layer normalization following DiT/SiT (Peebles and Xie 2023; Ma et al. 2024). Classifier-free guidance is applied during sampling. No vector quantization or autoregressive factorization is used. 
+
+## 5 Experiments 
+
+5.1 Datasets and Evaluation Protocol 
+
+We evaluate on HumanML3D (Guo et al. 2022) and on KIT-ML (Plappert, Mandery, and Asfour 2016) under the 20 FPS, following the official split. 
+
+Evaluation protocol. Following MARDM (Meng et al. 2024), our main experiments use the 67 -D essential representation—the root state and relative joint positions used to recover motion—and the corresponding evaluator. We report FID, R-Precision, Matching Distance, and Multi-modality, together with a CLIP-style motion–text alignment score (Radford et al. 2021). We additionally measure foot skating, temporal jerk, and bone-length variation for con-tact stability, smoothness, and skeletal consistency. Lower foot skating and bone variation are better; jerk is judged by proximity to the ground-truth distribution. 
+
+Implementation. Motion-JEPA and DiT are trained on the official splits. The reported generator is a DiT-XL trained for 800 epochs with batch size 64 , learning rate 2×10 −4,and cosine decay. We integrate the probability-flow ODE for 24 steps with classifier-free guidance (cfg = 8 .5 on Hu-manML3D and 7.5 on KIT-ML). Method MDM MLD T2M-GPT MMM MoMask MARDM-SiT MoRAE         
+
+> AIT (s) ↓14 .31 0.21 0.32 0.06 0.04 2.40 0.06
+
+Table 4: Inference efficiency. 
+
+5.2 Main Results 
+
+MoRAE achieves the best overall performance on both Hu-manML3D and KIT-ML, improving distributional quality, text–motion alignment, and retrieval accuracy. This supports our central claim: a compact, transport-stable, and motion-faithful representation allows a standard flow to match or surpass discrete or autoregressive generators. Physical metrics further reveal failures hidden by stan-dard scores. VQ and autoregressive methods can accumulate temporal discontinuities, increasing jerk, foot skating, and skeletal variation, while diffusion in raw or ill-conditioned spaces can produce contact and kinematic errors during transport toward the thin valid-motion set. MoRAE mitigates both through a compact, transport-stable self-supervised la-tent shaped by motion-coupled decoding. Figure 2 qualita-tively confirms this advantage: for a compositional prompt, MoRAE preserves the ordered forward-walking, right-arm, and backward-walking phases, whereas competing methods omit or entangle parts of the sequence. 
+
+Inference efficiency. We tested average inference time per sample (batched), with methods ordered by generation FID. Baselines measured on RTX 4090. Since our method only need a single diffusion process, it achieves the best balance between speed and quality. 
+
+5.3 Ablations 
+
+We vary one factor at a time and report generation FID (gFID); Table 6 uses the diagnostic protocol, Table 7 the final one. 
+
+Autoregression compensates poor geometry. Masked-AR rescues AE-512 ( 0.592 → 0.120 ) but hurts MoRAE (0.089 → 0.221 ; Table 6(a)). AE-512 lies beyond the col-lapse onset identified by Probe 1, so factorization avoids one global transport through its weak directions. Once MoRAE restores stable geometry, this benefit disappears and the fac-torization becomes a net cost. Autoregression is therefore a workaround for poor latent geometry, not an intrinsic re-quirement of motion generation. 
+
+Reconstruction does not predict generation. rFID changes little across bottleneck widths, whereas gFID is min-imized at z = 32 (Table 6(b)). Over-compression ( z = 16 ) re-Methods R-Precision ↑ FID ↓ Matching ↓ MModality ↑ CLIP-score ↑ FootSkate Jerk Bone Var. ↓
+
+Top-1 Top-2 Top-3 HumanML3D GT 0.503 ±.003 0.697 ±.002 0.796 ±.002 0.000 3.242 ±.010 — 0.640 ±.001 11 .6±.0 44 .4±.0 0.00 ±.0
+
+T2M-GPT 0.470 ±.003 0.659 ±.002 0.758 ±.002 0.335 ±.003 3.505 ±.017 2.018 ±.053 0.607 ±.005 17 .66 ±.07 74 .5±.73 2.83 ±.1
+
+MMM 0.487 ±.003 0.683 ±.002 0.782 ±.001 0.132 ±.004 3.359 ±.009 1.241 ±.073 0.635 ±.003 16 .20 ±.06 63 .5±.45 2.12 ±.1
+
+MoMask 0.490 ±.004 0.687 ±.003 0.786 ±.003 0.116 ±.006 3.353 ±.010 1.263 ±.079 0.637 ±.003 15 .81 ±.08 60 .3±.19 2.51 ±.0
+
+MDM 0.440 ±.007 0.636 ±.006 0.742 ±.004 0.518 ±.032 3.640 ±.028 3.604 ±.031 0.578 ±.003 15 .71 ±.06 36 .5±.62 1.82 ±.2
+
+MotionDiffuse 0.450 ±.006 0.641 ±.005 0.753 ±.005 0.778 ±.005 3.490 ±.023 3.179 ±.046 0.606 ±.004 15 .79 ±.06 22 .5±.20 2.97 ±.2
+
+MLD 0.461 ±.004 0.651 ±.004 0.750 ±.003 0.431 ±.014 3.445 ±.019 3.506 ±.031 0.610 ±.003 15 .99 ±.08 20 .1±.45 2.43 ±.1
+
+MARDM (DiT-XL) 0.500 ±.004 0.695 ±.003 0.795 ±.003 0.114 ±.007 3.270 ±.009 2.231 ±.071 0.642 ±.002 20 .33 ±.09 76 .3±.54 2.10 ±.0
+
+MoRAE (DiT-XL) 0.512 ±.003 0.704 ±.002 0.798 ±.002 0.089 ±.004 3.233 ±.006 1.310 ±.059 0.651 ±.001 15 .64 ±.06 40 .6±.15 1.61 ±.0
+
+> KIT-ML
+
+GT 0.377 0.616 0.759 0.000 3.301 — 0.699 29 .5±.0 62 .7±.0 0.00 ±.0
+
+T2M-GPT 0.359 ±.007 0.553 ±.007 0.690 ±.013 0.593 ±.053 3.765 ±.046 1.798 ±.157 0.651 ±.005 33 .54 ±.10 56 .50 ±.58 3.23 ±.02 
+
+MMM 0.363 ±.005 0.569 ±.006 0.724 ±.006 0.478 ±.034 3.629 ±.028 1.455 ±.106 0.660 ±.003 32 .74 ±.09 59 .10 ±.44 3.34 ±.03 
+
+MoMask 0.369 ±.005 0.588 ±.005 0.731 ±.005 0.411 ±.026 3.577 ±.021 1.309 ±.058 0.669 ±.002 32 .39 ±.07 47 .60 ±.69 7.05 ±.05 
+
+MDM 0.333 ±.012 0.561 ±.009 0.689 ±.009 0.585 ±.043 4.002 ±.033 1.681 ±.107 0.605 ±.007 31 .77 ±.08 44 .00 ±.51 2.34 ±.02 
+
+MotionDiffuse 0.344 ±.009 0.536 ±.007 0.658 ±.007 3.845 ±.087 4.167 ±.054 1.774 ±.217 0.626 ±.006 29 .05 ±.06 39 .90 ±.35 2.22 ±.02 
+
+MLD 0.351 ±.007 0.536 ±.007 0.658 ±.007 0.492 ±.047 3.746 ±.044 1.803 ±.164 0.646 ±.006 30 .20 ±.08 38 .20 ±.43 2.55 ±.02 
+
+MARDM (DiT-XL) 0.387 ±.006 0.610 ±.006 0.749 ±.006 0.242 ±.014 3.374 ±.019 1.312 ±.053 0.692 ±.002 36 .54 ±.11 64 .70 ±.62 2.85 ±.03 
+
+MoRAE (DiT-XL) 0.410 ±.006 0.630 ±.007 0.761 ±.005 0.169 ±.009 3.254 ±.020 1.429 ±.046 0.697 ±.002 28 .47 ±.15 63 .2±.45 1.99 ±.01 
+
+Table 5: Quantitative evaluation under the essential-dimension evaluators. We report the mean over 20 repeats with 95% 
+
+confidence intervals, identical to prior work. Bold is best, underline second best. Jerk is best when closest to GT ( 44 .4). 
+
+Figure 2: Qualitative comparison on a compositional text prompt. moves conditional detail and has the lowest optimal guidance scale; under-compression ( H = 768 ) preserves R-precision but generates worst, with nearly twice the GT jerk. Width therefore governs implicit motion validity, not merely se-mantic information. 
+
+(a) Generator × latent 
+
+latent full-sequence latent flow matching masked-AR AE-512 0.592 0.120 
+
+MoRAE z = 32 0.089 0.221 
+
+(b) Bottleneck width 
+
+latent rFID ↓ gFID ↓
+
+z = 16 0.090 0.228 
+
+z = 32 0.068 0.089 
+
+z = 64 0.066 0.320 
+
+H = 768 0.034 0.358 
+
+Table 6: Core ablations under the diagnostic protocol. 
+
+Conditioning is necessary, not sufficient. The compact tokenizer moves AE-512 into the transport-stable regime (0.592 → 0.089 gFID; Table 7), but the plateau is a floor, not a ranking. The non-SSL tokenizer is better conditioned than AE-32 ( 38 .5 vs. 136 ) yet generates worse, with severe jitter hidden by pooled FID. Conversely, AE-32 has the lowest residual alignment but an order-of-magnitude larger decoder gain, so its errors remain costly after decoding. Thus, κflow 
+
+determines transport stability, while ρalign and giso determine the decoded cost of the remaining error (Sec. 3.5). 
+
+tokenizer κflow gFID ↓ Jerk ( →GT) AE-512 7.2×10 4 0.592 32.5 AE-32 136 0.127 40.3 two-stage w/o SSL 38.5 0.152 69.4 MoRAE 27 0.089 40.6 
+
+GT – 0.000 43.1 
+
+Table 7: Tokenizer ablations under the final protocol. 
+
+## 6 Conclusion 
+
+MoRAE shows that semantic quality alone does not make a motion latent generation-ready. Compact, well-conditioned JEPA distillation with motion-coupled decoding enables a standard non-autoregressive flow to achieve state-of-the-art results. References 
+
+Assran, M.; Duval, Q.; Misra, I.; Bojanowski, P.; Vincent, P.; Rabbat, M.; LeCun, Y.; and Ballas, N. 2023. Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .Caron, M.; Touvron, H.; Misra, I.; Jégou, H.; Mairal, J.; Bojanowski, P.; and Joulin, A. 2021. Emerging Properties in Self-Supervised Vision Transformers. arXiv:2104.14294. Chen, X.; Jiang, B.; Liu, W.; Huang, Z.; Fu, B.; Chen, T.; and Yu, G. 2023. Executing Your Commands via Motion Diffusion in Latent Space. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .De Bortoli, V. 2022. Convergence of Denoising Diffusion Models under the Manifold Hypothesis. Transactions on Machine Learning Research (TMLR) .Guo, C.; Mu, Y.; Javed, M. G.; Wang, S.; and Cheng, L. 2024a. MoMask: Generative Masked Modeling of 3D Hu-man Motions. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .Guo, C.; Mu, Y.; Zuo, X.; Dai, P.; Yan, Y.; Lu, J.; and Cheng, L. 2024b. Generative Human Motion Stylization in Latent Space. arXiv preprint arXiv:2401.13505 .Guo, C.; Zou, S.; Zuo, X.; Wang, S.; Ji, W.; Li, X.; and Cheng, L. 2022. Generating Diverse and Natural 3D Human Motions from Text. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .He, K.; Chen, X.; Xie, S.; Li, Y.; Dollár, P.; and Girshick, R. 2022. Masked Autoencoders Are Scalable Vision Learners. arXiv:2111.06377. Kim, J.; Kim, J.; and Choi, S. 2023. Flame: Free-form language-based motion synthesis & editing. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 37, 8255–8263. Liang, H.; Zhang, W.; Li, W.; Yu, J.; and Xu, L. 2024. Inter-gen: Diffusion-based multi-human motion generation under complex interactions. International Journal of Computer Vision , 1–21. Lipman, Y.; Chen, R. T. Q.; Ben-Hamu, H.; Nickel, M.; and Le, M. 2023. Flow Matching for Generative Modeling. In International Conference on Learning Representations (ICLR) .Ma, N.; Goldstein, M.; Albergo, M. S.; Boffi, N. M.; Vanden-Eijnden, E.; and Xie, S. 2024. SiT: Exploring Flow and Diffusion-Based Generative Models with Scalable Inter-polant Transformers. In European Conference on Computer Vision (ECCV) .Meng, Z.; Xie, Y.; Peng, X.; Han, Z.; and Jiang, H. 2024. Rethinking Diffusion for Text-Driven Human Motion Gener-ation: Redundant Representations, Evaluation, and Masked Autoregression. arXiv preprint arXiv:2411.16575 .Oquab, M.; Darcet, T.; Moutakanni, T.; Vo, H.; Szafraniec, M.; Khalidov, V.; et al. 2024. DINOv2: Learning Robust Visual Features without Supervision. arXiv:2304.07193. Peebles, W.; and Xie, S. 2023. Scalable Diffusion Models with Transformers. In Proceedings of the IEEE/CVF Inter-national Conference on Computer Vision (ICCV) .Pidstrigach, J. 2022. Score-Based Generative Models Detect Manifolds. In Advances in Neural Information Processing Systems (NeurIPS) .Pinyoanuntapong, E.; Wang, P.; Lee, M.; and Chen, C. 2024. MMM: Generative Masked Motion Model. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .Plappert, M.; Mandery, C.; and Asfour, T. 2016. The KIT motion-language dataset. Big data , 4(4): 236–252. Radford, A.; Kim, J. W.; Hallacy, C.; Ramesh, A.; Goh, G.; Agarwal, S.; Sastry, G.; Askell, A.; Mishkin, P.; Clark, J.; Krueger, G.; and Sutskever, I. 2021. Learning Transferable Visual Models from Natural Language Supervision. In In-ternational Conference on Machine Learning (ICML) .Singh, J.; Zheng, B.; Wu, Z.; Zhang, R.; Shechtman, E.; and Xie, S. 2026. Improved Baselines with Representation Autoencoders. arXiv:2605.18324. Tevet, G.; Raab, S.; Gordon, B.; Shafir, Y.; Cohen-Or, D.; and Bermano, A. H. 2023. Human Motion Diffusion Model. In International Conference on Learning Representations (ICLR) .van den Oord, A.; Vinyals, O.; and Kavukcuoglu, K. 2017. Neural Discrete Representation Learning. In Advances in Neural Information Processing Systems (NeurIPS) .Wang, J.; Rong, Y.; Liu, J.; Yan, S.; Lin, D.; and Dai, B. 2022. Towards Diverse and Natural Scene-Aware 3D Hu-man Motion Synthesis. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 20460–20469. Xie, Y.; Jampani, V.; Zhong, L.; Sun, D.; and Jiang, H. 2024. OmniControl: Control Any Joint at Any Time for Human Motion Generation. In The Twelfth International Conference on Learning Representations .Xu, S.; Li, Z.; Wang, Y.-X.; and Gui, L.-Y. 2023. InterDiff: Generating 3D Human-Object Interactions with Physics-Informed Diffusion. In Proceedings of the IEEE/CVF In-ternational Conference on Computer Vision (ICCV) , 14928– 14940. Zhang, J.; Zhang, Y.; Cun, X.; Zhang, Y.; Zhao, H.; Lu, H.; Shen, X.; and Shan, Y. 2023. Generating Human Motion From Textual Descriptions With Discrete Representations. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 14730–14740. Zhang, M.; Cai, Z.; Pan, L.; Hong, F.; Guo, X.; Yang, L.; and Liu, Z. 2022. MotionDiffuse: Text-Driven Human Motion Generation with Diffusion Model. arXiv preprint arXiv:2208.15001 .Zheng, B.; Ma, N.; Tong, S.; and Xie, S. 2025. Dif-fusion Transformers with Representation Autoencoders. arXiv:2510.11690.
