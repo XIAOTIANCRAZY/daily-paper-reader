@@ -1,0 +1,358 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-30T22:37:27.927452+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 4,
+    "deep_cap": 7,
+    "deep_selected": 4,
+    "quick_candidates": 4,
+    "quick_skim_target": 12,
+    "quick_selected": 4
+  },
+  "deep_dive": [
+    {
+      "id": "2609.27675v2",
+      "source": "arxiv",
+      "title": "Track2Art: Articulated Object Model Recovery with Visual-Geometric Track Representations",
+      "abstract": "Understanding articulated objects is fundamental for robotic interaction, requiring accurate rigid-part discovery and the recovery of their kinematic relations. Existing approaches often treat articulation as a by-product of reconstructed geometry or recover it through per-instance optimization. We instead build on the hypothesis that articulation is directly observable from persistent motion: points on the same rigid part move coherently, while relative motion between parts reveals their kinematic constraints. We present Track2Art, a motion-centric framework for recovering structured articulated objects from RGB-D interaction videos. Track2Art lifts tracked image points into persistent 3D trajectories and combines pretrained tracking features, visual descriptors, and explicit trajectory geometry. These representations are grouped into a variable number of rigid-part hypotheses and subsequently used to recover directed kinematic relations, joint types, and joint geometry through rotation-equivariant learned--analytic reasoning. On the aligned 20-object PartNet-Mobility suite, Track2Art achieves 0.695 Point IoU and 0.410 end-to-end J@20, while requiring neither ground-truth part counts nor test-time optimization.",
+      "authors": [
+        "Xiaotong Li",
+        "Yixiong Jing",
+        "Junsheng Ding",
+        "Weihang Li",
+        "Benjamin Busam",
+        "Guangming Wang",
+        "Brian Sheil"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-23T10:47:02+00:00",
+      "link": "https://arxiv.org/pdf/2609.27675v2",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "motion-centric recovery of kinematic relations of articulated objects from RGB-D videos",
+      "llm_evidence_cn": "以运动为中心从RGB-D视频恢复铰接物体运动学关系",
+      "llm_evidence": "以运动为中心从RGB-D视频恢复铰接物体运动学关系",
+      "canonical_evidence": "以运动为中心从RGB-D视频恢复铰接物体运动学关系",
+      "llm_tldr_en": "Track2Art recovers structured articulated objects from RGB-D interaction videos by lifting tracked points into persistent 3D trajectories and inferring rigid parts and kinematic constraints from coherent motion, rather than treating articulation as a by-product of geometry.",
+      "llm_tldr_cn": "现有方法常将铰接结构视为重建几何的副产品，或依赖逐实例优化来恢复运动学关系。本文提出Track2Art，一种以运动为中心的框架，从RGB-D交互视频中恢复结构化铰接物体，将跟踪的图像点提升为持久三维轨迹，并结合预训练跟踪与几何信息推断刚体部件及其运动学约束。实验表明该表示能准确发现刚体部件并恢复关节运动学，为机器人交互提供可用的铰接模型。",
+      "llm_tldr": "现有方法常将铰接结构视为重建几何的副产品，或依赖逐实例优化来恢复运动学关系。本文提出Track2Art，一种以运动为中心的框架，从RGB-D交互视频中恢复结构化铰接物体，将跟踪的图像点提升为持久三维轨迹，并结合预训练跟踪与几何信息推断刚体部件及其运动学约束。实验表明该表示能准确发现刚体部件并恢复关节运动学，为机器人交互提供可用的铰接模型。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.33931v1",
+      "source": "arxiv",
+      "title": "ArticulateArena: A Metric for Articulated Kinematics",
+      "abstract": "Modern methods reconstruct or generate simulation-ready articulated objects, predicting not only their geometry but also how their parts are connected and allowed to move. Evaluating the geometry is straightforward, but evaluating the predicted articulation is not, because articulation specifies a motion rather than a shape, and there is no agreed distance between two motions. More specifically, existing protocols score joint type, axis direction, origin, and motion limits separately, although these parameters jointly describe a single physical motion, and the same motion can be written as different parameter values. As a result, a joint can score maximally wrong against an equivalent encoding of itself, and several component errors are ill-conditioned or undefined exactly where predictions become accurate. We propose ArticulateArena, a representation-invariant counterpart of Chamfer distance for articulation that compares the motions one-DOF joints induce rather than the parameters that encode them. It represents each joint by the unordered pair of its Lie-algebra endpoint twists, and we prove that the resulting quotient distance is a metric. It unifies fixed, revolute, prismatic, and helical joints, brings continuous joints into the same score through a compactification, and reads as the RMS motion of the moving part in meters when weighted by its mass distribution. A motion-aware tree edit distance lifts the metric to full kinematic trees, pricing structural errors such as spurious or missing joints in the same motion units as joint errors, and for a fixed inner product it remains a metric on trees up to relabeling. Alongside the metric we release ArticulateArena-20K, a new suite of 19,977 articulated objects with verified kinematics, and we re-evaluate published reconstruction methods on it under the new metric. Project page: https://heyumeng.com/ArticulateArena-web/",
+      "authors": [
+        "Yumeng He",
+        "Yongfei She",
+        "Huanyu Chen",
+        "Chun Yuan",
+        "Peihao Li",
+        "Joseph Masterjohn",
+        "Yin Yang",
+        "Ying Jiang",
+        "Chenfanfu Jiang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-09-27T21:19:22+00:00",
+      "link": "https://arxiv.org/pdf/2609.33931v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "metric for articulated kinematics, jointly evaluating joint type, axis, origin and motion limits",
+      "llm_evidence_cn": "面向铰接运动学的度量，统一评估关节类型、轴方向、原点与运动范围",
+      "llm_evidence": "面向铰接运动学的度量，统一评估关节类型、轴方向、原点与运动范围",
+      "canonical_evidence": "面向铰接运动学的度量，统一评估关节类型、轴方向、原点与运动范围",
+      "llm_tldr_en": "Evaluating predicted articulation is ill-posed because joint type, axis, origin and limits jointly describe one motion; ArticulateArena introduces a unified metric that compares motions directly, avoiding ill-conditioned component errors and equivalent-encoding penalties.",
+      "llm_tldr_cn": "针对现有方法能重建或生成可仿真的三维铰接物体、却缺乏对预测铰接运动合理评估的问题，本文提出ArticulateArena度量。该方法将关节类型、轴方向、原点与运动范围统一视为一个物理运动来比较，避免了等价参数编码被错误判罚以及部分分量误差病态或未定义的情况。该工作为铰接物体运动学预测提供了更可靠的评估基准，有助于推动铰接参数的理解与生成研究。",
+      "llm_tldr": "针对现有方法能重建或生成可仿真的三维铰接物体、却缺乏对预测铰接运动合理评估的问题，本文提出ArticulateArena度量。该方法将关节类型、轴方向、原点与运动范围统一视为一个物理运动来比较，避免了等价参数编码被错误判罚以及部分分量误差病态或未定义的情况。该工作为铰接物体运动学预测提供了更可靠的评估基准，有助于推动铰接参数的理解与生成研究。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.27227v1",
+      "source": "arxiv",
+      "title": "Surgical Kinematics from Monocular Video with Learned Articulated Motion Constraints",
+      "abstract": "Objective assessment of robotic surgery uses instrument kinematics, which must be reconstructed when only video is available. We introduce a kinematic reconstruction network for estimating instrument position, orientation and jaw angle from monocular video. Our visual representation combines global attention pooling of frozen DINOv3 features with local pooling at instrument landmarks from fine-tuned SAM 3.1 masks. Our shared Transformer encoder and temporal convolutional heads integrate this representation with mask geometry, monocular depth and visual state estimates from arm-specific multilayer regression networks. Our position branch predicts displacement magnitude and direction separately to preserve traveled distance. We fit trajectories to predicted state observations and motion increments by differentiable weighted least squares, expressing quaternion observations relative to cumulative predicted rotations to obtain a quadratic orientation objective. We evaluate reconstruction across 2,802 Open-H episodes. Compared with LiveMAE on the main Open-H benchmark, our method reduces path-length mean absolute error from 0.45 to 0.34\\,cm and increases temporal mean average precision for motion segmentation from 44.54\\% to 54.44\\%.",
+      "authors": [
+        "Mehmet Kerem Turkcan",
+        "Soham Samal",
+        "Zoran Kostic"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-09-23T01:49:27+00:00",
+      "link": "https://arxiv.org/pdf/2609.27227v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "learning kinematic parameters (position, orientation, jaw angle) from monocular video with articulated motion constraints",
+      "llm_evidence_cn": "从单目视频中学习铰接运动约束下的运动学参数",
+      "llm_evidence": "从单目视频中学习铰接运动约束下的运动学参数",
+      "canonical_evidence": "从单目视频中学习铰接运动约束下的运动学参数",
+      "llm_tldr_en": "Reconstructing surgical instrument kinematics from monocular video is hard; this work proposes a kinematic reconstruction network combining frozen DINOv3 features with SAM 3.1 landmark masks and temporal conv heads to estimate position, orientation and jaw angle with learned articulated motion constraints.",
+      "llm_tldr_cn": "针对仅有单目视频时需重建手术器械运动学的问题，本文提出运动学重建网络，结合冻结DINOv3全局特征与SAM 3.1掩码地标局部特征，通过共享Transformer编码器和时间卷积头估计器械位置、朝向与夹爪角度。位置分支分离预测位移大小与方向以保留行程距离，并利用学习到的铰接运动约束拟合轨迹。该工作证明了从视觉观测中学习并估计铰接运动参数的可行性。",
+      "llm_tldr": "针对仅有单目视频时需重建手术器械运动学的问题，本文提出运动学重建网络，结合冻结DINOv3全局特征与SAM 3.1掩码地标局部特征，通过共享Transformer编码器和时间卷积头估计器械位置、朝向与夹爪角度。位置分支分离预测位移大小与方向以保留行程距离，并利用学习到的铰接运动约束拟合轨迹。该工作证明了从视觉观测中学习并估计铰接运动参数的可行性。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.26793v1",
+      "source": "arxiv",
+      "title": "HARMONY: Hierarchical Agentic Reasoning for MONocular Image-to-Scene Synthesis",
+      "abstract": "Compositional 3D scene reconstruction has recently been explored from two directions: agentic reasoning that provides semantic understanding of spatial relationships but lacks precise alignment with input images; and visual geometry foundation models that predict dense point maps from input images but the reconstruction quality is limited. Therefore, recovering a complete 3D scene from a single monocular image with accurate inter-object relationships and high-fidelity reconstruction quality remains challenging. In this paper, we present HARMONY, a hierarchical chain-of-thought framework that leverages both agentic reasoning and visual geometry foundation. Given an image of an indoor scene, starting from an empty 3D floorplan, HARMONY first calibrates the camera against the reference image to establish a semantically-grounded spatial frame, then uses agentic VLM reasoning to recover the 3D room layout and an initial placement order. It then places the objects in a hierarchical order, from wall-mounted elements, free-standing furniture, to dependent decorations on top of furniture. We also use depth-first traversal for furniture so each placement conditions on previously resolved structure and a reflective feedback loop to avoid error accumulation. After each object placement by VLM, we use the point cloud estimations to perform geometry-based refinement so that the rendered image aligns better with the input. HARMONY can produce 3D scenes that are semantically consistent and perceptually aligned with the reference image, extending single-image compositional reconstruction to complex indoor scene images. Experiments on synthetic and real-world images demonstrate that HARMONY outperforms the evaluated reconstruction baselines, while qualitative comparisons with GPT-6 Astra suggest more faithful object arrangements and better preservation of scene details.",
+      "authors": [
+        "Shufan Sun",
+        "Chen Wang",
+        "Enxin Song",
+        "Jiatao Gu",
+        "Lingjie Liu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-22T17:59:47+00:00",
+      "link": "https://arxiv.org/pdf/2609.26793v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "hierarchical agentic reasoning for monocular image-to-3D-scene synthesis",
+      "llm_evidence_cn": "面向单目图像到三维场景合成的分层智能体推理",
+      "llm_evidence": "面向单目图像到三维场景合成的分层智能体推理",
+      "canonical_evidence": "面向单目图像到三维场景合成的分层智能体推理",
+      "llm_tldr_en": "HARMONY is a hierarchical chain-of-thought framework combining agentic reasoning with visual geometry foundation models to recover a complete 3D indoor scene from a single monocular image, improving both inter-object alignment and reconstruction fidelity.",
+      "llm_tldr_cn": "从单张单目图像重建完整三维场景，既要保证物体间空间关系准确，又要兼顾高保真几何，仍具挑战。本文提出HARMONY，一种分层思维链框架，结合智能体推理与视觉几何基础模型，从空的三维平面图出发逐步校准并合成场景。该方法在物体关系对齐与重建质量上取得更优表现，为图像到三维场景合成提供了融合语义推理与几何先验的新思路。",
+      "llm_tldr": "从单张单目图像重建完整三维场景，既要保证物体间空间关系准确，又要兼顾高保真几何，仍具挑战。本文提出HARMONY，一种分层思维链框架，结合智能体推理与视觉几何基础模型，从空的三维平面图出发逐步校准并合成场景。该方法在物体关系对齐与重建质量上取得更优表现，为图像到三维场景合成提供了融合语义推理与几何先验的新思路。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "agent based 3d scene generation",
+      "matched_requirement_id": "req-17",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.25741v1",
+      "source": "arxiv",
+      "title": "Fysiverse-3D-Vision Technical Report: Generating Executable 3D Worlds from Images through Unified Spatial Reasoning",
+      "abstract": "Generative models have advanced image-conditioned 3D content creation, yet generating controllable and executable 3D scenes from a single image remains challenging. Existing 3D generative approaches can synthesize visually plausible objects and scenes, but their spatial layout estimation is coupled with specific asset generators. They struggle to jointly model object semantics, metric geometry, and scene-level spatial relationships, which are essential for interactive editing, physical simulation, and embodied applications. We propose Fysiverse-3D-Vision, a unified vision-language-geometry framework for generative 3D scene reconstruction and executable asset construction from a single image. We establish a shared representation where spatial reasoning and geometric reconstruction mutually enhance each other, allowing object layouts to be inferred beyond the constraints of individual asset generators. Our model integrates textual supervision, semantic visual cues, and geometric representations within a unified Transformer to capture scene context, metric geometry, and object-level interactions. An object-conditioned layout module performs cross-attention between target object representations and global geometric features to predict object translation, rotation, and scale. Training progressively learns geometry-language alignment, introduces layout reasoning while preserving reconstruction capability, and refines physical consistency through collision-aware optimization. By separating spatial layout reasoning from asset synthesis, Fysiverse-3D-Vision provides an adaptable interface for interactive scene editing, object-level manipulations, and executable 3D content generation. Experiments demonstrate that our framework achieves superior geometric consistency, layout estimation, rendering quality, and physical property understanding compared with existing approaches.",
+      "authors": [
+        "Dingkang Yang",
+        "Yizhou Liu",
+        "Wendong Cheng",
+        "Zizhi Chen",
+        "Shunli Wang",
+        "Yang Liu",
+        "Hongsheng Li",
+        "Lihua Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-22T06:22:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.25741v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "vision-language-geometry framework for generative 3D scene reconstruction and executable asset construction",
+      "llm_evidence_cn": "视觉-语言-几何框架生成可执行三维场景",
+      "llm_evidence": "视觉-语言-几何框架生成可执行三维场景",
+      "canonical_evidence": "视觉-语言-几何框架生成可执行三维场景",
+      "llm_tldr_en": "Fysiverse-3D-Vision is a unified vision-language-geometry framework that generates controllable and executable 3D worlds from a single image, jointly modeling object semantics, metric geometry and scene-level spatial relations.",
+      "llm_tldr_cn": "现有三维生成方法虽能合成视觉合理的场景，但空间布局估计与特定资产生成器耦合，难以联合建模物体语义、度量几何与场景级空间关系，而这些对交互编辑、物理仿真和具身应用至关重要。论文提出Fysiverse-3D-Vision，一个统一的视觉-语言-几何框架，从单张图像出发进行生成式三维场景重建与可执行资产构建。该框架在图像条件下生成可控且可执行的三维世界，为交互式与具身应用提供了统一的空间推理范式。",
+      "llm_tldr": "现有三维生成方法虽能合成视觉合理的场景，但空间布局估计与特定资产生成器耦合，难以联合建模物体语义、度量几何与场景级空间关系，而这些对交互编辑、物理仿真和具身应用至关重要。论文提出Fysiverse-3D-Vision，一个统一的视觉-语言-几何框架，从单张图像出发进行生成式三维场景重建与可执行资产构建。该框架在图像条件下生成可控且可执行的三维世界，为交互式与具身应用提供了统一的空间推理范式。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "vision language model 3d scene generation",
+      "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.30761v1",
+      "source": "arxiv",
+      "title": "Timo: $\\textbf{T}$aming Mult$\\textbf{i}$modal Diffusion Transformer for Human $\\textbf{Mo}$tion Generation",
+      "abstract": "Most existing human motion generation (HMG) methods use cross-attention modules to inject text semantics, but ignore the importance of bidirectional modeling between motion and text tokens, which limits text comprehension. A straightforward idea is introducing multimodal diffusion transformers (MMDiT), which have shown effective joint text--visual modeling in vision generation, into HMG. However, we find that articulated motion is temporally coherent but weakly correlated across joints, in which directly applying an MMDiT with flow matching produces poorly coordinated and jerky motion. In this work, we propose Timo, a novel kinematics-aware MMDiT framework tailored for HMG. Timo combines fully shared multimodal attention for bidirectional text--motion modeling with flow matching, geometric and rotational-kinematics supervision that compares actual rotations and their changes over time, and a two-stage curriculum progressing from broad motion learning to detailed caption alignment. Further, we construct a benchmark of $40{,}025$ held-out clips from six public datasets spanning diverse actions, assessing six complementary dimensions under a common evaluator and scoring protocol. Our model substantially outperforms state-of-the-art methods in both quantitative and qualitative evaluations. Remarkably, Timo surpasses Kimodo on five of six dimensions, achieving a $40.8$% relative improvement in the average benchmark score. Project page: https://kyfafyd.wang/projects/timo. Demo page: https://timo.kyfafyd.wang.",
+      "authors": [
+        "Zhao Wang",
+        "Jiangtao Hu",
+        "Jack Yu",
+        "Tao Yu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-25T03:39:00+00:00",
+      "link": "https://arxiv.org/pdf/2609.30761v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "kinematics-aware diffusion transformer for articulated human motion generation",
+      "llm_evidence_cn": "面向铰接人体运动生成的运动学感知扩散模型",
+      "llm_evidence": "面向铰接人体运动生成的运动学感知扩散模型",
+      "canonical_evidence": "面向铰接人体运动生成的运动学感知扩散模型",
+      "llm_tldr_en": "Timo introduces a kinematics-aware multimodal diffusion transformer that models joint correlation and temporal coherence to generate coordinated human motion from text.",
+      "llm_tldr_cn": "现有人体运动生成方法多依赖交叉注意力注入文本语义，忽视了运动与文本的双向建模，且直接套用多模态扩散变换器会产生关节不协调、抖动的问题。本文提出Timo，一种面向人体运动生成的运动学感知多模态扩散变换器，针对铰接运动时间连贯但关节间弱相关的特性设计共享注意力机制。方法生成的运动更加协调平滑，提升了文本理解与运动质量。该工作为铰接系统的运动学感知生成提供了可借鉴的建模思路。",
+      "llm_tldr": "现有人体运动生成方法多依赖交叉注意力注入文本语义，忽视了运动与文本的双向建模，且直接套用多模态扩散变换器会产生关节不协调、抖动的问题。本文提出Timo，一种面向人体运动生成的运动学感知多模态扩散变换器，针对铰接运动时间连贯但关节间弱相关的特性设计共享注意力机制。方法生成的运动更加协调平滑，提升了文本理解与运动质量。该工作为铰接系统的运动学感知生成提供了可借鉴的建模思路。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "Generate articulated objects with realistic motion parameters.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.33982v1",
+      "source": "arxiv",
+      "title": "Test-Time Spatial Reasoning for Robot Manipulation Using Generative Real-to-Sim",
+      "abstract": "Spatial reasoning is fundamental to general robot intelligence, as it enables robots to complete long-horizon tasks involving multi-object interaction. We introduce Simify, a training-free, test-time framework that performs explicit spatial reasoning via massively parallel physics simulation. From a single RGB-D image of a scene, Simify reconstructs simulation-ready assets leveraging 3D generative models and vision-language models. Then given a task specified by a reward function (e.g., build the tallest tower), Simify launches thousands of parallel rollouts in simulation and performs an evolutionary search to optimize object arrangements, typically converging within seconds. We conduct quantitative experiments on real-robot hardware to demonstrate the ability of our framework to execute complex object rearrangement tasks end-to-end with previously unseen objects. Results show that our framework outperforms prior work on foundation models for spatial reasoning by effectively exploiting large-scale parallel simulation during inference, and also highlight the importance of complete and accurate geometry for successful sim-to-real transfer.",
+      "authors": [
+        "Ivan Kapelyukh",
+        "Yafei Hu",
+        "Ran Gong",
+        "Brandon May",
+        "Tushar Kusnur",
+        "Laura Herlant",
+        "Karl Schmeckpeper",
+        "Edward Johns",
+        "Xiaohan Zhang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-09-27T22:28:10+00:00",
+      "link": "https://arxiv.org/pdf/2609.33982v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Training-free test-time framework reconstructs simulation-ready scene assets using 3D generative models and VLMs",
+      "llm_evidence_cn": "免训练测试时框架用3D生成模型与VLM重建可仿真场景资产",
+      "llm_evidence": "免训练测试时框架用3D生成模型与VLM重建可仿真场景资产",
+      "canonical_evidence": "免训练测试时框架用3D生成模型与VLM重建可仿真场景资产",
+      "llm_tldr_en": "Simify is a training-free, test-time framework that reconstructs simulation-ready assets from a single RGB-D image using 3D generative models and VLMs, then optimizes object arrangements via massively parallel physics simulation and evolutionary search.",
+      "llm_tldr_cn": "机器人完成多物体长程任务需要空间推理，但缺乏可并行物理仿真的可交互场景资产。论文提出免训练测试时框架Simify，借助3D生成模型与视觉语言模型从单张RGB-D图像重建可仿真资产，再通过大规模并行物理仿真与进化搜索优化物体摆放。真实机器人硬件实验表明该方法通常数秒内收敛到合理排布，为生成式实景到仿真驱动的空间推理提供了新思路。",
+      "llm_tldr": "机器人完成多物体长程任务需要空间推理，但缺乏可并行物理仿真的可交互场景资产。论文提出免训练测试时框架Simify，借助3D生成模型与视觉语言模型从单张RGB-D图像重建可仿真资产，再通过大规模并行物理仿真与进化搜索优化物体摆放。真实机器人硬件实验表明该方法通常数秒内收敛到合理排布，为生成式实景到仿真驱动的空间推理提供了新思路。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "training free 3d scene generation method",
+      "matched_requirement_id": "req-13",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.35743v1",
+      "source": "arxiv",
+      "title": "InfiniHand: Streaming World-Space Hand Motion Estimation from Egocentric Video",
+      "abstract": "World-space hand motion estimation from egocentric video requires recovering 3D articulated hand geometry while tracking camera egomotion. Existing approaches heavily rely on cascading independent hand pose estimators and SLAM systems, resulting in error accumulation, complex pipelines, and severe computational overhead. To address these limitations, we present InfiniHand, an end-to-end streaming feed-forward framework that jointly estimates MANO parameters, camera trajectories, and hand locations directly from uncalibrated egocentric video. InfiniHand integrates persistent spatiotemporal memory with hand-centered visual features, explicitly coupling camera motion with local hand geometry within a unified architecture. We train InfiniHand in two progressive stages by first learning robust camera-space hand priors and then extending to streaming world-space reconstruction. To support this process, we aggregate a pretraining corpus of approximately 5,000 hours of egocentric data across multiple public datasets. Extensive evaluations demonstrate that InfiniHand outperforms state-of-the-art baselines on in-domain benchmarks, achieving a 21.4% reduction in ARCTIC PA-p compared to ViDiHand while substantially mitigating world-space drift. Furthermore, InfiniHand generalizes robustly to in-the-wild videos and operates at 11.19 FPS, delivering more than twice the throughput of HaWoR.",
+      "authors": [
+        "Kerui Ren",
+        "Kaiwen Song",
+        "Weiguang Zhao",
+        "Yuxi Wang",
+        "Yufei Liu",
+        "Bo Dai",
+        "Haoyu Guo",
+        "Chunhua Shen",
+        "Mulin Yu",
+        "Tao Lu",
+        "Junting Dong"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-28T17:54:32+00:00",
+      "link": "https://arxiv.org/pdf/2609.35743v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "learning kinematic (MANO) parameters of an articulated hand from visual data",
+      "llm_evidence_cn": "从视觉数据学习铰接手部的运动学参数",
+      "llm_evidence": "从视觉数据学习铰接手部的运动学参数",
+      "canonical_evidence": "从视觉数据学习铰接手部的运动学参数",
+      "llm_tldr_en": "InfiniHand proposes an end-to-end streaming feed-forward framework that jointly estimates MANO hand parameters, camera trajectory and hand location from uncalibrated egocentric video, replacing cascaded hand-pose plus SLAM pipelines to cut error accumulation and computation.",
+      "llm_tldr_cn": "针对第一人称手部运动估计中级联独立手部姿态估计器与SLAM系统造成的误差累积、流程复杂与计算开销大的问题，本文提出端到端流式前馈框架InfiniHand，将持久时空记忆与手部中心视觉特征结合，在统一架构内联合估计MANO参数、相机轨迹与手部位置。方法直接在未标定的第一人称视频上运行，显式耦合相机自运动与局部手部几何，从而避免级联误差并降低计算负担。该工作为流式、世界坐标下的铰接结构运动学参数估计提供了新的统一范式。",
+      "llm_tldr": "针对第一人称手部运动估计中级联独立手部姿态估计器与SLAM系统造成的误差累积、流程复杂与计算开销大的问题，本文提出端到端流式前馈框架InfiniHand，将持久时空记忆与手部中心视觉特征结合，在统一架构内联合估计MANO参数、相机轨迹与手部位置。方法直接在未标定的第一人称视频上运行，显式耦合相机自运动与局部手部几何，从而避免级联误差并降低计算负担。该工作为流式、世界坐标下的铰接结构运动学参数估计提供了新的统一范式。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

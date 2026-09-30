@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "extractor": "pymupdf-images",
+  "figures": [
+    {
+      "url": "assets/figures/arxiv/2609.30761v1/fig-001.webp",
+      "caption": "",
+      "page": 6,
+      "index": 1,
+      "width": 3400,
+      "height": 2830
+    }
+  ]
+}

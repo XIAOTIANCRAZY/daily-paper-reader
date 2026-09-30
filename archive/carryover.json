@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-29T23:21:59.175947+00:00",
-  "updated_date": "20260929",
+  "generated_at": "2026-09-30T22:37:27.928795+00:00",
+  "updated_date": "20260930",
   "carryover_days": 9,
   "tag_states": {
     "D-artic-kin": {
-      "updated_date": "20260929",
+      "updated_date": "20260930",
       "carryover_days": 9,
       "items": []
     },
     "d-scn-gen": {
-      "updated_date": "20260929",
+      "updated_date": "20260930",
       "carryover_days": 9,
       "items": []
     }

@@ -1,0 +1,529 @@
+Title: Surgical Kinematics from Monocular Video with Learned Articulated Motion Constraints
+
+URL Source: https://arxiv.org/pdf/2609.27227v1
+
+Published Time: Thu, 24 Sep 2026 00:26:17 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Surgical Kinematics from Monocular Video with Learned Articulated Motion Constraints 
+
+Mehmet Kerem Turkcan, Soham Samal, Zoran Kostic 
+
+Columbia University, New York, NY, USA 
+
+mkt2126@columbia.edu , ss7563@columbia.edu , zk2172@columbia.edu 
+
+Abstract : Objective assessment of robotic surgery uses in-strument kinematics, which must be reconstructed when only video is available. We introduce a kinematic reconstruction network for estimating instrument position, orientation and jaw angle from monocular video. Our visual representation combines global attention pooling of frozen DINOv3 features with local pooling at instrument landmarks from fine-tuned SAM 3.1 masks. Our shared Transformer encoder and temporal convolutional heads integrate this representation with mask ge-ometry, monocular depth and visual state estimates from arm-specific multilayer regression networks. Our position branch predicts displacement magnitude and direction separately to preserve traveled distance. We fit trajectories to predicted state observations and motion increments by differentiable weighted least squares, expressing quaternion observations relative to cumulative predicted rotations to obtain a quadratic orientation objective. We evaluate reconstruction across 2,802 Open-H episodes. Compared with LiveMAE on the main Open-H benchmark, our method reduces path-length mean absolute error from 0.45 to 0.34 cm and increases temporal mean average precision for motion segmentation from 44.54% to 54.44%. 
+
+I. I NTRODUCTION 
+
+Objective assessment of robotic surgery uses path length, speed, smoothness and working volume computed from instrument kinematics [1], [2]. Reconstructing these kine-matics from video enables motion analysis when recorded robot states are unavailable. Surgical recordings are often monocular [3], and commercial robotic platforms do not routinely provide access to synchronized kinematic data [4]. Appearance changes and occlusion complicate reconstruc-tion. Small position errors can accumulate in path length, while temporal averaging can attenuate motion. Both state accuracy and motion consistency are therefore needed. Our reconstruction network combines a shared Trans-former encoder and local temporal convolutional heads to estimate instrument position, orientation, jaw angle and motion increments. It integrates appearance, SAM 3.1 mask geometry, monocular depth and initial visual state estimates (Fig. 1). A position branch predicts displacement magnitude separately from direction, with supervision on local motion and episode path length. We fit trajectories by differentiable weighted least squares, using predicted weights for observation and motion resid-uals. Cumulative predicted rotations define a quaternion change of variables, yielding a quadratic orientation objective with a unique minimizer. We evaluate reconstruction and downstream motion analysis on Open-H [5] using published methods and component ablations. II. R ELATED WORK 
+
+SAM for surgical segmentation. SurgicalSAM uses prototype prompts [6], SurgicalPart-SAM adds instrument-region text prompts [7], and Surgical SAM 2 prunes temporal memory [8]. Recent work evaluates SAM 3 prompting [9] and adapts it through low-rank updates [10]. We fine-tune SAM 3.1 to obtain instrument masks, then extract landmarks for local appearance pooling and trajectory reconstruction. 
+
+Surgical geometry and state reconstruction. Instrument pose estimation uses landmarks [11] and geometric mod-els [12]; SurgRIPE [13] benchmarks this task. SurgiPose reconstructs kinematics by matching rendered and observed images [3]; LiveMAE learns joint image and kinematics re-construction for skill assessment [4]. Our trajectory objective constrains both state observations and motion increments. 
+
+Learned state estimation. Kalman filtering [14] and Rauch, Tung and Striebel (RTS) smoothing [15] couple observations through a dynamical model; associative pre-fix operations enable parallel filtering and smoothing [16]. DROID-SLAM integrates learned estimation with differen-tiable bundle adjustment [17]; Theseus provides general differentiable least squares [18]. We construct quadratic trajectory objectives, using a quaternion change of variables to retain this structure for orientation. III. M ETHOD 
+
+A. Video-to-state reconstruction 
+
+Given images It and timestamps τt, we estimate the state of each patient-side manipulator, or PSM, in its recorded base frame: 
+
+st = ( pt, q t, a t), pt ∈ R3, qt ∈ S3, at ∈ R. (1) Position is measured in meters and jaw angle in radians; qt
+
+is a unit quaternion. Our temporal reconstruction network estimates each arm’s kinematics independently with shared parameters. Recorded instrument positions, orientations and jaw angles provide training targets and evaluation references. 
+
+B. Visual representation 
+
+Instrument segmentation and landmarks. We fine-tune SAM 3 and SAM 3.1 [19] for surgical segmentation using images from CholecInstanceSeg, CholecSeg8k, DSAD and Endoscapes [20], [21], [22], [23]. For SAM 3.1, we expand the fine-tuning data with CRCD anatomy annotations [24] and uTenn labels for the instrument body, wrist and left and arXiv:2609.27227v1 [cs.CV] 23 Sep 2026 Monocular image It  
+
+> Appearance features
+> Frozen DINOv3 Global and local pooling
+> xapp
+> t∈R128
+
+Fine-tuned SAM 3.1 
+
+xmask  
+
+> t
+
+∈ R46 
+
+Depth features 
+
+> Frozen EndoSynth
+> 210
+
+xdepth  
+
+> t
+
+∈ R41       
+
+> It
+> Landmarks Landmarks
+> Visual projection
+> et=Wxxt+bx
+> et∈R128
+> State-conditioned Transformer
+
+4 blocks, 4 heads Relative time 
+
+ht ∈ R128 
+
+Observation and motion prediction 
+
+opt , oqt , oat
+
+Residual weights wgt
+
+> Local position temporal head Local jaw temporal head
+
+d pi , dqi , dai
+
+Residual weights vgi     
+
+> Magnitude and direction branch
+> opt,mi,ri
+> xt
+> xt∈R215
+> et
+> ht
+
+Visual state regressor   
+
+> xapp
+> t
+> Initial estimates
+> ˜qvt,¯avt
+
+Differentiable state reconstruction 
+
+(W + B⊤V B )U∗ = Wo + B⊤V d 
+
+> Weighted least squares Quaternion change of variables
+
+Instrument state 
+
+(̂ pt ,̂ qt ,̂ at )
+
+Position, orientation and jaw angle Fig. 1. SAM masks define geometry and landmarks for local DINOv3 pooling and depth sampling. The visual state regressor supplies initial orientation and jaw estimates to the Transformer and prediction heads. Visual projection maps xt to et = Wxxt + bx ∈ R128 . Local position and jaw heads combine                    
+
+> etwith Transformer features ht. The magnitude and direction branch separately receives xt, corrects position observations and predicts displacement magnitude miand direction correction ri. Prediction heads produce observations ogt, increments dgiand residual weights wgt, v gifor g∈ { p, q, a }. The displayed normal equation reconstructs position and jaw; orientation follows Fig. 2(c). Matrices W, V weight observation and motion residuals; Bforms consecutive differences. Recorded states supervise predictions; motion constraints stop at gaps. Cyan and yellow identify the grasper and hook; depth is divided by its image median.
+
+right gripper regions. Segmentation training and kinematic evaluation use separate source groups. We select the seg-menter by validation mask average precision (AP) and freeze it before kinematic reconstruction. We assign instrument masks to each PSM by image entry point and track each instrument through entry-point and centroid continuity. The vector xmask  
+
+> t
+
+∈ R46 encodes instrument extent, axis, region geometry, segmentation scores and mask availability. 
+
+Global and local appearance features. Our visual feature network represents instruments and surrounding tissue using frozen DINOv3 ViT-L/16 features [25]. A fixed Gaussian projection to 128 dimensions and two 128-channel 3 × 3
+
+convolutions produce spatial vectors Ht,j ∈ R128 at normal-ized image locations uimg  
+
+> j
+
+∈ [0 , 1] 2. A 1 × 1 convolution predicts arm-specific spatial attention, which pools these vectors into the global descriptor gt ∈ R128 . SAM masks define six landmarks: the instrument centroid, distal and entry endpoints of its principal axis, and the centroids of the wrist and two gripper regions. At landmark ℓt,k , we pool nearby image features with Gaussian weights: 
+
+ht,k = X
+
+> j
+
+αt,k,j Ht,j ,αt,k,j = softmax j − ∥uimg  
+
+> j
+
+− clip( ℓt,k , 0, 1) ∥22
+
+2σ2
+
+!
+
+.
+
+(2) The scale σ controls pooling extent. A shared fusion network 
+
+ffuse with a 256-unit hidden layer combines global and local features: 
+
+xapp  
+
+> t
+
+= gt + ffuse (gt, h t, 1, . . . , h t, 6, c t, b t) ∈ R128 . (3) Here ct contains image-centered landmark coordinates and 
+
+bt marks available landmarks. Missing landmarks use ht,k =
+
+gt and zero coordinates. Arm-specific multilayer regression networks with 128-unit hidden layers predict position, orien-tation and jaw angle from this descriptor. We center position targets within training episodes and jointly train the convolu-tional layers, fusion network and regressors against recorded states. We then freeze these networks; their orientation and jaw estimates initialize and condition temporal refinement. Fig. 2(a,b) illustrates landmarks and local pooling. 
+
+Monocular depth. We estimate relative depth using the frozen EndoSynth Depth Anything V1 ViT-B/14 net-work [26], fine-tuned on synthetic surgical images and depth maps. At each landmark, we take the median depth of nearby pixels within the instrument mask, when available. The descriptor xdepth  
+
+> t
+
+∈ R41 combines landmark depths, ratios to median image depth, interlandmark differences, instrument and scene statistics, products of depth and image-centered coordinates, and availability indicators. Sec. V evaluates further decoder fine-tuning on rendered Open-H. Together, appearance, mask geometry and depth form the temporal input: 
+
+xt = [( xapp  
+
+> t
+
+)⊤, (xmask  
+
+> t
+
+)⊤, (xdepth  
+
+> t
+
+)⊤]⊤ ∈ R215 . (4) We impute missing entries and normalize features using training statistics. External-camera experiments use global appearance with the same temporal formulation. 
+
+C. Learned articulated motion constraints 
+
+State and motion prediction. Our shared Transformer encoder and prediction heads estimate instrument position, orientation and jaw observations and increments. Position and jaw angle are standardized. The frozen visual regressor supplies jaw estimate ¯avt and quaternion qvt , whose sign we align to a training-derived reference qanchor , giving eqvt . The encoder combines projected visual features et = Wxxt +
+
+bx ∈ R128 with initial orientation, jaw and relative frame time. Four blocks with four attention heads, feature width 128 and feedforward width 512 produce ht ∈ R128 :
+
+ut = et + Wτ ϕ(τt − τ0) + Ws[eqvt ; ¯ avt ],h1: T = T (u1: T ). (5) Here ϕ(τt −τ0) sinusoidally encodes time relative to the first frame. Attention spans all retained frames. A shared obser-vation head with a 128-unit hidden layer predicts position and refines visual jaw and orientation estimates: 
+
+op, 0 
+
+> t
+
+= fp(ht), oa, 0 
+
+> t
+
+= ¯ avt + fa(ht),oqt = N  eqvt + fq (ht), N (z) = z/ ∥z∥2. (6) A linear head predicts observation weights. Our motion head has a 128-unit hidden layer and receives ηij = [ hi; hj ; hj −
+
+hi; θij ], where θij encodes elapsed time τj − τi. It predicts position and jaw increments dp, 0 
+
+> i
+
+, d a, 0 
+
+> i
+
+, rotation vectors and motion weights. Rotation vectors yield unit-quaternion in-crements dqi with target q−1 
+
+> i
+
+⊗ qj ; ⊗ denotes quaternion multiplication. The set A contains consecutive frame pairs within recording intervals. 
+
+Position and jaw refinement. Our temporal convolu-tional heads refine position from [et; ht] and jaw from 
+
+[et; ht; ¯ avt ; oa, 0 
+
+> t
+
+]. Both use 64 channels and residual blocks with layer normalization, size-three depthwise temporal con-volution and channel mixing. Dilations are one and two for position; one, two, four and eight for jaw. The resulting local features ζgt ∈ R64 feed a linear observation head and a motion head with a 64-unit hidden layer. For g ∈ { p, a }, their residual corrections give 
+
+¯ogt = og, 0 
+
+> t
+
++ rg (ζgt ),
+
+¯dgi = dg, 0 
+
+> i
+
++ s∆g ⊙ r∆g ([ ζgi ; ζgj ; ζgj − ζgi ; θij ]) . (7) The scale s∆g contains training root-mean-square incre-ments in standardized coordinates; ⊙ denotes coordinatewise multiplication. These heads also refine the scalar outputs used to weight observation and motion residuals. Temporal convolutions and motion constraints stop at recording gaps. For jaw reconstruction, oat = ¯ oat and dai = ¯dai .
+
+Displacement magnitude and direction. To constrain traveled distance directly, our position branch estimates dis-placement magnitude separately from direction. It projects 
+
+xt to 96 channels and applies four residual temporal con-volutional blocks with dilations one, two, four and eight. A linear head adds a standardized position correction to ¯opt ,yielding opt . A motion head with a 96-unit hidden layer uses the same pairwise feature construction as the shared head to predict a direction correction ri and positive magnitude mi
+
+in meters. Let Sp contain training position standard deviations and 
+
+Gp positive validation-calibrated gains, both diagonal. The initial displacement in meters is edpi = SpGp ¯dpi . We normalize its corrected direction and convert the predicted displacement to standardized coordinates: 
+
+dpi = S−1 
+
+> p
+
+miN ( edpi + ri). (8) A softplus output scaled by the training root-mean-square displacement gives mi. Corrected observations opt and incre-ments dpi enter weighted reconstruction. 
+
+Weighted least-squares reconstruction. Positive coeffi-cients wgt , v gi weight observation and motion residuals. We bound them and divide both by the episode mean observation coefficient for each group g ∈ { p, q, a }. Position and jaw trajectories minimize 
+
+Eg (U ) = X
+
+> t
+
+wgt ∥Ut − ogt ∥22
+
++ λg
+
+X
+
+> (i,j )∈A
+
+X
+
+> k
+
+vgi
+
+s2∆g,k 
+
+(Uj,k − Ui,k − dgi,k )2,
+
+(9) where g ∈ { p, a } and s∆g,k > 0 is coordinate k of the incre-ment scale. The positive coefficient λg balances observation and motion; we learn λp with the position head and keep 
+
+λa, λ q fixed. For each coordinate, define (BU )(i,j ) = Uj −Ui
+
+and diagonal weights Wtt = wgt , Vii = λg vgi /s 2∆g,k . The minimizing trajectory satisfies 
+
+(W + B⊤V B )U ∗ = W o + B⊤V d. (10) For orientation, cumulative rotations Cj = Ci ⊗dqi start from 
+
+Ct0 = 1 within each continuous interval. The change of variables eot = ϵt(oqt ⊗ C−1 
+
+> t
+
+) removes these rotations; ϵt ∈{− 1, 1} aligns signs to the first transformed observation. The transformed trajectory Z∗ ∈ RT ×4 minimizes 
+
+Eq (Z) = X
+
+> t
+
+4wqt
+
+s2
+
+> q
+
+∥Zt − eot∥22
+
++ λq
+
+X
+
+> (i,j )∈A
+
+4vqi
+
+s2∆q
+
+∥Zj − Zi∥22. (11) The positive scales s2 
+
+> q
+
+and s2∆q derive from training means of ℓq (qt, q anchor ) and ℓq (qi, q j ), where ℓq (u, v ) = 4(1 −
+
+(u⊤v)2).
+
+Proposition 1. With positive observation coefficients and nonnegative motion coefficients, Eqs. 9 and 11 have unique minimizers obtained by solving independent tridiagonal lin-ear systems. 
+
+Proof. For Qt = Zt ⊗ Ct, right multiplication by a unit quaternion gives ∥Qj − Qi ⊗ dqi ∥2 = ∥Zj − Zi∥2. For either objective, its scaled weights give ξ⊤(W +B⊤V B )ξ =
+
+∥W 1/2ξ∥22 + ∥V 1/2Bξ ∥22 > 0 for nonzero ξ. Since A
+
+connects consecutive frames, the linear system for each coordinate is tridiagonal. From the unconstrained minimizer, we recover unit quater-nions by applying the inverse change of variables and normalizing: bqt = N (Z∗ 
+
+> t
+
+⊗ Ct) ∈ S3. We solve these systems in parallel [27] and differentiate through reconstruc-tion. At inference, we apply a positive affine calibration to (a) Instrument landmarks (b) Local appearance pooling (c) Orientation reconstruction                               
+
+> Grasper Cautery hook
+> ht,k=∑jαt,k,jHt,j∈R128
+> CiCjCk
+> dqidqj
+> ˜oi=εi(oqi⊗C−1
+> i)˜oj=εj(oqj⊗C−1
+> j)˜ok=εk(oqk⊗C−1
+> k)
+> Weighted least-squares reconstruction
+
+Eq(Z) = ∥W 1/2(Z − ˜O)∥2 
+
+> F
+
++ ∥V 1/2BZ ∥2                                   
+
+> F
+> (W+B⊤V B )Z∗=W˜O
+> Unit quaternion recovery ̂
+> qt=N(Z∗
+> t⊗Ct)
+> Z∗Fig. 2. (a,b) SAM-derived landmarks define local appearance descriptors ht,k . (c) Rotation increments accumulate as Cj=Ci⊗dqifrom the identity within each recording interval. Signs ϵt∈ {− 1,1}align transformed observations to the first in the interval. With stacked observations eO, diagonal observation and motion weights Wtt = 4 wqt/s 2
+> q,Vii = 4 λqvqi/s 2∆qand within-interval difference operator B, four tridiagonal linear systems yield Z∗.The inverse change of variables and normalization recover unit quaternions.
+
+reconstructed jaw angles, then project them onto the interval spanned by training jaw angles across both arms. We rescale position and jaw angle to physical units. 
+
+Training objectives. We supervise observations and re-constructed states with normalized squared position, sign-invariant quaternion and jaw Huber losses. We gradually in-troduce motion losses on predicted increments, reconstructed position increments and multiscale path lengths, including complete episodes, without crossing gaps. Translation cal-ibration subtracts the mean first-second position residual. Pointwise and motion losses use all retained frames; aligned position supervision and state evaluation use later frames (Sec. IV). With the Transformer encoder and initial prediction heads frozen, we fit position and jaw refinement heads using multiscale endpoint and path-length losses for position, and absolute observation and reconstructed-angle errors for jaw. Validation selects initial position gains and, on main en-doscopy, affine jaw calibration. Finally, we freeze these components and fit the dis-placement branch and λp. Losses supervise displacement magnitude, multiscale endpoint displacements in observa-tions and reconstructed positions, aligned position error, and absolute error in the mean episode path length of both arms. Orientation and jaw predictions remain fixed. IV. D ATA AND EVALUATION 
+
+Open-H evaluation cohorts. Table I summarizes paired video and robot states from Open-H [5]. Episodes are released recording windows. Main endoscopy from Johns Hopkins University, or JHU, covers cholecystectomy train-ing, porcine cholecystectomy and cautery. After tracking review, we retain intervals with landmark coverage, visible motion and agreement with recorded states, using identical timestamps for both arms. We include every released episode of JHU central airway obstruction, or CAO, resection and Hamlyn manipulation and suturing.    
+
+> TABLE I OPEN -H KINEMATIC EVALUATION . E ACH FRAME IS PAIRED WITH STATES FOR BOTH ARMS . A DDITIONAL JHU USES MAIN -BENCHMARK NETWORKS WITHOUT FURTHER FITTING .
+
+Cohort Episodes Frames Main endoscopy 930 124,839 CAO 783 52,748 Hamlyn 1,019 552,753 Additional JHU 70 15,661 Total 2,802 746,001 
+
+Training and evaluation splits. Main endoscopy, CAO and Hamlyn use three-fold cross-validation. Each run re-serves one fold for testing. Every fifth training group forms the validation set used to select training durations for the Transformer encoder, prediction heads and subsequent refine-ment heads. We then refit each stage for its selected duration on both training folds, using all training episodes. We select the displacement branch architecture and training duration on main-cohort validation data and keep both fixed across all three cohorts. Each episode’s frames and both arms remain together. Main endoscopy and Hamlyn folds balance settings and tasks, respectively; CAO groups blocks of 20 consecutive source episodes. Validation preserves this grouping and Ham-lyn task balance. Learned visual features and normalization follow the same training partitions. 
+
+Additional recordings. We evaluate 70 further JHU episodes using fixed reconstruction networks fitted on the first main-benchmark training split of 620 episodes. These recordings are excluded from kinematic fitting and check-point selection. They retain released video-state pairings. 
+
+Rendered depth data. Open-H Sanoscience renderings are partitioned into 18 training, 4 validation and 4 test source groups. Each contains six camera views under three lighting TABLE II PERCEPTION AND KINEMATIC RECONSTRUCTION . AP SCORES FULLY ANNOTATED CATEGORIES ; FOREGROUND METRICS USE COMPLETE INSTRUMENT MASKS . D EPTH MAE USES THE RENDERED OPEN -H TEST SET . R ECONSTRUCTION USES THE MAIN OPEN -H BENCHMARK . B OLD MARKS THE BEST VALUE PER COLUMN AND PANEL .
+
+Mask and box AP 
+
+Segmenter Mask AP ↑ Box AP ↑
+
+Base SAM 3.1 2.77 3.29 Fine-tuned SAM 3.1 37.07 41.44 Instrument foreground 
+
+Segmenter IoU ↑ Dice ↑
+
+SurgicalSAM [6] 73.85 82.23 Fine-tuned SAM 3.1 85.57 90.98 Rendered depth 
+
+Network MAE ↓
+
+EndoSynth 0.9114 Fine-tuned 0.2454 Instrument-state reconstruction 
+
+Method Input Rigid ↓ Calibrated ↓ Orientation ↓ Jaw ↓ Path ↓
+
+cm cm deg deg cm MS-TCN [28] Global DINOv3 0.0905 0.2086 13.00 3.08 0.7275 PatchTST [29] Global DINOv3 0.0665 0.1546 15.68 3.92 0.4815 Transformer encoder, 4 blocks [30] Global DINOv3 0.0625 0.1457 14.31 3.85 0.4749 LiveMAE [4] RGB 0.0638 0.1536 12.59 3.25 0.4510 
+
+Proposed SAM, DINOv3, depth 0.0528 0.1209 8.78 2.31 0.3392 A B 0.0 2.5 Distance (cm) A B0.0 54.1 Rotation (deg) 0 2 4 6-23.0 32.7 Jaw angle (deg) 
+
+A B 0.0 3.0 Distance (cm) A B0.0 27.0 Rotation (deg) 0.0 0.8 1.6 2.4 -1.0 1.0 Jaw angle (deg) 
+
+A B 0.0 7.4 Distance (cm) A B0.0 179.7 Rotation (deg) 0 15 30 45 Elapsed time (s) -23.9 39.1 Jaw angle (deg) 0 0.01 0.1 1 10 Direct regression + RTS (cm) 00.01 0.1 110 Proposed (cm) 
+
+(d) Calibrated position 
+
+0 1 10 180 Direct regression + RTS (deg) 0110 180 Proposed (deg) 
+
+(e) Orientation error 
+
+0 0.01 0.1 1 10 100 1000 Direct regression + RTS (cm) 00.01 0.1 110 100 1000 Proposed (cm) 
+
+(f) Path-length error (a) Main endoscopy (b) CAO endoscopy (c) Hamlyn external camera 
+
+Recorded Proposed Direct regression + RTS Main endoscopy CAO Hamlyn Cohort mean 
+
+> 1
+
+Fig. 3. (a,b,c) PSM1 examples selected using recorded motion and visible activity. Position uses first-second translation calibration; distance and rotation are displacements from the recorded initial state. Guides identify frames A and B. (d,e,f) Paired episode errors across the three Open-H cohorts. Direct regression + RTS uses the same visual inputs and omits weighted reconstruction and position and jaw refinement. Points represent episodes; diamonds mark cohort means. Values below the diagonal favor our method. Axes are linear through one degree or 0.01 cm, then logarithmic. 
+
+conditions. 
+
+Video-state synchronization. For main endoscopy, a sin-gle offset synchronizes each clip using detected instrument landmarks and recorded kinematics. Cross-validated land-mark prediction with regularized linear regression selects the offset; we retain the released pairing when no estimate is available. All reconstruction methods use identical reference pairings. CAO and Hamlyn retain released pairings and TABLE III TEMPORAL ESTIMATION AND COMPONENT CONTRIBUTIONS .REGRESSORS USE OUR VISUAL INPUTS , DIRECT STATE SUPERVISION AND SELECTED RTS. T RAINING ABLATIONS PRECEDE POSITION AND JAW REFINEMENT ; COMPONENT REMOVALS USE THE COMPLETE CHECKPOINT WITHOUT REFITTING . P OPULATIONS FOLLOW TABLE II; 
+
+> BOLD MARKS THE LOWEST ERROR .
+
+Method Rigid ↓ Calib. ↓ Orient. ↓ Jaw ↓ Path ↓
+
+cm cm deg deg cm 
+
+Alternative temporal regressors 
+
+GRU, 2 layers [31] 0.0569 0.1357 8.98 2.52 0.4069 LSTM, 2 layers [32] 0.0641 0.1499 9.07 2.49 0.4280 Dilated TCN [33] 0.0632 0.1422 8.80 2.48 0.4090 MS-TCN [28] 0.0632 0.1438 8.89 2.45 0.4070 PatchTST [29] 0.0581 0.1285 9.05 2.56 0.4078 Transformer encoder [30] 0.0563 0.1261 9.00 2.50 0.3692 
+
+Training before position and jaw refinement 
+
+Direct state regression 0.1082 0.2446 9.89 2.73 1.4836 Direct regression + RTS 0.1082 0.2446 9.21 2.62 1.4836 Uniform weights 0.0534 0.1238 8.86 2.53 0.4099 
+
+Component removal at inference 
+
+Neither refinement 0.0527 0.1219 8.78 2.33 0.3854 No position refinement 0.0527 0.1219 8.78 2.31 0.3854 No jaw refinement 0.0528 0.1209 8.78 2.33 0.3392 
+
+Without reconstruction 0.0748 0.1363 9.80 2.46 10.3219 
+
+Proposed 0.0528 0.1209 8.78 2.31 0.3392 
+
+timestamps. 
+
+Position accuracy. The first second, τt < τ 0 + 1 s, defines calibration interval C; later frames define scoring interval 
+
+S. We align predicted positions to the recorded trajectory by fitting rotation and translation on S using Kabsch align-ment [34], without rescaling. For translation calibration, we subtract the mean prediction residual on C. Both transforms are fitted per episode and arm. For transformed prediction 
+
+ept, coordinate mean absolute error (MAE) in centimeters is 
+
+Ep = 100 3|S| 
+
+X
+
+> t∈S
+
+∥ept − pt∥1. (12) State metrics require nonempty calibration and scoring in-tervals. 
+
+Orientation and jaw accuracy. Orientation error in degrees is (360 /π ) arccos( |⟨ ˆqt, q t⟩| ) for normalized quater-nions. Jaw MAE is also converted to degrees. Both use the same scoring interval. Orientation is evaluated in the recorded PSM base frame, independently of position align-ment. State errors are averaged over arms and then episodes. 
+
+Path length and motion indicators. For consecutive frame pairs A within continuous recording intervals, path length is 
+
+L(P ) = X
+
+> (i,j )∈A
+
+∥pj − pi∥2. (13) This measurement is invariant to rigid transforms and in-cludes the first second. Prediction and reference use identical timestamps; scoring adds no further smoothing. We average both arm path lengths before computing each episode’s abso-lute error and convert the result to centimeters. We also com-pare episode mean speed, log dimensionless jerk and jaw clo-sure count using the same intervals and arm aggregation [1], [2]. Log dimensionless jerk (LDJ) is − log( D5J/L 2) for 
+
+L, J > 0, where D and J are duration and integrated squared jerk over continuous intervals of at least eight frames. LDJ errors use the same reference-defined episodes for all methods. Jaw closures are downward crossings of a training-derived jaw threshold. 
+
+Motion segmentation. A two-stage MS-TCN with resid-ual logit refinement [28] segments reconstructed states and derived motion features into idle, open-jaw motion, jaw closing, closed-jaw motion and jaw opening. The reference classes are defined from recorded kinematics. For each fold, one classifier trained on recorded training kinematics evaluates every reconstruction with identical preprocessing, normalization and decoding. V. E XPERIMENTS 
+
+We evaluate how accurately our reconstruction network estimates instrument kinematics from monocular video and preserves motion for downstream analysis. The experiments examine (1) surgical segmentation and depth fine-tuning, (2) reconstruction accuracy, (3) the contribution of reconstruc-tion and position and jaw refinement, (4) additional Open-H tasks, camera views and recordings, and (5) objective performance indicators and motion segmentation from re-constructed kinematics. 
+
+Surgical perception. We compare pretrained SAM 3.1 with the fine-tuned SAM 3.1 segmenter used by our recon-struction network on identical test images. COCO-style AP scores categories where annotations are complete; Cholec-Seg8k evaluation uses the released dense masks and class mapping. Table II shows that fine-tuning increases mask AP from 2.77 to 37.07 and box AP from 3.29 to 41.44. 
+
+Comparison with a surgical segmenter. We train Sur-gicalSAM’s prototype prompt encoder and mask decoder with frozen SAM ViT-H features [6] on the same partitions and complete instrument annotations; SAM 3.1 additionally learns anatomy, wrist and gripper labels. We select Surgical-SAM by validation foreground IoU and compare its merged instrument mask with SAM 3.1 predictions from the surgical instrument prompt. Table II reports mean image IoU and Dice on fully annotated test images at native resolution; both equal one for empty prediction and target. Our fine-tuned SAM 3.1 segmenter achieves 85.57% instrument foreground IoU, compared with 73.85% for the SurgicalSAM. We de-rive reconstruction landmarks from the predicted instrument masks. 
+
+Depth fine-tuning on rendered Open-H. We fine-tune the EndoSynth depth decoder on rendered Sanoscience im-ages with its visual encoder frozen, using normalized inverse-depth and spatial-gradient errors. Table II reports mean scale-and-shift-invariant absolute error on 72 test episodes. Fine-tuning reduces error from 0.9114 to 0.2454, a 73.08% reduction, with improvement on every test episode. TABLE IV OPEN -H COHORT EVALUATION . CAO AND HAMLYN USE SEPARATELY TRAINED NETWORKS ; ADDITIONAL JHU RETAINS MAIN -BENCHMARK WEIGHTS . MS-TCN AND TRANSFORMER REGRESSION USE OUR VISUAL REPRESENTATION ; L IVE MAE USES RGB. D IRECT REGRESSION SHARES OUR INPUTS AND OMITS WEIGHTED RECONSTRUCTION AND POSITION AND JAW REFINEMENT ; RTS SMOOTHS THE SAME PREDICTIONS . B OLD MARKS EACH COHORT ’S LOWEST ERROR .
+
+Method Rigid ↓ Calib. ↓ Orient. ↓ Jaw ↓ Path ↓
+
+cm cm deg deg cm 
+
+CAO endoscopy, 783 episodes 
+
+Direct state regression 0.0142 0.0379 2.70 0.26 0.1281 Direct regression + RTS 0.0139 0.0377 2.54 0.26 0.1039 
+
+Proposed 0.0114 0.0347 2.31 0.20 0.0921 
+
+Hamlyn external camera, 1,019 episodes 
+
+Direct state regression 0.4093 0.6611 17.84 7.94 7.2639 Direct regression + RTS 0.4093 0.6611 16.42 7.78 7.2639 
+
+Proposed 0.1902 0.3591 15.55 7.10 1.2627 
+
+Additional JHU recordings, 70 episodes 
+
+MS-TCN [28] 0.1409 0.3079 24.91 6.62 1.1395 LiveMAE [4] 0.1188 0.2527 30.11 6.85 0.9684 Transformer encoder [30] 0.1086 0.2165 25.02 6.73 1.0477 Direct state regression 0.1458 0.2415 25.85 6.81 3.0887 Direct regression + RTS 0.1458 0.2415 25.15 6.72 3.0887 
+
+Proposed 0.0987 0.2112 24.10 6.49 0.7751 
+
+TABLE V DOWNSTREAM ANALYSIS ON THE MAIN OPEN -H BENCHMARK .MS-TCN, P ATCH TST AND TRANSFORMER REGRESSION USE GLOBAL 
+
+DINO V3 FEATURES ; L IVE MAE USES RGB IMAGES . LDJ DENOTES LOG DIMENSIONLESS JERK . A LL RECONSTRUCTIONS USE THE SAME 
+
+MS-TCN CLASSIFIER . T EMPORAL M AP AVERAGES IOU THRESHOLDS 
+
+{0.1, 0.2, 0.3, 0.4, 0.5}. B OLD MARKS THE BEST RESULT .
+
+Reconstruction Mean speed ↓ LDJ ↓ Closures ↓ mAP ↑
+
+cm/s count %MS-TCN 0.1729 5.911 0.0672 35.10 PatchTST 0.1204 5.174 0.0715 38.53 Transformer regression 0.1268 4.940 0.0694 41.57 LiveMAE 0.1163 5.445 0.0457 44.54 
+
+Proposed 0.0879 0.688 0.0414 54.44 
+
+Kinematic reconstruction comparison. We compare our method with four video reconstruction baselines using each method’s visual representation. MS-TCN, PatchTST and a four-block Transformer encoder estimate instrument position, orientation and jaw from global descriptors learned from frozen DINOv3 features using position supervision. MS-TCN uses two stages of temporal convolutional refinement; PatchTST encodes temporal patches. Both use regression heads for the eight state coordinates. All three use constant-velocity RTS smoothing [15] with coefficients selected on validation data. Our reconstruction network adds instrument landmarks, local appearance, depth, visual state estimates and learned motion constraints. LiveMAE jointly recon-structs images and recorded states with a pretrained masked A 1.2 s B 3.2 s 03 A B
+
+-30 30 0 1 2 3Reference LiveMAE Proposed Idle Open-jaw motion Jaw closing Closed-jaw motion Jaw opening Speed (cm/s) Jaw angle (deg) Time (s) Recorded LiveMAE Proposed 1
+
+Fig. 4. Illustrative PSM1 episode in Open-H. Frames A and B show the open and closed grasper; dashed guides mark timestamps. Traces compare recorded, LiveMAE and proposed speed and jaw angle. Class strips compare recorded-state labels and MS-TCN predictions. Our reconstruction recovers closed-jaw motion omitted by LiveMAE. Episode F1 at 25% temporal IoU is 88.9% versus 57.1% using the same classifier. 
+
+autoencoder and separate decoders [4]; validation state error selects its checkpoint. Table II reports the lowest errors for our method on all five metrics. Path MAE is 0.3392 cm for our approach versus 0.4510 cm for LiveMAE, a 24.79% reduction. This metric compares traveled distance indepen-dently of position alignment. 
+
+Temporal estimation with shared visual features. We compare six regressors using our visual representation, initial orientation and jaw estimates, output parameterization and direct state loss. Table III includes validation-selected RTS postprocessing. Our method achieves the lowest error on all five metrics. 
+
+Reconstruction and local temporal refinement. We evaluate weighted reconstruction and position and jaw re-finement with training ablations and component removal. Training ablations precede these refinements and share in-puts, initialization, loss terms and checkpoint selection. Inference removals use the complete checkpoint without refitting. Position removal disables both position heads and restores the position coefficient learned before refinement; increment calibration and jaw projection remain active. In Table III, position refinement reduces path MAE from 0.3854 to 0.3392 cm, an 11.98% reduction. Removing reconstruction raises all five errors. 
+
+Additional Open-H tasks and camera views. We eval-uate additional tasks and views by fitting separate CAO and Hamlyn networks. CAO uses the full visual representation; Hamlyn uses global appearance. Direct state regression and its RTS-smoothed counterpart retain these inputs and omit weighted reconstruction and position and jaw refinement. Table IV reports cohort errors, and Fig. 3 shows recorded frames, state traces and per-episode errors. Our method achieves the lowest error for all five metrics in both cohorts. On Hamlyn, path-length MAE is 1.2627 cm versus 7.2639 cm for direct state regression with validation-selected RTS, an 82.62% reduction. Evaluation on additional recordings. On 70 additional JHU episodes, our fixed main-benchmark network achieves the lowest error on all five metrics (Table IV). Our approach achieves a Path MAE of 0.7751 cm versus 0.9684 cm for LiveMAE. 
+
+Motion analysis from reconstructed states. Our recon-structions achieve the lowest indicator errors and highest temporal mAP in Table V. LDJ MAE is 0.688 versus 4.940 for Transformer regression using global DINOv3 features, an 86.07% reduction. Temporal mAP is 54.44%, compared with 44.54% for LiveMAE. Fig. 4 illustrates the reconstructed motion and segmentation. VI. C ONCLUSION 
+
+Our reconstruction network recovers instrument kinemat-ics from monocular video using surgical visual features, sep-arate displacement magnitude and direction prediction, and differentiable trajectory reconstruction. On the main Open-H benchmark, our method outperforms all baselines on all five reconstruction metrics. Path-length MAE is 0.3392 cm, an 8.12% reduction from 0.3692 cm for Transformer regression using our visual representation and a 24.79% reduction from 0.4510 cm for LiveMAE. Log dimensionless jerk MAE is 0.688 versus 4.940 for Transformer regression using global DINOv3 features, an 86.07% reduction. Motion segmen-tation achieves 54.44% temporal mean average precision versus 44.54% for LiveMAE. ACKNOWLEDGEMENTS 
+
+Generative AI (ChatGPT) was used for editing and gram-mar enhancement. REFERENCES [1] M. Ballo, et al. , “Semantic taxonomy-driven instrument classification streamlines kinematic analysis of objective performance indicators in robotic surgery,” npj Digital Surgery , vol. 1, no. 1, p. 6, 2026. [2] S. Balasubramanian, et al. , “On the analysis of movement smoothness,” Journal of NeuroEngineering and Rehabilitation ,vol. 12, no. 1, p. 112, 2015. [3] J.-T. Chen, et al. , “SurgiPose: Estimating Surgical Tool Kinemat-ics from Monocular Video for Surgical Robot Learning,” in 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2025, pp. 20912 through 20919. [4] L. Trinh, et al. , “Self-supervised Sim-to-Real Kinematics Reconstruc-tion for Video-Based Assessment of Intraoperative Suturing Skills,” in Medical Image Computing and Computer Assisted Intervention, MICCAI 2023 , 2023, pp. 708 through 717. [5] Open-H-Embodiment Consortium, et al. , “Open-H-Embodiment: A Large-Scale Dataset for Enabling Foundation Models in Medical Robotics,” arXiv:2604.21017, 2026. [6] W. Yue, et al. , “SurgicalSAM: Efficient Class Promptable Surgical Instrument Segmentation,” Proceedings of the AAAI Conference on Artificial Intelligence , vol. 38, no. 7, pp. 6890 through 6898, 2024. [7] W. Yue, et al. , “SurgicalPart-SAM: Part-to-Whole Collaborative Prompting for Surgical Instrument Segmentation,” arXiv:2312.14481, 2024. [8] H. Liu, et al. , “Surgical SAM 2: Real-time Segment Anything in Surgical Video by Efficient Frame Pruning,” arXiv:2408.07931, 2025. [9] W. Dong, et al. , “More than Segmentation: Benchmarking SAM 3 for Segmentation, 3D Perception, and Reconstruction in Robotic Surgery,” arXiv:2512.07596, 2025. [10] C. Liu, et al. , “Parameter-Efficient Adaptation of SAM3 for Prompt-Driven Surgical Concept Segmentation,” arXiv:2607.23694, 2026. [11] X. Du, et al. , “Articulated Multi-Instrument 2-D Pose Estimation Using Fully Convolutional Networks,” IEEE Transactions on Medical Imaging , vol. 37, no. 5, pp. 1276 through 1287, 2018. [12] M. Allan, et al. , “3-D Pose Estimation of Articulated Instruments in Robotic Minimally Invasive Surgery,” IEEE Transactions on Medical Imaging , vol. 37, no. 5, pp. 1204 through 1213, 2018. [13] H. Xu, et al. , “SurgRIPE challenge: Benchmark of surgical robot instrument pose estimation,” Medical Image Analysis , vol. 105, p. 103674, 2025. [14] R. E. Kalman, “A New Approach to Linear Filtering and Prediction Problems,” Journal of Basic Engineering , vol. 82, no. 1, pp. 35 through 45, 1960. [15] H. E. Rauch, F. Tung, and C. T. Striebel, “Maximum likelihood estimates of linear dynamic systems,” AIAA journal , vol. 3, no. 8, pp. 1445 through 1450, 1965. [16] S. Sarkka and A. F. Garcia-Fernandez, “Temporal Parallelization of Bayesian Smoothers,” IEEE Transactions on Automatic Control ,vol. 66, no. 1, pp. 299 through 306, 2021. [17] Z. Teed and J. Deng, “DROID-SLAM: Deep Visual SLAM for Monocular, Stereo, and RGB-D Cameras,” in Advances in Neural Information Processing Systems , vol. 34, 2021, pp. 16558 through 16569. [18] L. Pineda, et al. , “Theseus: A Library for Differentiable Nonlinear Optimization,” in Advances in Neural Information Processing Systems ,vol. 35, 2022, pp. 3801 through 3818. [19] N. Carion, et al. , “SAM 3: Segment Anything with Concepts,” in 
+
+International Conference on Learning Representations , 2026, pp. 138846 through 138923. [20] O. Alabi, et al. , “CholecInstanceSeg: A Tool Instance Segmentation Dataset for Laparoscopic Surgery,” Scientific Data , vol. 12, no. 1, p. 825, 2025. [21] W. Y. Hong, et al. , “CholecSeg8k: A Semantic Segmentation Dataset for Laparoscopic Cholecystectomy Based on Cholec80,” arXiv:2012.12453, 2020. [22] M. Carstens, et al. , “The Dresden Surgical Anatomy Dataset for Abdominal Organ Segmentation in Surgical Data Science,” Scientific Data , vol. 10, no. 1, p. 3, 2023. [23] A. Murali, et al. , “The Endoscapes Dataset for Surgical Scene Segmentation, Object Detection, and Critical View of Safety Assessment: Official Splits and Benchmark,” arXiv:2312.12429, 2024. [24] K.-H. Oh, et al. , “Expanded Comprehensive Robotic Cholecystectomy Dataset,” Journal of Medical Robotics Research , vol. 10, no. 03n04, 2025. [25] O. Sim´ eoni, et al. , “DINOv3,” arXiv:2508.10104, 2025. [26] N. Toussaint, et al. , “Zero-Shot Monocular Metric Depth for Endo-scopic Images,” in Data Engineering in Medical Imaging , 2026, pp. 115 through 124. [27] Y. Zhang, J. Cohen, and J. D. Owens, “Fast tridiagonal solvers on the GPU,” in Proceedings of the 15th ACM SIGPLAN Symposium on Principles and Practice of Parallel Programming , 2010, pp. 127 through 136. [28] Y. A. Farha and J. Gall, “MS-TCN: Multi-Stage Temporal Convo-lutional Network for Action Segmentation,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2019. [29] Y. Nie, et al. , “A Time Series is Worth 64 Words: Long-term Fore-casting with Transformers,” in International Conference on Learning Representations , 2023. [30] A. Vaswani, et al. , “Attention is All you Need,” in Advances in Neural Information Processing Systems , vol. 30, 2017. [31] K. Cho, et al. , “Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation,” in Proceedings of the 2014 Conference on Empirical Methods in Natural Language Pro-cessing (EMNLP) , 2014, pp. 1724 through 1734. [32] S. Hochreiter and J. Schmidhuber, “Long Short-Term Memory,” 
+
+Neural Computation , vol. 9, no. 8, pp. 1735 through 1780, 1997. [33] S. Bai, J. Z. Kolter, and V. Koltun, “An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling,” arXiv:1803.01271, 2018. [34] W. Kabsch, “A solution for the best rotation to relate two sets of vectors,” Acta Crystallographica Section A , vol. 32, no. 5, pp. 922 through 923, 1976.

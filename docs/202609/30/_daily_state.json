@@ -1,0 +1,137 @@
+{
+  "date": "20260930",
+  "date_label": "",
+  "generated_at": "2026-09-30 22:40:15 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.27675v2",
+      "route": "202609/30/2609.27675v2-track2art-articulated-object-model-recovery-with-visual-geometric-track-representations",
+      "title": "Track2Art: Articulated Object Model Recovery with Visual-Geometric Track Representations",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "以运动为中心从RGB-D视频恢复铰接物体运动学关系",
+      "first_seen_at": "2026-09-30 22:40:15 UTC",
+      "updated_at": "2026-09-30 22:40:15 UTC"
+    },
+    {
+      "paper_id": "2609.33931v1",
+      "route": "202609/30/2609.33931v1-articulatearena-a-metric-for-articulated-kinematics",
+      "title": "ArticulateArena: A Metric for Articulated Kinematics",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向铰接运动学的度量，统一评估关节类型、轴方向、原点与运动范围",
+      "first_seen_at": "2026-09-30 22:40:15 UTC",
+      "updated_at": "2026-09-30 22:40:15 UTC"
+    },
+    {
+      "paper_id": "2609.26793v1",
+      "route": "202609/30/2609.26793v1-harmony-hierarchical-agentic-reasoning-for-monocular-image-to-scene-synthesis",
+      "title": "HARMONY: Hierarchical Agentic Reasoning for MONocular Image-to-Scene Synthesis",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-scn-gen"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向单目图像到三维场景合成的分层智能体推理",
+      "first_seen_at": "2026-09-30 22:40:15 UTC",
+      "updated_at": "2026-09-30 22:40:15 UTC"
+    },
+    {
+      "paper_id": "2609.27227v1",
+      "route": "202609/30/2609.27227v1-surgical-kinematics-from-monocular-video-with-learned-articulated-motion-constraints",
+      "title": "Surgical Kinematics from Monocular Video with Learned Articulated Motion Constraints",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "从单目视频中学习铰接运动约束下的运动学参数",
+      "first_seen_at": "2026-09-30 22:40:15 UTC",
+      "updated_at": "2026-09-30 22:40:15 UTC"
+    },
+    {
+      "paper_id": "2609.25741v1",
+      "route": "202609/30/2609.25741v1-fysiverse-3d-vision-technical-report-generating-executable-3d-worlds-from-images-through-unified-spatial-reasoning",
+      "title": "Fysiverse-3D-Vision Technical Report: Generating Executable 3D Worlds from Images through Unified Spatial Reasoning",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-scn-gen"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "视觉-语言-几何框架生成可执行三维场景",
+      "first_seen_at": "2026-09-30 22:40:15 UTC",
+      "updated_at": "2026-09-30 22:40:15 UTC"
+    },
+    {
+      "paper_id": "2609.30761v1",
+      "route": "202609/30/2609.30761v1-timo-textbftaming-multtextbfimodal-diffusion-transformer-for-human-textbfmotion-generation",
+      "title": "Timo: $\\textbf{T}$aming Mult$\\textbf{i}$modal Diffusion Transformer for Human $\\textbf{Mo}$tion Generation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向铰接人体运动生成的运动学感知扩散模型",
+      "first_seen_at": "2026-09-30 22:40:15 UTC",
+      "updated_at": "2026-09-30 22:40:15 UTC"
+    },
+    {
+      "paper_id": "2609.33982v1",
+      "route": "202609/30/2609.33982v1-test-time-spatial-reasoning-for-robot-manipulation-using-generative-real-to-sim",
+      "title": "Test-Time Spatial Reasoning for Robot Manipulation Using Generative Real-to-Sim",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-scn-gen"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "免训练测试时框架用3D生成模型与VLM重建可仿真场景资产",
+      "first_seen_at": "2026-09-30 22:40:15 UTC",
+      "updated_at": "2026-09-30 22:40:15 UTC"
+    },
+    {
+      "paper_id": "2609.35743v1",
+      "route": "202609/30/2609.35743v1-infinihand-streaming-world-space-hand-motion-estimation-from-egocentric-video",
+      "title": "InfiniHand: Streaming World-Space Hand Motion Estimation from Egocentric Video",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "从视觉数据学习铰接手部的运动学参数",
+      "first_seen_at": "2026-09-30 22:40:15 UTC",
+      "updated_at": "2026-09-30 22:40:15 UTC"
+    }
+  ]
+}
