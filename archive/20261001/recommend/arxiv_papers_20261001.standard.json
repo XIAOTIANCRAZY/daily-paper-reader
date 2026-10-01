@@ -1,0 +1,54 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-01T23:34:43.013501+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 0,
+    "deep_cap": 7,
+    "deep_selected": 0,
+    "quick_candidates": 1,
+    "quick_skim_target": 12,
+    "quick_selected": 1
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2609.33138v1",
+      "source": "arxiv",
+      "title": "Multi-Modal Non-Prehensile Estimation of Physical Parameters via Press-and-Pull Tipping",
+      "abstract": "Recovering physical properties of unknown objects through non-prehensile interaction is challenging because no single manipulation primitive reveals all relevant parameters. Planar pushing couples mass and friction, while conventional tipping cannot recover friction and may fail entirely when low-friction or curved-base objects slide or rotate instead of tipping. We introduce a multi-modal estimation framework that combines a sliding interaction with a press-and-pull tipping primitive to recover object mass, center of mass height, and surface friction. The press-and-pull interaction increases the object-table sliding threshold and stabilizes the pivot, enabling controlled tipping without any prior geometric object model. Wrist force/torque sensing, RGB-D perception, and robot proprioception are fused to estimate the physical parameters from the two complementary interaction modes. Experiments on an ABB IRB120 across four objects with varied geometry, mass, center of mass, and friction achieve low relative error, while successfully operating on curved-base objects that fail under conventional forward tipping. The results demonstrate that complementary non-prehensile interactions can recover a compact set of physical parameters without grasping, a prior object model, or learned interaction dynamics.",
+      "authors": [
+        "Steven M. Hyland",
+        "Jing Xiao",
+        "Cagdas D. Onal"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-27T03:11:12+00:00",
+      "link": "https://arxiv.org/pdf/2609.33138v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "query:D-artic-kin"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "estimates physical parameters of unknown objects via non-prehensile interaction",
+      "llm_evidence_cn": "通过非抓取交互估计未知物体的物理参数",
+      "llm_evidence": "通过非抓取交互估计未知物体的物理参数",
+      "canonical_evidence": "通过非抓取交互估计未知物体的物理参数",
+      "llm_tldr_en": "A multi-modal non-prehensile framework combining sliding with press-and-pull tipping recovers object mass, center-of-mass height, and friction without prior geometric models, enabling controlled tipping for physical parameter estimation.",
+      "llm_tldr_cn": "针对非抓取交互难以恢复未知物体全部物理参数的问题——平面推动耦合质量与摩擦、传统倾倒无法恢复摩擦且在低摩擦或曲面物体上失效，本文提出多模态估计框架，将滑动交互与按压-拉动倾倒基元结合，提高滑动阈值并稳定支点，从而在无先验几何模型下恢复质量、质心高度与表面摩擦。实验表明该方法可实现受控倾倒并同时估计多个物理参数，为机器人操作中的物体属性推断提供了新途径。",
+      "llm_tldr": "针对非抓取交互难以恢复未知物体全部物理参数的问题——平面推动耦合质量与摩擦、传统倾倒无法恢复摩擦且在低摩擦或曲面物体上失效，本文提出多模态估计框架，将滑动交互与按压-拉动倾倒基元结合，提高滑动阈值并稳定支点，从而在无先验几何模型下恢复质量、质心高度与表面摩擦。实验表明该方法可实现受控倾倒并同时估计多个物理参数，为机器人操作中的物体属性推断提供了新途径。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "inferring physical properties of articulated systems",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

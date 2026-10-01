@@ -1,0 +1,24 @@
+{
+  "label": "2026-10-01",
+  "date": "2026-10-01",
+  "generated_at": "2026-10-01T23:35:03",
+  "count": 1,
+  "papers": [
+    {
+      "paper_id": "202610/01/2609.33138v1-multi-modal-non-prehensile-estimation-of-physical-parameters-via-press-and-pull-tipping",
+      "section": "quick",
+      "title_en": "Multi-Modal Non-Prehensile Estimation of Physical Parameters via Press-and-Pull Tipping",
+      "authors": "Steven M. Hyland, Jing Xiao, Cagdas D. Onal",
+      "date": "2026-09-27",
+      "pdf": "https://arxiv.org/pdf/2609.33138v1",
+      "score": "7.0",
+      "evidence": "通过非抓取交互估计未知物体的物理参数",
+      "tldr": "非抓取交互难以单次恢复全部物理参数：平面推动耦合质量与摩擦，传统倾覆无法测摩擦，低摩擦或曲底物体会滑动旋转而失败。论文提出多模态估计框架，将滑动与按压-牵拉倾覆结合，无需先验几何模型即可估计质量、质心高度和表面摩擦。在ABB IRB120上对四类物体实验获得低相对误差，并能处理传统前倾失败的曲底物体，表明互补非抓取交互可无抓取、无模型地恢复紧凑参数集。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "Recovering physical properties of unknown objects through non-prehensile interaction is challenging because no single manipulation primitive reveals all relevant parameters. Planar pushing couples mass and friction, while conventional tipping cannot recover friction and may fail entirely when low-friction or curved-base objects slide or rotate instead of tipping. We introduce a multi-modal estimation framework that combines a sliding interaction with a press-and-pull tipping primitive to recover object mass, center of mass height, and surface friction. The press-and-pull interaction increases the object-table sliding threshold and stabilizes the pivot, enabling controlled tipping without any prior geometric object model. Wrist force/torque sensing, RGB-D perception, and robot proprioception are fused to estimate the physical parameters from the two complementary interaction modes. Experiments on an ABB IRB120 across four objects with varied geometry, mass, center of mass, and friction achieve low relative error, while successfully operating on curved-base objects that fail under conventional forward tipping. The results demonstrate that complementary non-prehensile interactions can recover a compact set of physical parameters without grasping, a prior object model, or learned interaction dynamics.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

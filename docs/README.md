@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-30</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-01</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 8 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 1 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>4</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>1</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-30 22:40:15 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-01 23:35:01 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,10 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共生成 8 篇推荐（精读 4 篇，速读 4 篇）</p>
-<p>精读：《Track2Art: Articulated Object Model Recovery with Visual-Geometric Track Representations》（9.0/10）, 《ArticulateArena: A Metric for Articulated Kinematics》（9.0/10）</p>
-<p>速读：《Fysiverse-3D-Vision Technical Report: Generating Executable 3D Worlds from Images through Unified Spatial Reasoning》（7.0/10）, 《Timo: $\textbf{T}$aming Mult$\textbf{i}$modal Diffusion Transformer for Human $\textbf{Mo}$tion Generation》（6.0/10）, 《Test-Time Spatial Reasoning for Robot Manipulation Using Generative Real-to-Sim》（6.0/10）</p>
-<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
+<p>今日精选1篇速读论文，聚焦多模态非抓取操作中的物理参数估计。最值得看的是《Multi-Modal Non-Prehensile Estimation of Physical Parameters via Press-and-Pull Tipping》（7.0/10），它用按压-拉拽倾倒实现不靠抓取估计物理参数。普通读者可重点关注非抓取操作与多模态感知结合如何提升机器人对物体属性的判断。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -81,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">4 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Track2Art: Articulated Object Model Recovery with Visual-Geometric Track Representations">Track2Art: Articulated Object Model Recovery with Visual-Geometric Track Representations</span></li><li><span class="dpr-home-dashboard-paper-title" title="ArticulateArena: A Metric for Articulated Kinematics">ArticulateArena: A Metric for Articulated Kinematics</span></li><li><span class="dpr-home-dashboard-paper-title" title="HARMONY: Hierarchical Agentic Reasoning for MONocular Image-to-Scene Synthesis">HARMONY: Hierarchical Agentic Reasoning for MONocular Image-to-Scene Synthesis</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">d-artic-kin <strong>3</strong></span><span class="dpr-home-dashboard-tag">d-scn-gen <strong>1</strong></span></div>
+
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -94,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">4 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Fysiverse-3D-Vision Technical Report: Generating Executable 3D Worlds from Images through Unified Spatial Reasoning">Fysiverse-3D-Vision Technical Report: Generating Executable 3D Worlds from Images through Unified Spatial Reasoning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Timo: $\textbf{T}$aming Mult$\textbf{i}$modal Diffusion Transformer for Human $\textbf{Mo}$tion Generation">Timo: $\textbf{T}$aming Mult$\textbf{i}$modal Diffusion Transformer for Human $\textbf{Mo}$tion Generation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Test-Time Spatial Reasoning for Robot Manipulation Using Generative Real-to-Sim">Test-Time Spatial Reasoning for Robot Manipulation Using Generative Real-to-Sim</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Multi-Modal Non-Prehensile Estimation of Physical Parameters via Press-and-Pull Tipping">Multi-Modal Non-Prehensile Estimation of Physical Parameters via Press-and-Pull Tipping</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">d-artic-kin <strong>2</strong></span><span class="dpr-home-dashboard-tag">d-scn-gen <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">d-artic-kin <strong>1</strong></span></div>
 </section>
 </div>
 

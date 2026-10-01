@@ -1,0 +1,25 @@
+{
+  "date": "20261001",
+  "date_label": "",
+  "generated_at": "2026-10-01 23:35:01 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.33138v1",
+      "route": "202610/01/2609.33138v1-multi-modal-non-prehensile-estimation-of-physical-parameters-via-press-and-pull-tipping",
+      "title": "Multi-Modal Non-Prehensile Estimation of Physical Parameters via Press-and-Pull Tipping",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "通过非抓取交互估计未知物体的物理参数",
+      "first_seen_at": "2026-10-01 23:35:01 UTC",
+      "updated_at": "2026-10-01 23:35:01 UTC"
+    }
+  ]
+}
