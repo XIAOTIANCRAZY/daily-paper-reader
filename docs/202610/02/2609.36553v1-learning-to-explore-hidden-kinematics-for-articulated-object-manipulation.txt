@@ -1,0 +1,1143 @@
+Learning to Explore Hidden Kinematics for
+Articulated Object Manipulation
+Ruiyao Liu∗, Boshu Lei∗, Zhuoyang Pan, Kostas Daniilidis
+Abstract—The kinematics of an articulated object is often
+ambiguous from vision alone. Interaction resolves the ambiguity,
+and active perception methods exploit this by searching for the
+single action that most sharpens a belief over the kinematic
+parameters at each step. Such greedy search cannot be extended
+over a horizon without forward models of the contact and inertial
+dynamics, which are themselves unknown. We instead amortize
+action selection into training. We maintain a belief distribution
+over joint type and parameters, initialized from a generative prior
+and updated by Bayesian filtering on the observed part motion.
+To condition the policy on this belief, we render it as a per-
+point articulation flow field, the motion that the current posterior
+predicts for every point on the object. Carrying the inductive bias
+of articulated motion, this representation generalizes better than
+a latent encoding of the belief or flow tracked from observation.
+We train the policy with reinforcement learning, rewarding the
+entropy that each interaction removes from the posterior, so
+that informative exploration becomes learned behavior rather
+than a search at every step. Our method outperforms previous
+approaches across door and drawer manipulation on the Part-
+Manip benchmark, and reaches 61.7% success on ArticuRiddle,
+a new dataset of objects whose appearance implies the wrong
+articulation, against 44.4% for the best previous method. Project
+Website: https://hiddenkinematics.github.io/
+I. INTRODUCTION
+Articulated objects are ubiquitous in everyday environ-
+ments, whose movable parts are governed by underlying
+kinematic structures that determine how the object responds
+to physical interaction. However, geometry alone often leaves
+the underlying kinematic structure ambiguous. For example,
+the cabinet in Fig. 1 admits both a prismatic and a revolute
+interpretation: in the closed configuration, the two are visually
+identical, so the distinguishing evidence is absent from the
+image, and no amount of additional training data or model
+capacity can recover it. The consequence is not merely an
+estimation error but a manipulation failure: policies trained on
+large-scale articulated-object datasets commit to a single inter-
+pretation and fail on such objects. Interaction is what resolves
+the ambiguity, since the part motion induced by an action
+carries direct information about the joint that produced it. The
+problem is therefore planning under uncertainty: which action
+to take, given a belief over hypotheses, so that the resulting
+motion is the most informative about the true structure.
+Acting to disambiguate is not a new idea. Active percep-
+tion methods maintain a belief over the kinematic structure
+and search the next interaction to sharpen it, scored by the
+entropy of a particle filter over candidate models [1] or of a
+∗Equal contribution.
+All authors are with the GRASP Lab, University of Pennsylvania, Philadel-
+phia, PA 19104, USA.
+Revolute ?
+Prismatic ?
+🤔
+Original Articulation
+Multi-modal 
+    Prior
+✅
+❌
+✅
+Ours
+Modified Articulation
+✅
+Interaction 
+updates posterior
+Misleading geometry 
+causes failure
+Fig. 1. Visual appearance can be misleading. We change a drawer’s joint
+from prismatic to revolute without altering its appearance. Both methods open
+the original drawer, but on the modified one the baseline is misled by the
+geometry, whereas ours refines its belief through interaction and adapts.
+hybrid categorical–Gaussian belief [2], or by heuristics such as
+predicted deformation [3] and affordance [4]. Yet all of them
+commit only to the next action, because scoring an action over
+a horizon requires a forward model of the contact and inertial
+dynamics, which a kinematic model alone does not provide.
+Model-free reinforcement learning provides a general way to
+learn long-horizon plans, but the challenge is how to expose
+the belief to the policy due to the incompatibility of the belief
+in joint space and the observation in Cartesian space. Our
+insight is that every hypothesis predicts a motion for each
+point on the object, so the belief can instead be rendered
+as a pointwise articulation flow field that is aligned with the
+observation. Training the policy conditioned on the flow field
+with an information-seeking reward turns the interaction into
+a learned behavior rather than a search at every step.
+This motivates us to develop a closed-loop framework that
+allows the robot to learn to explore the articulation with its
+understanding of the object. We maintain a belief distribution
+over plausible kinematic configurations, initialized from a
+learned kinematic prior and recursively refined according to
+how well each hypothesis explains the observed part motion.
+To condition the policy on the belief, we render the belief
+into a point-wise articulation flow that encodes the motion
+predicted by the current kinematic estimate, which provides
+the policy with a compact spatial representation of accumu-
+lated interaction information. Because the filter maintains this
+posterior explicitly at every step, the information an interaction
+yields is the entropy that the interaction removes from the
+posterior. We use this quantity as a reward alongside the
+arXiv:2609.36553v1  [cs.RO]  29 Sep 2026
+
+
+task reward, so that the policy is trained to induce motion
+informative about the unknown articulation while making
+progress toward the manipulation goal. Together, belief refine-
+ment, articulation flow, and informative interaction allow the
+policy to adapt as new evidence about the object’s articulation
+becomes available.
+We evaluate our approach on the PartManip benchmark and
+introduce the ArticuRiddle dataset, designed to evaluate ma-
+nipulation under visually ambiguous articulation. Our method
+consistently outperforms existing approaches across door and
+drawer manipulation tasks and achieves 61.7% success on
+ArticuRiddle, compared with 32.4% for PartManip. We fur-
+ther demonstrate zero-shot transfer to real-world articulated
+objects, where the articulation estimate and corresponding flow
+field are progressively refined through interaction.
+Our main contributions are:
+• We introduce a posterior-derived articulation flow that
+converts the evolving articulation belief into a spatial
+representation for the manipulation policy, allowing ac-
+cumulated interaction information to guide actions.
+• We compute the entropy reduction of the posterior and
+use it as a reinforcement learning objective that encour-
+ages the robot to generate informative motion about the
+unknown articulation during manipulation.
+• We introduce the ArticuRiddle dataset for evaluating
+manipulation under visually ambiguous articulation, and
+demonstrate improvements over existing methods in sim-
+ulation with zero-shot transfer to real-world objects.
+II. RELATED WORK
+Articulation
+Estimation
+and
+Manipulation.
+Estimating
+articulated-object kinematics from point clouds or videos
+has been widely studied [5]. Explicit methods segment rigid
+parts and identify their joints [6], with Bayesian extensions
+maintaining a posterior over possible kinematic structures [7].
+Recent methods also predict actionable quantities such as
+grasp poses [8], or construct physics models for manipulation
+planning [9]. In parallel, implicit methods learn manipulation
+policies directly through imitation or reinforcement learn-
+ing [10]–[12]. Although avoiding explicit planning, they typi-
+cally rely on articulation estimates obtained before interaction
+and are thus vulnerable when visually similar objects have dif-
+ferent kinematics. Prior work connects articulation estimates
+to manipulation using several representations. Affordance and
+actionability maps predict where and how to interact on 3D
+points [9], image pixels [13], or trajectory proposals [14].
+Dense motion fields predict per-point motion as articulation
+flow [15], [16] or interaction-derived scene flow [17], while
+other methods condition policies on compact latents [12].
+Unlike fields predicted once from a static observation, our flow
+is derived from the current posterior and recomputed after each
+interaction, conveying motion evidence to the policy.
+Active Perception for Articulation. A separate line of work
+treats articulation estimation as an active perception problem,
+choosing actions that make the resulting motion more infor-
+mative about the object’s structure. These approaches update
+a belief distribution for the kinematic parameters through in-
+teractions and plan actions to gather information. The entropy
+of the posterior is estimated from the samples of a particle
+filter [1], or computed analytically over a hybrid belief that is
+categorical in joint type and Gaussian in the continuous joint
+parameters [2]. Other approaches use deformation [3], affor-
+dance [4], and affordance prediction variance [18] as heuristics
+to select actions. However, they plan the next action, which is
+myopic. To plan non-myopically, one can use reinforcement
+learning to optimize expected return from information yielded
+by the whole trajectory, with action selection amortized into
+training rather than searched at every step.
+Reinforcement
+Learning
+under
+Partial
+Observability.
+Articulated-object manipulation is a partially observable
+Markov
+decision
+process
+(POMDP),
+with
+kinematic
+parameters
+and
+deformation
+as
+hidden
+states.
+Online
+POMDP
+solvers
+maximize
+expected
+belief-state
+returns
+through tree search [19] and Monte Carlo methods [20], [21].
+Information seeking can instead be incorporated as expected
+belief information gain [22], [23]. In practice, this term is
+approximated: ASID [24] rewards Fisher information about
+dynamics parameters, Curtis et al. [25] reward observations
+that separate particle-filter hypotheses, and Xie et al. [26] use
+2D segmentation uncertainty as a surrogate. For articulation
+manipulation, VAT-MART [14] encourages its state policy
+to explore trajectories scored poorly by the perception
+model, but uses this policy only during training. Unlike
+these approximations, our particle filter maintains an explicit
+articulation posterior at every step, allowing us to directly
+use its entropy reduction after each interaction as the
+information-gain reward.
+III. METHOD
+We consider the task of manipulating an articulated object
+with an unknown kinematic structure while estimating its
+articulation online from interaction. The agent acts on a target
+part and uses the resulting motion to infer its joint type and
+parameters. The overall pipeline is shown in Fig. 2.
+A. Online Articulation Estimation
+1) Generating Hypothetical Articulations: Given the ob-
+served point cloud Ot of a target object with part segmen-
+tation, we separate the object into part-centric point clouds
+O1
+t , O2
+t , . . . , ON
+t , where N is the number of object parts. We
+focus on a target part Oi
+t and infer its underlying articulation
+throughout interaction. To initialize the belief distribution, we
+sample articulation hypotheses from NAP [27], a generative
+prior conditioned on the initial observation that yields candi-
+date joint parameters. The k-th candidate, and hence particle,
+is denoted by θ(k) = (c(k), d(k)), where c(k) ∈{r, p, f}
+denotes a revolute, prismatic, or fixed joint. Its parameters
+are d(k) = (u(k), p(k)), u(k), and ∅for revolute, prismatic,
+and fixed joints, respectively, where u(k) and p(k) denote the
+axis direction and pivot. The initial particle pool {θ(k)}K
+k=1,
+with θ(k) ∼p(θ | O0), captures the uncertainty over how the
+
+
+Per-point Ot′
+xyz
+rgb
+flow
+robot
+state
+Policy
+at
+Environment
+O0
+Ot+1
+Observed 
+Motion
+Bayes Update
+reweight hypotheses
+bt+1
+Information Reward
+PPO
+Articulation Belief
+Belief →Flow
+Act to Reduce Uncertainty
+um over all hypotheses
+Belief update bt+1
+Observation
+Generative Prior
+Initialize b0
+Revolute
+Revolute
+Prismatic
+⋯
+⋯
+Hypotheses    bt
+xyz
+rgb
+flow
+Ot′
+sum over all K hypotheses
+Fig. 2. Pipeline Overview. Given the initial observation, we use a generative prior to initialize a set of particles, where each particle represents a hypothesis
+of the object’s articulation model. At each interaction step, each hypothesis is converted into a per-point flow field. These flow fields are weighted-averaged
+over the particles. The flow field is first concatenated with the current point cloud as O′
+t and then fused with the encoded robot’s proprioceptive state as input
+to the actor. The predicted action is executed in the environment, and the observed motion is used to update the particle weights through a Bayes filter. The
+information reward, defined as the reduction in belief entropy from before to after the update, is combined with the task reward to train the policy using PPO.
+target part may articulate. The initial weights wk are obtained
+by normalizing the NAP confidence scores.
+2) Updating Hypotheses from Interaction: After apply-
+ing action at, we obtain the resulting motion observation
+Dt = {(xj, x′
+j)}M
+j=1, where xj and x′
+j denote the position
+of the j-th tracked point on the target part before and after
+interaction, respectively, for M tracked points, and evaluate
+how well it can be explained by each articulation hypothesis.
+A revolute hypothesis fits the observed motion as rotation
+about its candidate axis, whereas a prismatic hypothesis fits
+it as translation along the candidate axis. A fixed hypothesis
+instead expects negligible object motion.
+Let qi,t denote the joint coordinate of the target part at time
+t, and δqi,t = qi,t+1−qi,t the displacement it undergoes under
+action at; we estimate δqi,t jointly with θ(k) from the same
+correspondences Dt using minimum square fitting. Assuming
+isotropic Gaussian observation noise, we define the likelihood
+weight of particle θ(k) as
+wk = p(Dt | θ(k), δqi,t)
+∝exp
+
+−
+M
+X
+j=1
+(x′
+j −xj) −fj(θ(k), δqi,t)
+
+2
+2 /2σ2
+
+.
+(1)
+where fj(θ(k), δqi,t) denotes the displacement of point j pre-
+scribed by the kinematic constraint of hypothesis θ(k), and σ2
+is the observation noise variance. Hypotheses that better fit the
+observed motion therefore receive larger likelihood weights.
+The articulation belief is updated recursively as
+p(θ(k) | O0:t+1, a0:t) ∝p(Dt | θ(k), δqi,t) p(θ(k) | O0:t, a0:t−1)
+= wk p(θ(k) | O0:t, a0:t−1).
+(2)
+After normalization, the posterior weights wk are used as the
+resampling probabilities. The second factor represents the be-
+0.00
+0.01
+0.02
+0.03
+particle weight
+...
+0.0
+0.1
+0.2
+0.3
+0.4
+particle weight
+...
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+particle weight
+...
+Fig. 3.
+Flow field updates during interaction at time t. As the robot
+interacts with the object, hypotheses inconsistent with the observed motion
+are suppressed and the posterior gradually concentrates. The flow is updated
+accordingly, providing the policy with increasingly accurate motion cues.
+lief accumulated through previous interactions. We implement
+this recursive inference using particle filtering with importance
+weighting and resampling.
+B. Flow Fields from Belief Distribution
+As the agent interacts with an articulated object, its un-
+known kinematic structure is gradually revealed through the
+resulting motion. Planning directly from the current articula-
+tion estimate can make the trajectory sensitive to estimation
+errors and limit adaptive correction, while relying solely on
+interaction history requires the policy to implicitly infer and
+retain the evolving articulation structure. We summarize the
+interaction into a compact representation that carries the cur-
+rent articulation estimate into the policy observation directly.
+
+
+As shown in Fig. 3, at each time step, we convert the current
+posterior belief {(θ(k), wk)}K
+k=1 over the target part into a
+per-point motion field according to the kinematic constraints
+represented by the particles. Under a revolute hypothesis, the
+motion is tangent to the circle traced by the point about the
+axis, while under a prismatic hypothesis, it points along the
+axis direction. We normalize the motion field of each joint
+type by its mean magnitude over the part, so a revolute field
+retains a mild gradient that grows with distance from the axis,
+while a prismatic field remains uniform. The normalized fields
+are aggregated pointwise by a vector sum according to the
+posterior belief. We append this displacement to every point’s
+feature, augmenting it from R6 to R9, and denote the resulting
+point cloud by O′
+t, which is observed by the policy. Because
+this observation is recomputed from the belief at every step,
+it serves as an implicit memory of past interactions, carrying
+accumulated information into the current observation without
+requiring the policy to retain interaction history.
+C. Reinforcement Learning for Informative Interaction
+We use reinforcement learning as the optimizer of our
+system. Since the particle filter of Sec. III-A2 maintains
+p(θ | O0:t, a0:t−1) at every step, the information gain about θ
+requires no proxy on the observed motion: it is the entropy
+that an interaction removes from that posterior.
+a) Entropy of the articulation belief: We write the belief
+at time t as the weighted particle set bt = {(θ(k), wk)}K
+k=1
+with θ(k) = (c(k), d(k)). We keep the type factor exact and
+estimate the parameter term separately inside each type branch,
+H[bt] = H[Pt(c)] +
+X
+c∈{r,p}
+Pt(c) bH[bt(d | c)] ,
+(3)
+where Pt(c) = P
+k: c(k)=c wk is the posterior mass on type c.
+A prismatic particle carries an axis direction d = u ∈S2 and
+a revolute one direction and pivot d = (u, p) ∈R6; a fixed
+one has no parameters and contributes only the type term.
+b) Kernel density estimate of the branch entropy: The
+particle weights alone are not sufficient. When the particles
+have concentrated around the true axis their weights become
+similar, which makes the weight entropy −P
+k wk log wk
+large exactly when the belief has converged; it reflects how
+many hypotheses survive, not how far apart they lie. Following
+Hausman et al. [1], we instead estimate the differential entropy
+of each branch non-parametrically, from the positions of the
+particles. Renormalizing inside the branch, ¯wk = wk/Pt(c),
+we place a Gaussian kernel on every particle,
+ˆfB(d) =
+X
+k: c(k)=c
+¯wk KB
+
+d −d(k)
+,
+KB(x) = |B|−1/2K
+
+B−1/2x
+
+,
+K(x) = (2π)−D/2e−1
+2 x⊤x,
+(4)
+where D is the dimension of d in the branch (3 for prismatic,
+6 for revolute) and the bandwidth follows Scott’s rule [28],
+Bij = 0 (i̸ = j),
+p
+Bii = n
+−
+1
+mc+4
+c
+σi,
+(5)
+with σi the weighted standard deviation of the i-th coordinate
+within the branch, nc the number of particles it holds, and
+mc the intrinsic dimension of the constrained parameters.
+Evaluating the estimate at the particle locations themselves
+gives the resubstitution estimate [29] of the branch entropy,
+bH[bt(d | c)] = −
+X
+k: c(k)=c
+¯wk log ˆfB
+
+d(k)
+.
+(6)
+Both the mixture and the outer average are weighted by ¯wk,
+where [1] uses 1/nc; the weighted form reduces to theirs when
+the weights within a branch are uniform. The branch entropies
+also enter Eq. (3) with the type term, so resolving the joint
+type counts as a reduction in uncertainty.
+c) Information gain as a reward: The information gain
+collected at step t is the drop in Eq. (3) produced by that step’s
+observation,
+Rinfo,t = H[bt] −H[bt+1].
+(7)
+It is a difference of entropies rather than a negated entropy,
+and this matters. A reward proportional to −H[bt+1], or to per-
+step measure of surprise, remains available after the belief has
+converged, so the policy can keep collecting it while standing
+still. The difference in Eq. (7) vanishes once the belief stops
+moving, so each nat of information can be earned only once.
+d) PPO Reward: We optimise the policy with PPO [30]
+using a reward that combines the task and information terms:
+R = Rtask + λi Rinfo,
+(8)
+where λ balances the two terms. Rtask is the part-aware
+manipulation reward,
+Rtask = λrRrot + λdRdist + λsRsucc,
+(9)
+Rrot rewards aligning the gripper axis with the target part and
+Rdist penalizes the gripper’s distance to the handle centre,
+while Rsucc is paid once when the part is sufficiently open.
+Training the policy from scratch is expensive; we thus train
+a state-based expert πexpert with privileged access to the object
+state and distill it into a vision-based policy on the states the
+student itself visits, following [10],
+LDA =
+1
+|Dπϕ|
+X
+o, s ∈Dπϕ
+∥πexpert(s) −πstudent(o)∥2 .
+(10)
+We continue to train the student with reinforcement learning
+after distillation, under the observations it will be deployed
+with, retaining the expert as a regularizer:
+max
+ϕ
+Lppo −λDA LDA.
+(11)
+IV. EXPERIMENTS
+A. Simulation Settings
+We simulate in IsaacGym [31] with a Franka Panda arm
+and parallel gripper. The observation comprises a 4000-point
+colored point cloud of the workspace, fused from three depth
+cameras, in which the target part is indicated by its center, and
+a 41-dimensional proprioceptive vector containing the joint
+
+
+handle moved off center
+handle moved to center
+handle bar rotated 90°
+(a)  Appearance edits
+prismatic → revolute
+revolute → prismatic
+vertical → horizontal hinge
+(b)  Kinematic edits
+handle moved off center
+handle moved to center
+handle bar rotated 90°
+prismatic → revolute
+revolute → prismatic
+vertical → horizontal hinge
+(a)  Appearance edits
+(b)  Kinematic edits
+Fig. 4. Overview of ArticuRiddle. We construct challenging objects through
+(a) handle-pose edits and (b) joint-parameter edits that preserve appearance,
+both testing manipulation under ambiguous geometric cues.
+states, the robot base position, end-effector pose, and target-
+part center. The policy outputs a target end-effector pose and
+two finger targets, which are converted into joint targets by
+damped least-squares IK.
+We evaluate on two benchmarks. PartManip [10] con-
+tains articulated objects from GAPartNet [32]: 363/63 train-
+ing/validation doors and 200/40 drawers. Our ArticuRiddle
+contains 100 objects derived from PartManip (Fig. 4). Half
+have altered handle positions or orientations; the others have
+modified joint axes but unchanged appearance, forming visu-
+ally similar pairs with different kinematics.
+All learning-based methods are jointly trained on doors and
+drawers. For each object, we draw K = 200 articulation
+hypotheses from NAP to initialize the particle belief. The state
+expert uses the PartManip reward [10]; the vision policy uses
+Eq. (8)(9) with λr = 0.2, λd = 2, λs = 100, and λi = 0.1.
+Rsucc is awarded once the joint coordinate exceeds 0.7rad for
+doors or 0.7m for drawers. The PPO actor/critic learning rates
+are 10−4/3×10−4, and the DAgger learning rate is 3×10−4.
+We report mean and standard deviation over three inde-
+pendently trained seeds for learning-based methods and three
+complete evaluations for planning-based methods. Success
+requires opening a door beyond 30◦or a drawer beyond
+0.2,m. Articulation estimation uses joint-type accuracy and
+ASRx: revolute predictions require axis-angle and pivot errors
+below x◦and xcm, respectively, whereas prismatic predictions
+require only the axis-angle criterion. We report x ∈{10, 20}.
+We compare against four prior methods spanning explicit
+estimate-then-plan systems and learned manipulation policies.
+• H-SAUR [3] maintains a particle-based belief over artic-
+ulation models. It reconstructs objects in a physics simu-
+lator, evaluates single-point contact under these hypothe-
+ses, and executes an interaction producing the largest
+displacement. The outcome is then used to update the
+hypothesis weights before the next action is selected.
+• AKM [4] predicts the affordance map using DIFT [33]
+feature cosine similarity from a reference image retrieved
+through RAM [34]. It iteratively selects the contact point
+on the 2D image with the highest score and updates the
+affordance map after each interaction.
+• Wang et al. [35] tracks the target part across RGB-D
+observations and fits its joint axis from the observations.
+It replans the manipulation trajectory online whenever
+the estimate is updated. It represents articulation with a
+single estimate rather than a distribution over plausible
+configurations.
+• PartManip [10] learns a cross-category manipulation
+policy directly from point-cloud observations. A privi-
+leged state policy is first trained as an expert and then
+distilled into a visual student policy through Dagger.
+We implement H-SAUR and AKM using the same objects,
+target-part masks, and evaluation criteria, and jointly retrain
+PartManip on doors and drawers using our split and budget.
+Table II shows that ours performs best throughout, improving
+over Wang et al. [35] from 37.4% to 68.2% on training doors
+and from 44.2% to 89.0% on training drawers. It also outper-
+forms PartManip by 23.7/10.7 points on door train/validation
+and 21.9/21.1 on drawer train/validation. Their shared base
+policy and distillation procedure isolate the benefit of inferred
+kinematics. The largest gap occurs on ArticuRiddle (61.7%
+vs. 32.4%), demonstrating the value of interaction when ap-
+pearance suggests incorrect articulation. Table I further shows
+that our method consistently outperforms AKM and H-SAUR
+in joint-type accuracy and ASR10/20 across all splits.
+B. Articulation Representation
+Because the belief contains abstract kinematic parameters
+while the policy acts on point clouds, its representation de-
+termines how effectively it guides manipulation. We compare
+three alternatives under the same policy architecture, reward,
+and training budget.
+• Obs-flow. We append raw per-point displacement be-
+tween consecutive observations. It matches our field’s
+dimensionality but represents only the latest action, is
+zero before contact or without motion, and is dominated
+by tracking noise for small displacements.
+• NAP w/o post. We sample particles from NAP prior [27]
+and freeze their hypotheses and weights, deriving the flow
+from the same estimate throughout the episode.
+• Latent. We replace the flow channels with a compact
+latent. A privileged MLP maps a 9-dimensional input
+(pivot (3), axis (3), joint position and velocity (2), and
+binary door/drawer type (1))to a 16-dimensional latent z,
+followed by non-affine LayerNorm to fix |z| and prevent
+collapse. A temporal 1-D CNN predicts ˜z from a 10-
+step history of proprioception, previous actions, and the
+same noisy articulation estimate supplied by our particle
+filter. Following [12], the encoder, adaptation module, and
+policy are jointly trained with our recipe and a latent-
+matching regularizer between z and ˜z; the policy receives
+z during training and only ˜z at evaluation.
+
+
+TABLE I
+ARTICULATION ESTIMATIONON PARTMANIP AND ARTICURIDDLE.
+Category
+Method
+Train
+Val
+ArticuRiddle
+Acc.↑
+ASR10 ↑
+ASR20 ↑
+Acc.↑
+ASR10 ↑
+ASR20 ↑
+Acc.↑
+ASR10 ↑
+ASR20 ↑
+Door
+AKM [4]
+79.0±1.9
+48.2±1.3
+55.9±2.5
+84.1±1.6
+29.6±5.6
+33.3±5.9
+64.0±3.5
+30.7±6.1
+32.7±5.8
+H-SAUR [3]
+81.7±1.9
+40.3±3.6
+46.6±4.6
+85.2±2.7
+35.1±5.4
+43.2±8.1
+68.1±1.9
+39.0±2.9
+50.3±2.9
+Ours
+82.7±1.3
+62.4±1.3
+72.7±2.1
+87.8±2.2
+59.2±5.1
+70.1±3.0
+78.4±5.2
+57.7±5.6
+65.4±3.3
+Drawer
+AKM [4]
+75.9±1.6
+42.1±1.9
+49.7±3.8
+79.2±4.4
+41.5±4.0
+52.5±6.5
+54.1±4.7
+35.8±2.2
+41.7±1.8
+H-SAUR [3]
+73.0±2.0
+43.0±2.3
+49.7±0.4
+73.5±1.9
+38.1±0.3
+54.3±7.1
+59.0±1.3
+29.0±5.5
+36.2±3.3
+Ours
+89.6±1.2
+61.4±2.0
+69.2±2.3
+89.0±1.0
+43.5±4.8
+58.3±4.3
+94.4±3.2
+55.8±2.5
+61.8±1.4
+TABLE II
+MANIPULATION SUCCESS RATE.
+Method
+Door
+Drawer
+ArticuRiddle
+Train
+Val
+Train
+Val
+H-SAUR [3]
+21.8±1.2
+27.0±1.3
+33.5±1.8
+32.7±1.5
+44.4±2.2
+AKM [4]
+25.3±2.0
+19.0±1.6
+26.7±1.1
+22.6±1.4
+27.0±2.5
+Wang et al. [35]
+37.4±2.5
+39.7±5.4
+44.2±3.3
+27.8±10.6
+18.2±3.9
+PartManip [10]
+44.5±0.7
+40.6±2.7
+67.1±2.6
+74.3±4.3
+32.4±1.4
+Obs-flow
+59.4±1.9
+43.6±3.6
+76.7±1.8
+88.0±1.1
+53.8±3.4
+Latent
+60.5±1.1
+41.2±9.0
+66.4±4.2
+87.7±3.5
+36.2±1.1
+NAP w/o post.
+62.1±1.9
+41.4±1.1
+80.3±2.4
+88.3±1.6
+48.0±2.6
+Ours
+68.2±1.3
+51.3±1.9
+89.0±3.0
+95.4±1.5
+61.7±1.1
+Table II separates these components. Relative to NAP w/o
+post., posterior updating improves door train, door validation,
+and ArticuRiddle success by 6.1, 9.9, and 13.7 points, re-
+spectively. Obs-flow is weaker because it is unavailable before
+motion and unreliable for small single-step displacements. The
+latent variant also generalizes poorly to ArticuRiddle (36.2%):
+it must learn from training objects how the axis constrains
+each contact point, whereas our flow computes this relation
+explicitly for any geometry.
+C. Ablation Studies
+We ablate the interaction signal while keeping all other
+settings fixed. The first variant uses joint displacement δq, the
+opening term provided by the task reward, with the coefficient
+from PartManip [10]. The other two replace this term with
+either the Kullback–Leibler divergence DKL between the be-
+liefs before and after each update or our entropy decrease ∆H
+in Eq. (7). Both information rewards are standardized before
+weighting. For ∆H and DKL, we sweep λi ∈{0.05, 0.1, 0.2}
+and report the best setting for each. We also evaluate w/o RL,
+trained solely through distillation.
+Table III shows that ∆H performs best in every column.
+This differs from [1], where these criteria select only the
+next action; here, they reward each interaction outcome and
+are accumulated by the policy over the episode. The belief
+depends not only on the articulation but also on the joint
+state, observation process (e.g., camera viewpoint and point
+tracking), and particle filter. Its entropy therefore reflects the
+agent’s overall reasoning during interaction.
+Fig. 5.
+Reward alignment and opening progress on the training set.
+Top: episodes collected with our trained policies are scored by three different
+rewards; bars give the fraction with a final axis error above 10◦in the lowest-
+(hatched) and highest-scoring (solid) quarter. The results suggest optimizing
+the entropy-reduction return may lead to more accurate estimates. Bottom:
+median opening over assets for the policy trained with each reward; the dashed
+line marks the success threshold. Error bars and bands are bootstrapped 95%
+confidence intervals, over episodes (top) and over assets (bottom).
+Fig. 5 (top) evaluates each reward against final axis error,
+which none directly uses. Ranking episodes by accumulated
+reward, P
+t ∆H reduces the fraction of doors ending above
+10◦from 0.65 in the lowest-scoring quarter to 0.09 in the
+highest, whereas P
+t DKL increases it from 0.27 to 0.94. This
+difference follows from the return structure. Entropy decrease
+is signed, so later convergence can offset a temporary rise,
+making the accumulated return reflect belief convergence.
+In contrast, KL divergence is always non-negative and thus
+rewards large belief changes even when they provide no ar-
+ticulation information. For example, particle-filter resampling
+restores uniform weights, producing a large divergence to
+which belief entropy is much less sensitive. Joint displacement
+measures how far the part moves but not whether the motion
+distinguishes the hypotheses. Overall, ∆H rewards efficient
+exploration that gathers useful information during interaction.
+D. Real-World Evaluation
+For hardware evaluation, we retrain the pipeline in sim-
+ulation with a 6-DoF YAM arm and deploy it without real-
+
+
+TABLE III
+REWARD ABLATION ON MANIPULATION SUCCESS RATE.
+Variant
+Door
+Drawer
+ArticuRiddle
+Train
+Val
+Train
+Val
+w/o RL
+57.6±1.2
+40.2±2.4
+82.7±3.0
+87.7±1.0
+48.1±1.1
+δq
+63.9±1.5
+42.9±4.2
+84.4±1.0
+90.4±2.3
+55.2±2.8
+DKL
+64.4±1.1
+42.9±3.2
+87.1±3.9
+93.9±1.3
+58.6±4.6
+∆H (Ours)
+68.2±1.3
+51.3±1.9
+89.0±3.0
+95.4±1.5
+61.7±1.1
+door1
+door2
+drawer1
+drawer2
+door1
+door2
+drawer1
+drawer2
+door1
+door2
+drawer1
+drawer2
+estimated axis
+estimated pivot
+flow
+segmented panel
+Fig. 6.
+Real-world manipulation examples. Each row shows the object
+followed by point-cloud visualizations at successive interaction steps. The
+rendered flow field shows how observed part motion drives the articulation
+belief to converge toward the true joint.
+world fine-tuning. The system comprises a YAM arm, parallel-
+jaw gripper, and RealSense D455 camera, mounted ∼0.65 m
+above and in front of the cabinet and extrinsically calibrated
+using an eye-to-hand ChArUco procedure. World-frame end-
+effector targets are converted into joint targets using the same
+damped least-squares IK as in simulation and executed by a
+safety-constrained controller with displacement clipping and
+command smoothing. The simulated camera uses the extrinsics
+while randomizing camera pose, calibration bias, and depth
+noise. Belief updates take 12 ms with constant per-step cost;
+flow is evaluated analytically at every observed point.
+SAM 2 [36] segments the target part using the cali-
+brated handle position projected into the first image. Since
+a prismatic-object mask may include the entire drawer box,
+a local surface-normal test retains the moving front face
+and provides its sliding direction, more reliably than the
+visible centroid, which can drift with the observed region.
+The mask is lifted through pixel correspondences, cropped to
+the workspace, and reduced to 4000 points by farthest-point
+sampling. For Eq. (2), trimmed nearest-neighbor ICP registers
+the initial masked cloud to each subsequent observation,
+warm-started from the accumulated transform; referencing the
+initial frame prevents compounding drift. The resulting rigid
+motion supplies the part-centroid displacement for revolute
+hypotheses and the front-face normal for prismatic hypotheses.
+We test unseen objects with revolute and prismatic joints
+varying in size, appearance, handle configuration, and hinge
+side (Fig. 6), conducting 10 trials per object with varied
+poses and arm reinitialization. From the closed-object point
+TABLE IV
+REAL-WORLD ARTICULATION ESTIMATION ERRORS AND MANIPULATION
+SUCCESS RATES. A TRIAL SUCCEEDS WHEN THE DOOR OPENS BY MORE
+THAN 30◦OR THE DRAWER BY MORE THAN 20% OF ITS OPENING RANGE.
+Object
+Axis (◦) ↓Pivot (cm) ↓SR (%) ↑
+Door 1
+2.5
+2.2
+60.0
+Door 2
+3.1
+2.6
+70.0
+Drawer 1
+1.7
+–
+90.0
+Drawer 2
+3.6
+–
+80.0
+cloud, the panel edge opposite the handle defines the reference
+revolute hinge, while the horizontal handle-to-base direction
+defines the prismatic axis. As reported in Table IV under
+its captioned criterion, the prior is obtained by running NAP
+once on a mesh extruded from one closed-state RGB-D frame,
+without annotation or interaction. Interaction reduces initial
+axis errors to 1.7–3.6◦, recovering axes within a few degrees
+and matching the simulation trend in Table I. Success reaches
+65% for revolute and 85% for prismatic trials. Consistent with
+simulation, prismatic motion immediately constrains transla-
+tion, whereas resolving a distant revolute pivot requires a
+sufficient swept arc. Six failures arise from the gripper not
+closing firmly on the handle, and four from mask leakage
+or late-episode self-occlusion during opening. These results
+demonstrate transfer without real-world training data.
+V. CONCLUSION
+We introduced a closed-loop framework to represent and
+reduce uncertainty over the kinematic structure of articulated
+objects that cannot be reliably determined from visual appear-
+ance alone. The system includes a particle-based belief over
+articulations initialized from a generative prior, a Bayesian
+update that refines this belief from the part motion observed
+during interaction, a flow field representation that renders
+the belief into the policy observation, and an information
+reward combined with task reward to encourage the policy
+to gather useful information while manipulating. Experiments
+show that our method improve manipulation, outperforming
+previous work. We then showed that interaction improves
+the articulation estimate, increasing joint-type accuracy and
+reducing axis and pivot errors. The policy also transfers zero-
+shot to four real-world objects while refining its articulation
+estimate and flow. Our work leaves several directions for future
+research. At present, we consider single-DoF joints covered by
+the initial hypothesis set, and the policy relies on a handle to
+grasp the part. The performance of our method is also limited
+when the robot fails to induce observable motion or when
+tracking is unreliable. It may be useful to extend our method
+to more complex and multi-part mechanisms.
+Acknowledgements The authors highly appreciate financial
+support through the grants NSF FRR 2220868, NSF IIS
+2212433, and ONR N00014-22-1-2677.
+REFERENCES
+[1] K. Hausman, S. Niekum, S. Osentoski, and G. S. Sukhatme, “Active
+articulation model estimation through interactive perception,” in 2015
+
+
+IEEE International Conference on Robotics and Automation (ICRA),
+2015, pp. 3305–3312.
+[2] S. Otte, J. Kulick, M. Toussaint, and O. Brock, “Entropy-based strategies
+for physical exploration of the environment’s degrees of freedom,” in
+2014 IEEE/RSJ International Conference on Intelligent Robots and
+Systems, 2014, pp. 615–622.
+[3] K. Ota, H.-Y. Tung, K. A. Smith, A. Cherian, T. K. Marks, A. Sullivan,
+A. Kanezaki, and J. B. Tenenbaum, “H-saur: Hypothesize, simulate,
+act, update, and repeat for understanding object articulations from
+interactions,” in 2023 IEEE International Conference on Robotics and
+Automation (ICRA), 2023, pp. 7272–7278.
+[4] B. Zhang, Y. Wang, Y. Wang, W. Wang, and Z. Zhang, “Active kinematic
+modeling for precise manipulation of unseen articulated objects,” IEEE
+Robotics and Automation Letters, vol. 11, no. 3, pp. 3254–3261, 2026.
+[5] Z. Jiang, C.-C. Hsu, and Y. Zhu, “Ditto: Building digital twins of
+articulated objects from interaction,” in 2022 IEEE/CVF Conference on
+Computer Vision and Pattern Recognition (CVPR).
+IEEE, 2022, pp.
+5606–5616.
+[6] D. Katz and O. Brock, “Manipulating articulated objects with interactive
+perception,” in 2008 IEEE International Conference on Robotics and
+Automation, ICRA 2008, May 19-23, 2008, Pasadena, California, USA.
+IEEE, 2008, pp. 272–277.
+[7] J. Sturm, C. Stachniss, and W. Burgard, “A probabilistic framework for
+learning kinematic models of articulated objects,” J. Artif. Intell. Res.,
+vol. 41, pp. 477–526, 2011.
+[8] Q. Yu, J. Wang, W. Liu, C. Hao, L. Liu, L. Shao, W. Wang, and
+C. Lu, “Gamma: Generalizable articulation modeling and manipulation
+for articulated objects,” in 2024 IEEE International Conference on
+Robotics and Automation (ICRA), 2024, pp. 5419–5426.
+[9] L. Ma, J. Meng, S. Liu, W. Chen, J. Xu, and R. Chen, “Sim2real2:
+Actively building explicit physics model for precise articulated object
+manipulation,” in 2023 IEEE International Conference on Robotics and
+Automation (ICRA), 2023, pp. 11 698–11 704.
+[10] H. Geng, Z. Li, Y. Geng, J. Chen, H. Dong, and H. Wang, “Partmanip:
+Learning cross-category generalizable part manipulation policy from
+point cloud observations,” in CVPR.
+IEEE, 2023, pp. 2978–2988.
+[11] Y. Wang, Z. Wang, M. Nakura, P. Bhowal, C. Kuo, Y. Chen,
+Z. Erickson, and D. Held, “Articubot: Learning universal articulated
+object manipulation policy via large scale simulation,” CoRR, vol.
+abs/2503.03045, 2025. [Online]. Available: https://doi.org/10.48550/a
+rXiv.2503.03045
+[12] T. Do, N. Gireesh, J. Wang, and H. Wang, “Watch less, feel more: Sim-
+to-real RL for generalizable articulated object manipulation via motion
+adaptation and impedance control,” in ICRA.
+IEEE, 2025, pp. 4806–
+4812.
+[13] K. Mo, L. Guibas, M. Mukadam, A. Gupta, and S. Tulsiani, “Where2act:
+From pixels to actions for articulated 3d objects,” in 2021 IEEE/CVF
+International Conference on Computer Vision (ICCV), 2021, pp. 6793–
+6803.
+[14] R. Wu, Y. Zhao, K. Mo, Z. Guo, Y. Wang, T. Wu, Q. Fan, X. Chen,
+L. J. Guibas, and H. Dong, “Vat-mart: Learning visual action trajectory
+proposals for manipulating 3d articulated objects,” in The Tenth
+International Conference on Learning Representations, ICLR 2022,
+Virtual Event, April 25-29, 2022.
+OpenReview.net, 2022. [Online].
+Available: https://openreview.net/forum?id=iEx3PiooLy
+[15] B. Eisner, H. Zhang, and D. Held, “Flowbot3d: Learning 3d articulation
+flow to manipulate articulated objects,” in Robotics: Science and Systems
+XVIII, New York City, NY, USA, June 27 - July 1, 2022, K. Hauser, D. A.
+Shell, and S. Huang, Eds., 2022.
+[16] Y. Li, W. H. Leng, Y. Fang, B. Eisner, and D. Held, “Flowbothd: History-
+aware diffuser handling ambiguities in articulated objects manipulation,”
+arXiv preprint arXiv:2410.07078, 2024.
+[17] N. Nie, S. Y. Gadre, K. Ehsani, and S. Song, “Structure from action:
+Learning interactions for 3d articulated object structure discovery,” in
+IROS, 2023, pp. 1222–1229.
+[18] Y. Wang, R. Wu, K. Mo, J. Ke, Q. Fan, L. J. Guibas, and H. Dong,
+“Adaafford: Learning to adapt manipulation affordance for 3d articulated
+objects via few-shot interactions,” in European conference on computer
+vision.
+Springer, 2022, pp. 90–107.
+[19] S. Ross, J. Pineau, S. Paquet, and B. Chaib-draa, “Online planning
+algorithms for pomdps,” J. Artif. Intell. Res., vol. 32, pp. 663–704, 2008.
+[20] D. Silver and J. Veness, “Monte-carlo planning in large pomdps,” in
+Advances in Neural Information Processing Systems 23: 24th Annual
+Conference on Neural Information Processing Systems 2010. Proceed-
+ings of a meeting held 6-9 December 2010, Vancouver, British Columbia,
+Canada, J. D. Lafferty, C. K. I. Williams, J. Shawe-Taylor, R. S. Zemel,
+and A. Culotta, Eds.
+Curran Associates, Inc., 2010, pp. 2164–2172.
+[21] Z. N. Sunberg and M. J. Kochenderfer, “Online algorithms for pomdps
+with continuous state, action, and observation spaces,” in Proceedings
+of the Twenty-Eighth International Conference on Automated Planning
+and Scheduling, ICAPS 2018, Delft, The Netherlands, June 24-29, 2018,
+M. de Weerdt, S. Koenig, G. R¨oger, and M. T. J. Spaan, Eds.
+AAAI
+Press, 2018, pp. 259–263.
+[22] R. Houthooft, X. Chen, Y. Duan, J. Schulman, F. D. Turck, and
+P. Abbeel, “VIME: variational information maximizing exploration,”
+in Advances in Neural Information Processing Systems 29: Annual
+Conference on Neural Information Processing Systems 2016, December
+5-10, 2016, Barcelona, Spain, D. D. Lee, M. Sugiyama, U. von Luxburg,
+I. Guyon, and R. Garnett, Eds., 2016, pp. 1109–1117.
+[23] M. Araya-L´opez, O. Buffet, V. Thomas, and F. Charpillet, “A POMDP
+extension with belief-dependent rewards,” in Advances in Neural In-
+formation Processing Systems 23: 24th Annual Conference on Neural
+Information Processing Systems 2010. Proceedings of a meeting held 6-
+9 December 2010, Vancouver, British Columbia, Canada, J. D. Lafferty,
+C. K. I. Williams, J. Shawe-Taylor, R. S. Zemel, and A. Culotta, Eds.
+Curran Associates, Inc., 2010, pp. 64–72.
+[24] M. Memmel, A. Wagenmaker, C. Zhu, D. Fox, and A. Gupta, “ASID:
+active exploration for system identification in robotic manipulation,”
+in The Twelfth International Conference on Learning Representations,
+ICLR 2024, Vienna, Austria, May 7-11, 2024.
+OpenReview.net, 2024.
+[25] A. Curtis, L. Kaelbling, and S. Jain, “Task-directed exploration in
+continuous pomdps for robotic manipulation of articulated objects,”
+in 2023 IEEE International Conference on Robotics and Automation
+(ICRA), 2023, pp. 3721–3728.
+[26] P. Xie, R. Chen, S. Chen, Y. Qin, F. Xiang, T. Sun, J. Xu, G. Wang, and
+H. Su, “Part-guided 3d rl for sim2real articulated object manipulation,”
+IEEE Robotics and Automation Letters, vol. 8, no. 11, pp. 7178–7185,
+2023.
+[27] J. Lei, C. Deng, B. Shen, L. J. Guibas, and K. Daniilidis, “NAP: neural
+3d articulation prior,” CoRR, vol. abs/2305.16315, 2023.
+[28] D. W. Scott, “On optimal and data-based histograms,” Biometrika,
+vol. 66, no. 3, pp. 605–610, 1979.
+[29] I. Ahmad and P.-E. Lin, “A nonparametric estimation of the entropy
+for absolutely continuous distributions (corresp.),” IEEE Transactions
+on Information Theory, vol. 22, no. 3, pp. 372–375, 1976.
+[30] J. Schulman, F. Wolski, P. Dhariwal, A. Radford, and O. Klimov, “Prox-
+imal policy optimization algorithms,” arXiv preprint arXiv:1707.06347,
+2017.
+[31] V. Makoviychuk, L. Wawrzyniak, Y. Guo, M. Lu, K. Storey, M. Macklin,
+D. Hoeller, N. Rudin, A. Allshire, A. Handa, and G. State, “Isaac gym:
+High performance gpu-based physics simulation for robot learning,”
+2021.
+[32] H. Geng, H. Xu, C. Zhao, C. Xu, L. Yi, S. Huang, and H. Wang,
+“Gapartnet: Cross-category domain-generalizable object perception and
+manipulation via generalizable and actionable parts,” in CVPR.
+IEEE,
+2023, pp. 7081–7091.
+[33] L. Tang, M. Jia, Q. Wang, C. P. Phoo, and B. Hariharan, “Emergent
+correspondence
+from
+image
+diffusion,”
+in
+Advances
+in
+Neural
+Information Processing Systems 36: Annual Conference on Neural
+Information Processing Systems 2023, NeurIPS 2023, New Orleans,
+LA, USA, December 10 - 16, 2023, A. Oh, T. Naumann, A. Globerson,
+K. Saenko, M. Hardt, and S. Levine, Eds., 2023. [Online]. Available:
+http://papers.nips.cc/paper\ files/paper/2023/hash/0503f5dce343a1d06
+d16ba103dd52db1-Abstract-Conference.html
+[34] Y. Kuang, J. Ye, H. Geng, J. Mao, C. Deng, L. J. Guibas,
+H. Wang, and Y. Wang, “RAM: retrieval-based affordance transfer for
+generalizable zero-shot robotic manipulation,” in Conference on Robot
+Learning, 6-9 November 2024, Munich, Germany, ser. Proceedings of
+Machine Learning Research, P. Agrawal, O. Kroemer, and W. Burgard,
+Eds., vol. 270.
+PMLR, 2024, pp. 547–565. [Online]. Available:
+https://proceedings.mlr.press/v270/kuang25a.html
+[35] X. Wang, T. Chen, Q. Yu, T. Xu, Z. Chen, Y. Fu, C. Lu, Y. Mu, and
+P. Luo, “Articulated object manipulation using online axis estimation
+with sam2-based tracking,” CoRR, vol. abs/2409.16287, 2024.
+[36] N. Ravi, V. Gabeur, Y.-T. Hu, R. Hu, C. Ryali, T. Ma, H. Khedr,
+R. R¨adle, C. Rolland, L. Gustafson et al., “Sam 2: Segment anything
+in images and videos,” in International Conference on Learning Repre-
+sentations, vol. 2025, 2025, pp. 28 085–28 128.

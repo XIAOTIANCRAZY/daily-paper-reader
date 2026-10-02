@@ -1,0 +1,1228 @@
+Query-Conditioned Articulation Estimation from a Single Image
+Abdelrhman Werby, Fabio Scaparro, Kai O. Arras
+Abstract— Enabling robots to estimate the kinematic param-
+eters of articulated objects unlocks a wide range of capabilities
+for interaction and manipulation. The estimation has to happen
+from the information the robot currently observes, often just a
+single RGB image of an object it has never seen before. Current
+single-image approaches couple articulation part segmentation
+with articulation estimation, making their predictions vulnerable
+to missed detections and incorrect part associations, and they
+regress metric 3D geometry that a single view fixes only up to
+scale. We present QueryArt, a model that estimates articulation
+parameters from a single RGB image, a 2D query point, and
+camera intrinsics. QueryArt is trained to estimate the 3D
+articulation geometry relative to the queried point and in
+units of its depth, which keeps its target identifiable from
+the image alone. A single depth measurement at the query point
+then supplies the scale and recovers the metric parameters.
+We train QueryArt on a curated mixture of synthetic and
+real-world articulation datasets. We evaluate QueryArt on
+several benchmarks and compare it against recent baselines.
+QueryArt outperforms recent baselines on most articulation
+metrics, including on out-of-distribution data. To demonstrate
+the model’s capabilities in real-world settings, we evaluate
+QueryArt on a mobile manipulator across 57 manipulation
+trials spanning 16 object parts and five viewpoint classes,
+achieving a 70.2% success rate. We provide code and videos at:
+https://abwerby.github.io/queryart/.
+I. INTRODUCTION
+Robots deployed in human-centered environments must
+interact with articulated objects such as doors, cabinets, draw-
+ers, and appliances [1], [2]. Successfully manipulating such
+objects requires estimating their underlying kinematic model,
+including the joint type, motion axis, and axis location. These
+parameters support a wide range of downstream capabilities,
+from navigating through closed doors to searching for objects
+inside cabinets and drawers. Ideally, a robot should infer them
+for an unseen object before physical interaction, using only
+the observations available from its current viewpoint.
+Single-view articulation estimation methods [3]–[6] jointly
+detect and segment movable parts and estimate their motion
+parameters from a single image. This formulation couples
+articulation estimation with part localization; as a result,
+a localization failure propagates directly to the kinematic
+prediction. Recent approaches [7], [8] instead predict a 3D
+interaction trajectory from a single image using a learned
+motion prior, but their output is not parameterized by an
+explicit revolute or prismatic joint model and therefore does
+not guarantee kinematic consistency by construction. Both
+families of methods regress metric 3D geometry directly
+A. Werby, F. Scaparro and K. O. Arras are with the Socially Intelligent
+Robotics Lab, Institute for Artificial Intelligence, University of Stuttgart, Ger-
+many. Email: abdelrhman.werby@ki.uni-stuttgart.de
+The authors thank the International Max Planck Research School for
+Intelligent Systems (IMPRS-IS) for supporting Abdelrhman Werby.
+RGB + Query
+Query Point
+3D axis
+Induced motion
+QueryArt
+Joint type
+Axis direction
+Axis location
+Fig. 1.
+QueryArt estimates articulation in a normalized coordinate space
+from a single RGB image and a 2D query point. Depth at the query
+point enables lifting the prediction to metric 3D space. The magenta arrow
+illustrates motion consistent with the predicted articulation. Bottom: real-
+world deployment on a mobile manipulator.
+from the image, although a single view determines the scene
+only up to scale. Methods such as USDNet [9] operate on
+complete 3D scene point clouds and jointly predict articulated-
+part segmentation and motion attributes; however, they require
+prior scene exploration. Video-based methods [10], [11] infer
+articulation by observing the articulated object in motion,
+requiring the object to be manipulated or observed in multiple
+states before its articulation can be estimated.
+To this end, we present QueryArt, a model for estimating
+articulation parameters from a single calibrated RGB image
+and a 2D query point on the articulated part (Fig. 1). It predicts
+the joint type, the 3D motion axis, and the query-relative
+axis location, normalized by the query point’s depth. This
+normalization makes the target invariant to uniform scaling of
+the scene. At inference time, obtaining the query point’s depth
+provides the metric scale, removing the need for the model
+to infer absolute size from appearance. Conditioning on an
+interaction point decouples the question of where to interact
+from the question of how the selected point moves, allowing
+the query to originate from a human click or an independent
+affordance-grounding system [12], [13]. The model com-
+bines a frozen visual foundation encoder [14], deformable
+arXiv:2610.01726v1  [cs.RO]  1 Oct 2026
+
+
+attention [15], and lightweight articulation-specific heads.
+QueryArt is trained on a curated mixture of two synthetic
+and three real-world articulation datasets. When the query
+point metric depth is available, a deterministic lifting step
+recovers the metric 3D motion axis. Across held-out splits
+of four training datasets and two datasets excluded from
+training entirely, QueryArt improves over recent single-image
+baselines on most articulation metrics, and 57 trials on a
+mobile manipulator show that its predictions are accurate
+enough to open furniture the model has never seen, at a
+70.2% success rate.
+Our main contributions are:
+• A query-conditioned formulation that models articula-
+tion estimation as regression of normalized articulation
+geometry, given a single calibrated RGB image and a
+2D query point.
+• An efficient architecture that combines high-resolution
+frozen visual foundation features and lightweight predic-
+tion heads with a compact, physically structured axis-
+hinge representation.
+• An extensive evaluation on synthetic and real-world
+articulation benchmarks, including out-of-distribution
+data, demonstrating improved articulation estimation
+over recent baselines.
+• Real-robot experiments showing that the predicted
+parameters support analytic motion generation and
+manipulation of previously unseen objects.
+II. RELATED WORK
+A. Single RGB-based Articulation Estimation
+Single-image articulation estimation, such as OPD and
+OPDMulti [3], [4], jointly detects openable parts and regresses
+their joint type, motion axis, and origin, coupling articulation
+estimation with part localization. 3DOI [16] predicts inter-
+action properties at a queried image location, including a
+projected 2D rotation axis, but does not recover a complete
+3D articulation model. CARTO [17] reconstructs the shape,
+pose, and joint state of multiple articulated objects from a
+single stereo RGB observation, but represents each object as a
+whole rather than conditioning on a queried interaction point.
+A3VLM [6] uses vision-language models to predict joint
+type and 3D motion axes from object-part boxes or textual
+descriptions, while other methods [7], [8] directly predict
+3D interaction trajectories from a single image using learned
+motion priors. Such methods do not explicitly parameterize
+motion as revolute or prismatic and therefore do not enforce
+the corresponding kinematic structure by construction.
+B. Articulation Estimation from 3D Observations
+Several approaches estimate articulation directly from
+3D geometry. ANCSH [18] estimates category-level part
+poses and joint parameters from a single depth image using
+a normalized coordinate hierarchy, while ScrewNet [19]
+predicts category-independent articulation models from depth
+observations using a screw-theoretic parameterization, and
+Zeng et al. [20] identify the articulation mechanism between
+part pairs from a single RGB-D frame. FlowBot++ [1] is the
+closest to our geometric parameterization, as it regresses the
+perpendicular displacement from every point of an object to
+the joint axis, which is the same quantity our model predicts
+at the query point. However, it operates on a point cloud
+and relies on a part segmentation mask, and it regresses the
+displacement in metric scale, which a single image cannot
+determine. DUST-Net [21] predicts distributions over articula-
+tion parameters from depth observations, explicitly modeling
+uncertainty over joint type, axis, and configuration. More
+recent scene-level methods [9] operate on reconstructed 3D
+point clouds to jointly segment articulated parts and estimate
+their motion parameters. Other approaches jointly recover
+object geometry and articulation from observations of multiple
+object states. Ditto [22] reconstructs articulated objects and
+estimates their kinematic models from observations before
+and after interaction, and Weng et al. [23] build digital
+twins of unknown articulated objects from two RGB-D scans.
+PARIS [24], ArtGS [25], and ScrewSplat [26] respectively
+optimize a part-level radiance, Gaussian, or screw-based
+representation jointly with the articulation parameters from
+multi-view observations of different joint states. While these
+methods benefit from explicit 3D geometry, they require
+depth, reconstructed scenes, or observations of multiple
+configurations, limiting their applicability when a robot
+encounters an unseen object from a single view.
+C. Multiple-Observation Articulation Estimation
+A complementary line of work infers articulation by
+observing how an object moves. Sturm et al. [27] fit
+and select rigid, revolute, and prismatic kinematic models
+from sequences of observed relative part poses, performing
+system identification after motion has been observed and
+thereby resolving ambiguities that appearance alone leaves
+open. Interactive-perception systems obtain this motion by
+manipulating the object themselves [28]–[30], which Ditto
+in the House [31] scales to room-scale scenes, while factor-
+graph formulations [32], [33] track articulated parts online and
+fuse visual with proprioceptive measurements. ArtiPoint [10]
+instead tracks parts through egocentric RGB-D sequences of
+human interaction. Although these methods provide accurate
+kinematic estimates from observed motion, they require
+multiple observations or an interaction trajectory before
+the articulation can be inferred. In contrast, we predict
+plausible articulation hypotheses before interaction from a
+single monocular observation.
+III. APPROACH
+A. Problem Formulation
+Given a single RGB image I, a pixel coordinate query
+q = (u, v), and camera intrinsics matrix K, our goal is to
+estimate the articulation parameters of the queried point. We
+predict a joint type j ∈{static, revolute, prismatic}. For static
+parts, no further geometry is needed. For moving parts a unit
+direction ˆa ∈S2 describes the axis of motion. The direction is
+identified up to sign: a and −a describe the same unoriented
+axis. The direction fully specifies a prismatic articulation,
+therefore we just predict ˆapris. A revolute part additionally
+
+
+RGB Image
+Deformable 
+Cross Attention
+Self Attention
+Feed forward
+x2
+TYPE
+LINE
+TYPE
+LINE
+Joint Type
+Offset
+MLP + orthogonal
+projection on ârev
+Prismatic axis
+MLP + norm.
+Bilinear sample at q
+Fourier Encoding
+Calibration Vector
+DINOv3
+ViT-B/16
+L=4
+Revolute axis
+MLP + norm.
+Image Encoder
+Decoder
+Detection Heads
+static / revolute /prismatic
+Outputs
+Prismatic direction
+Revolute direction
+Normalized offset
+Query q 
+(u,v)
+Query-normalized revolute axis
+L=final
+Query Encoder
+Feature Pyramid
+RGB image
+Fig. 2.
+QueryArt architecture. A frozen vision transformer (DINOv3 ViT-B/16) encodes the RGB image; early and final-block features are fused into a
+three-scale pyramid Fimg. The query embedding Fq is built from the same point-wise visual features sampled at the query, a Fourier encoding of the pixel
+location, and a hand-crafted calibration vector derived from the intrinsics K. Fq is added to two randomly initialized learned tokens: TYPE and LINE, which
+then pass through two transformer blocks that cross-attend to Fimg and self-attend to each other. The prediction heads output the joint classification and the
+axis parameters for both moving types. Right: the predicted geometry in query-normalized coordinates. The offset ˆr is orthogonal to ˆarev, so it points from
+the unprojected query ˜p to the nearest point ˜o = ˜p + ˆr on the revolute axis. Expressing ˆr in units of the query depth makes the axis recoverable up to a
+single global scale factor.
+needs the origin of the joint axis. In particular, the axis is a
+3D line
+ℓ(a, o) = {o + λa | λ ∈R},
+(1)
+where the joint origin o is any point on the line.
+Let p = [xq, yq, zq] be the unprojected query point and let
+o⊥be the projection of p on ℓ(a, o). Among the infinitely
+many joint origins, o⊥is the closest to p. Together with the
+axis ˆarev, the network predicts the offset r such that:
+r = o⊥−p,
+r⊤ˆarev = 0.
+(2)
+This allows the network not to commit to a specific joint
+origin.
+Since a single RGB image cannot identify ℓ(a, o) on a
+metric scale, we remove the dependency on depth information
+by expressing the axis offset r in a space normalized by the
+query depth. Let ˜p = K−1[u, v, 1]⊤be the unprojected query
+point at unit depth, so that p = zq˜p. Then the predicted offset
+in normalized coordinates is ˆr = r/zq. The predicted revolute
+axis in normalized camera coordinates is
+˜ℓ= {˜o + λˆarev | λ ∈R} ,
+(3)
+where:
+˜o = ˜p + ˆr,
+ˆr⊤ˆarev = 0.
+(4)
+Here, ˜o = o⊥/zq is normalized by the query depth, and ˆr
+points from the normalized query position to the nearest point
+on the predicted axis line ˜ℓand perpendicular to the axis
+direction ˆarev. Although expressed using three coordinates,
+ˆr has only two degrees of freedom once ˆarev is fixed. This
+representation specifies a complete 3D revolute axis up to
+global scale. During training, the ground-truth query depth is
+used to construct the normalized geometric targets in Eq. (10).
+During inference, if metric query depth zq is available, we
+can recover the metric-scale 3D axis line position as ˆo = zq˜o,
+while its direction ˆarev remains unchanged.
+B. Model Architecture
+QueryArt’s architecture is illustrated in Fig. 2. Given a
+single RGB image I, a pixel query q = (u, v), and camera
+intrinsics K, we proceed as follows:
+We start by extracting image features using the frozen
+DINOv3 ViT-B/16 image encoder [14], producing 768-
+channel patch features with a stride of 16. Following [34],
+we keep early features in block 4 and late features in the final
+block of the transformer model. Then we add the two features,
+weighted by a learned sigmoid scalar, and project them to
+256 channels. Estimating articulation parameters requires
+the model to locate fine-grained details and understand the
+global semantic context; therefore, we construct a three-scale
+feature pyramid [35] using three sequential 3×3 convolutional
+blocks, downsampling the fused features Fimg ∈RS×S×256
+to resolutions S, S/2, and S/4, respectively.
+We create a query embedding that combines three com-
+plementary signals. First, we normalize the pixel query
+to ¯q ∈[0, 1]2, then encode it using a Fourier positional
+encoding [36]. Second, we bilinearly sample the final DINOv3
+block feature at the query location, giving a 768-channel
+descriptor. Third, we construct the calibration vector
+c =
+
+˜px, ˜py, fx
+D , fy
+D
+⊤
+,
+D = max(W, H),
+(5)
+where W and H are the width and height of the source image.
+Each of the three signals is projected into a 256-dimensional
+embedding by an MLP, then summed to produce Fq ∈R256.
+The query embedding Fq is added to two randomly initialized
+learned task tokens, producing a TYPE token and a LINE
+token. Two decoder layers update them: first, the tokens are
+
+
+updated through deformable cross-attention [15] to the three-
+scale image pyramid; then, self-attention is applied between
+the Type and Line tokens, followed by a token-wise feed-
+forward network.
+C. Articulation Heads
+We use four output heads. A single MLP classifier reads
+the TYPE token and predicts the joint type p(j | I, q, K).
+Two independent MLPs read the LINE token and produce
+raw revolute and prismatic direction vectors, ˆvrev ∈R3 and
+ˆvpris ∈R3, respectively. Normalizing each vector gives ˆarev
+and ˆapris. During inference, the predicted type j selects the
+relevant head. The fourth head predicts revolute axis offset
+relative to the query point conditioned on both the LINE
+token and the predicted revolute axis direction ˆarev. To make
+this conditioning invariant to axis sign, we use outer-product
+embedding to embed the axis:
+ψ(a) = [a2
+x, a2
+y, a2
+z, axay, axaz, ayaz]⊤.
+(6)
+This embedding is continuous and satisfies ψ(a) = ψ(−a).
+Separate MLPs project the LINE token and ψ(ˆarev) to 64
+dimensions. Their sum passes to a linear layer to produce a
+raw vector vr ∈R3. We then enforce
+ˆr =
+ I3 −ˆarevˆa⊤
+rev
+
+vr,
+(7)
+where I3 is the identity matrix. This removes the component
+parallel to the axis and guarantees Eq. (4). Direction and
+location are coupled through both the conditioning embedding
+and this differentiable projection; the location loss, therefore,
+also updates the direction head.
+D. Losses
+Joint type is supervised with a three-class cross-entropy
+Ltype = −log p(j∗| I, q, K)
+(8)
+For each moving type k ∈{rev, pris}, we use an unsigned
+cosine loss to supervise the axis direction vector
+Laxis = 1 −
+ˆa⊤
+k a∗
+(9)
+For a revolute joint, let a∗be the unit ground-truth direction,
+o∗any metric point on its axis, and z∗
+q the ground-truth query
+depth. The normalized offset target is
+r∗=
+ I3 −a∗a∗⊤ o∗
+z∗q
+−˜p
+
+.
+(10)
+It is invariant to reversing a∗, shifting o∗along its axis,
+and jointly scaling the metric scene and query depth. We
+supervise the normalized offset using Smooth L1 applied to
+the Euclidean prediction error:
+Loffset = SmoothL1β(∥ˆr −r∗∥2) ,
+β = 0.02.
+(11)
+The base objective is
+L = Ltype + 2Lrev
+axis + 2Lpris
+axis + 2Loffset.
+(12)
+Each term is averaged over its eligible examples, with empty
+terms set to zero. Eligibility depends on ground-truth labels,
+not predicted type, so an incorrect type prediction cannot
+suppress geometric supervision.
+E. Implementation
+The DINOv3 encoder is frozen; only the query encoder,
+decoder, and output heads are trained, for a total of 4.7M
+learnable parameters. We initialize these from scratch and
+train with AdamW on one NVIDIA RTX5090 GPU, with
+a learning rate of 10−4, weight decay of 5 × 10−4, and a
+cosine schedule decaying to 10−6 over at most 15 full epochs.
+The optimizer batch size is 64, dropout is 0.1, and gradients
+are clipped to norm 5. Learned computations use bfloat16
+mixed precision, while geometric normalization, projection,
+and losses use float32. We train for at least four full epochs,
+then run early stopping with a patience of three.
+IV. EXPERIMENTS
+A. Data Generation
+We train our model on five sources: three real-world
+datasets, Articulate3D [9], SceneFun3D [38], and Multi-
+Scan [37], and two synthetic ones, PartNet-Mobility [39]
+and HSSD [40]. The real-world datasets provide articulation
+annotations and posed RGB frames, with depth obtained from
+sensors or reconstructed geometry; for the synthetic datasets,
+we render RGB-D frames and extract joint parameters from
+the simulator. We sample frames containing visible articulated
+parts and apply source-specific viewpoint-diversity checks.
+We convert source articulation annotations or simulator joint
+parameters into the camera coordinates of each sampled
+frame. Query points are sampled from visible part masks,
+with adaptive margins from mask boundaries, and retained
+only when their depth is valid and lies between 0.05 and
+3 m. For the real-world training datasets, we retain the source
+train, validation, and test splits.
+Across all splits, Articulate3D contributes 2.6K views and
+68K query points covering 1.3K distinct moving parts across
+182 scenes. SceneFun3D contributes 3.4K views and 74K
+query points covering 1K distinct moving parts across 176
+scene visits. MultiScan contributes 5K views and 146K query
+points covering 2.2K distinct moving parts across 227 scans
+of 96 environments. Our PartNet-Mobility renders contribute
+30K views and 578K query points from 843 distinct object
+assets. Our HSSD renders contribute 22K views and 300K
+query points from 3K object instances, representing 1.5K
+distinct assets across 161 scenes. HSSD is used for training
+only; the held-out evaluations in Tab. I cover the remaining
+four sources.
+To assess our model’s generalization capabilities, we
+construct out-of-distribution evaluation sets from two real-
+world datasets, Arti4D [10] and HOI! [41]. We convert their
+annotations into the same representation and apply the same
+depth-validity checks, with additional manual annotation.
+These datasets provide additional real-world environments
+and viewpoints, and are used only for evaluation; they are
+excluded from our training data.
+B. Experimental Setup
+Metrics and aggregation. For all experiments and all
+baselines, we average query errors across all views of each
+unique articulation, then average equally across articulations
+
+
+TABLE I
+HELD-OUT SPLIT RESULTS ON FOUR DATASETS. ARTICULATION-MACRO MEANS GROUPED BY GT JOINT TYPE. R/P : REVOLUTE/PRISMATIC; AXIS
+ERROR IN DEGREES, RECALL IN %, dh AND RMSE IN METERS. †: NATIVE TRAJECTORY PROTOCOL.
+Articulate3D [9]
+Axis error ↓Type recall ↑dh ↓
+RMSE ↓
+S ↑
+Method
+R
+P
+R
+P
+(m)
+R
+P
+(%)
+OPDFormer-C [4] 16.07
+22.18 61.11
+4.76 0.874
+0.315
+0.083
+6.30
+MOPD [5]
+11.94
+— 87.37
+0.00 0.823
+0.281
+— 11.53
+A3VLM [6]
+36.34
+77.26
+7.85
+0.12 0.768
+0.318
+0.270
+0.00
+3DOI [16]
+5.13
+3.30 67.01
+86.05 0.297
+0.091
+0.012 48.54
+VidBot [7]
+—
+—
+—
+—
+— 0.302† 0.304†
+—
+MolmoMotion [8]
+—
+—
+—
+—
+— 0.106† 0.166†
+—
+QueryArt (Ours)
+6.12
+9.38 96.20
+89.25 0.201
+0.062
+0.035 70.03
+MultiScan [37]
+Axis error ↓Type recall ↑dh ↓
+RMSE ↓
+S ↑
+Method
+R
+P
+R
+P
+(m)
+R
+P
+(%)
+OPDFormer-C [4]
+2.47
+28.38 87.14
+24.09 0.171
+0.062
+0.102 42.66
+MOPD [5]
+3.28
+26.67 87.11
+21.06 0.196
+0.072
+0.094 39.83
+A3VLM [6]
+33.10
+48.30 12.38
+0.86 0.540
+0.199
+0.174
+1.28
+3DOI [16]
+3.32
+52.51 73.95
+37.41 0.326
+0.104
+0.183 23.93
+VidBot [7]
+—
+—
+—
+—
+— 0.273† 0.213†
+—
+MolmoMotion [8]
+—
+—
+—
+—
+— 0.122† 0.204†
+—
+QueryArt (Ours)
+3.83
+13.32 95.00
+94.00 0.208
+0.068
+0.049 60.12
+SceneFun3D [38]
+Axis error ↓Type recall ↑dh ↓
+RMSE ↓
+S ↑
+Method
+R
+P
+R
+P
+(m)
+R
+P
+(%)
+OPDFormer-C [4] 10.93
+15.78 82.48
+36.68 0.554
+0.157
+0.056 30.29
+MOPD [5]
+9.95
+16.40 90.02
+42.62 0.502
+0.135
+0.059 28.93
+A3VLM [6]
+54.54
+—
+5.96
+0.00 0.740
+0.246
+—
+0.16
+3DOI [16]
+18.41
+16.33 39.19
+69.17 0.414
+0.127
+0.058 33.32
+VidBot [7]
+—
+—
+—
+—
+— 0.152† 0.111†
+—
+MolmoMotion [8]
+—
+—
+—
+—
+— 0.135† 0.237†
+—
+QueryArt (Ours)
+7.51
+6.56 89.41
+95.59 0.236
+0.068
+0.025 77.17
+PartNet-Mobility (synthetic) [39]
+Axis error ↓Type recall ↑dh ↓
+RMSE ↓
+S ↑
+Method
+R
+P
+R
+P
+(m)
+R
+P
+(%)
+OPDFormer-C [4] 40.47
+29.20 49.27
+33.81 0.620
+0.239
+0.107
+4.05
+MOPD [5]
+36.49
+16.61 57.48
+22.08 0.761
+0.294
+0.061
+7.28
+A3VLM [6]
+54.64
+61.84 46.10
+23.55 0.524
+0.216
+0.216
+3.21
+3DOI [16]
+15.48
+52.51 14.55
+25.40 0.471
+0.148
+0.182
+5.48
+VidBot [7]
+—
+—
+—
+—
+— 0.179† 0.206†
+—
+MolmoMotion [8]
+—
+—
+—
+—
+— 0.185† 0.189†
+—
+QueryArt (Ours)
+5.18
+3.61 96.52
+93.81 0.078
+0.031
+0.013 89.67
+within each dataset. Axis error is arccos(|ˆa⊤a∗|) in degrees.
+For revolute joints, define the predicted line point nearest to
+the ground-truth query p as ˆoq = ˆo + ˆaˆa⊤(p −ˆo). The 3D
+hinge error is
+eh = ∥(I3 −a∗a∗⊤)(ˆoq −o∗)∥2.
+(13)
+This error is invariant to the positions of the supplied origins
+along their respective lines.
+As the end goal of this method is to generate trajectory
+motion for a robotic manipulator to execute, we also report
+the field RMSE, which measures the induced motion of up to
+16 ground-truth surface query points on the same articulated
+part at {±10◦, ±20◦, ±30◦} (revolute) or {0.1, 0.2, 0.3} m
+(prismatic). For M points and T states,
+eRMSE = min
+σ=±1
+s
+1
+MT
+X
+m,t
+∥ˆTσ(t)Xm −T ∗(t)Xm∥2
+2. (14)
+We report the hinge error and the field RMSE in meters,
+and type recall as a percentage. Like the axis error and type
+recall, the field RMSE is reported separately for ground-
+truth revolute and prismatic joints. All geometric errors
+are evaluated only on correctly classified examples with
+valid inputs for the corresponding metric. We also report
+the overall success rate S, which requires a correct joint-
+type prediction, axis error ≤10◦, and field RMSE ≤0.1 m.
+Incorrect types and missing or invalid predictions count as
+failures. Success is computed for each query, averaged within
+each articulation, and then averaged equally across ground-
+truth moving articulations.
+Baselines. We compare against two types of baselines.
+The first set, OPDFormer-C [4], MOPD [5], 3DOI [16],
+and A3VLM [6], predicts articulation parameters and part
+segments from a single RGB image. The second set, Mol-
+moMotion [8] and VidBot [7], predicts a point trajectory in
+3D and requires additional privileged inputs. For methods
+that segment multiple parts within the image, we select the
+predicted articulation parameters whose mask overlaps the
+GT queries on the target object. We provide VidBot with
+GT 3D start and end points, and MolmoMotion with up to
+eight 3D query points and a language prompt. For both, we
+report only the RMSE metric. For all baselines, we use their
+publicly released pretrained checkpoints.
+C. Results
+In-distribution. Table I reports results on four held-out
+dataset splits. QueryArt achieves the highest overall success
+rate on every dataset, ranging from 60.12% on MultiScan to
+89.67% on PartNet-Mobility, and the highest prismatic type
+recall throughout. Among articulation-parameter methods, it
+also achieves the lowest hinge error on three datasets and
+the lowest field RMSE for both joint types on SceneFun3D
+and PartNet-Mobility. Some baselines remain stronger on
+individual conditional metrics: OPDFormer-C achieves lower
+revolute axis, hinge, and field RMSE errors on MultiScan,
+where MOPD and 3DOI also achieve a lower revolute
+axis error; 3DOI achieves lower axis errors for both joint
+types and lower prismatic field RMSE on Articulate3D; and
+MOPD achieves marginally higher revolute type recall on
+SceneFun3D. For VidBot [7] and MolmoMotion [8], neither
+
+
+Fig. 3.
+Qualitative articulation predictions on objects unseen during training: Arti4D [10] (left), self-captured scenes (middle), HOI! [41] (right). Each
+scene is queried at several points. Top: input image with the query points and the projected motion trajectory. Bottom: the same predictions on the point
+cloud, with the predicted axis of motion and the 3D trajectory.
+of which predicts an explicit joint model, we report only
+the field RMSE under their native trajectory protocol (†).
+QueryArt is more accurate than both on both joint types
+on all four datasets, despite both being trained on far larger
+amounts of general motion data. This suggests that a compact
+model trained for a specific motion type can be more accurate
+than a general trajectory prior while using far fewer trainable
+parameters.
+Out-of-distribution.
+We
+evaluate
+generalization
+on
+HOI! [41] and Arti4D [10], both excluded from training. As
+shown in Tab. II, QueryArt achieves the highest overall suc-
+cess rates of 69.08% and 80.05%, respectively. On correctly
+classified examples, its hinge errors are 0.170 and 0.119 m,
+with revolute/prismatic field RMSEs of 0.059/0.022 m and
+0.042/0.014 m. Among articulation-parameter methods, Quer-
+yArt achieves the best results on all reported metrics except
+revolute axis error on HOI!, where 3DOI performs better
+(9.64◦versus 10.55◦), and prismatic type recall on Arti4D,
+where 3DOI is slightly higher (84.90% versus 83.82%). These
+results demonstrate generalization to unseen object instances
+within the same broad categories under different viewing
+conditions, including the egocentric viewpoints of Arti4D.
+Figure 3 illustrates predictions on unseen Arti4D, HOI!, and
+self-captured articulated objects.
+D. Real-Robot Experiments
+To test whether our model’s predictions can drive real-
+world manipulation of articulated objects and generalize to
+unseen object instances, we design and conduct a real-world
+experiment on a mobile manipulation platform.
+Hardware Setup. We use a Boston Dynamics Spot
+equipped with an arm, and capture RGB images directly
+from its in-hand camera at a resolution of 640 × 480px.
+QueryArt is deployed on an NVIDIA Jetson Thor payload
+which runs on the back of the robot.
+Experiment Setup. We run the experiment on common
+articulated furniture, such as drawers, cabinets, and doors,
+none of which the model saw during training. The experiments
+consist of 57 trials, spanning 16 articulated object parts, with
+viewpoints grouped into five classes: close, mid, far, left,
+and right. For each object and view, we manually supply
+a candidate grasping point at which we query the model.
+This is typically the handle of the object, so that the same
+location serves both as the query pixel for the model and as
+the robot’s grasp target. Combined with the metric depth from
+the in-hand depth camera at the query pixel, the prediction
+yields the metric-scale 3D joint parameters. The robot then
+grasps the handle using its own proprietary API, and executes
+the trajectory to interact with the part. The opening trajectory
+is directly extracted from QueryArt’s prediction and followed
+using a Cartesian controller for the end-effector. A trial is
+counted as a success if the robot opens the part to the target
+range of motion: 20 cm for prismatic joints and 45◦for
+revolute joints, and as a failure otherwise. All trials that
+were unsuccessful due to grasping failure were not scored
+and not counted in the final results. The remaining failure
+cases are directly attributable to wrong predictions.
+Results. Across the 57 trials, the robot succeeded in 40
+and failed in 17, a 70.2% success rate. Figure 4 breaks the
+trials down by viewpoint class. We observe that the model’s
+accuracy degrades when the viewpoint is at an extreme angle
+or when the camera cannot fully observe the object.
+E. Ablation Studies
+To further understand the contribution of key components
+in our model, we conducted an ablation study on Articulate3D
+and HOI! [41]. As shown in Tab. III, removing the feature
+pyramid increases the revolute axis error and the hinge local-
+ization error on both datasets, showing that the model relies
+on the multiscale feature map to locate the hinge. Replacing
+
+
+TABLE II
+OUT-OF-DISTRIBUTION RESULTS ON HOI! [41] AND ARTI4D [10], BOTH EXCLUDED FROM TRAINING. COLUMNS AND SYMBOLS AS IN TAB. I.
+HOI! [41]
+Axis error ↓Type recall ↑dh ↓
+RMSE ↓
+S ↑
+Method
+R
+P
+R
+P
+(m)
+R
+P
+(%)
+OPDFormer-C [4] 21.69
+— 93.79
+0.00 0.471
+0.170
+— 15.14
+MOPD [5]
+15.90
+6.11 93.75
+2.59 0.545
+0.178
+0.023 18.70
+A3VLM [6]
+51.76
+88.13
+4.44
+0.41 0.570
+0.231
+0.300
+0.00
+3DOI [16]
+9.64
+6.90 69.50
+76.56 0.241
+0.090
+0.025 58.58
+VidBot [7]
+—
+—
+—
+—
+— 0.125† 0.074†
+—
+MolmoMotion [8]
+—
+—
+—
+—
+— 0.076† 0.179†
+—
+QueryArt (Ours) 10.55
+5.89 98.21
+77.84 0.170
+0.059
+0.022 69.08
+Arti4D [10]
+Axis error ↓Type recall ↑dh ↓
+RMSE ↓
+S ↑
+Method
+R
+P
+R
+P
+(m)
+R
+P
+(%)
+OPDFormer-C [4] 18.26
+16.17 36.86
+17.37 0.425
+0.103
+0.061 12.15
+MOPD [5]
+37.73
+15.98 66.67
+35.96 0.472
+0.145
+0.057 21.93
+A3VLM [6]
+35.72
+86.14 26.74
+4.61 0.335
+0.120
+0.295
+1.19
+3DOI [16]
+10.94
+15.56 45.13
+84.90 0.232
+0.077
+0.055 52.68
+VidBot [7]
+—
+—
+—
+—
+— 0.107† 0.082†
+—
+MolmoMotion [8]
+—
+—
+—
+—
+— 0.097† 0.198†
+—
+QueryArt (Ours)
+6.55
+3.82 91.73
+83.82 0.119
+0.042
+0.014 80.05
+Mid (15 trials)
+73.3% success
+Close (10 trials)
+80.0% success
+Far (8 trials)
+62.5% success
+Left (10 trials)
+60.0% success
+Right (14 trials)
+71.4% success
+Success
+40 trials
+70.2% overall
+Failure
+17 trials
+29.8% overall
+Fig. 4.
+Real-robot trials by viewpoint. Each trial is assigned to one of five
+viewpoint classes and flows to a success or a failure outcome.
+deformable cross-attention with dense cross-attention reduces
+the revolute axis error on both datasets but increases the hinge
+error and the revolute field RMSE, indicating that deformable
+attention contributes more to localizing the hinge than to
+orienting the axis. Removing the learned camera-context
+embedding improves revolute axis error and prismatic recall
+on the out-of-distribution dataset, yet increases the hinge error
+on both.
+Predicting the metric offset ˆr directly, and recovering ˆo
+from it using the ground-truth query depth, is worse on most
+metrics. A single view fixes the scene only up to a global
+scale, so the metric offset is not identifiable from the image
+and has to come from a learned size prior. Normalizing
+by the query depth removes that dependence: at inference
+the measured depth multiplies both the query ray and the
+offset, so the measurement sets the scale exactly, whereas a
+directly regressed metric offset retains whatever scale was
+learned during training. Consistently with this, the degradation
+concentrates on the hinge error, while the scale-free axis
+direction is not consistently affected. Finally, replacing the
+two direction heads with a single head shared by both joint
+types also degrades most metrics, indicating that revolute and
+prismatic directions are better estimated separately.
+TABLE III
+ABLATIONS ON ARTICULATE3D AND HOI! [41]. FULL: ABSOLUTE
+VALUES; OTHER ROWS: SIGNED CHANGE FROM FULL, RECALL IN
+PERCENTAGE POINTS. UNITS AS IN TAB. I. GREEN : IMPROVEMENT;
+RED : REGRESSION.
+Axis error ↓Type recall ↑
+dh ↓
+RMSE ↓
+S ↑
+Variant
+R
+P
+R
+P
+(m)
+R
+P
+(%)
+Articulate3D
+Full
+6.12
+9.38 96.20
+89.25
+0.201
+0.062
+0.035 70.03
+w/o pyramid
++2.11
+-1.49 +2.27
++0.24 +0.0270 +0.0074
+-0.0056 -1.51
+dense attention
+-0.55
+-0.07 +2.14
+-1.95 +0.0603 +0.0137
+-0.0003 -6.48
+w/o calibration
++0.41 +0.46 -0.35
+-1.71 +0.0177 +0.0045 +0.0017 -2.73
+metric + GT depth -0.17 +0.88 +2.43
+-3.08 +0.0090 -0.0003 +0.0033 +1.24
+shared direction
++0.75 +0.75 -0.19
++1.67 +0.0021 +0.0028 +0.0028 -0.13
+HOI! (OOD)
+Full
+10.55
+5.89 98.21
+77.84
+0.170
+0.059
+0.022 69.08
+w/o pyramid
++0.39 +0.25 -0.53
+-1.89 +0.0135 +0.0029 +0.0008 -1.34
+dense attention
+-1.80 +2.49 -1.14
++1.90 +0.0556 +0.0119 +0.0093 -5.80
+w/o calibration
+-1.95 +0.49 -1.55
++6.23 +0.0179 +0.0027 +0.0016 +2.45
+metric + GT depth +0.09 +0.13 -0.56
++0.43 +0.0165 +0.0024 +0.0005 -0.63
+shared direction
++1.36 +1.99 -1.56
+-3.20 +0.0199 +0.0058 +0.0073 -4.58
+V. CONCLUSION
+In this work, we presented QueryArt, a model for estimating
+articulation parameters from a single calibrated RGB image
+and a 2D query point. The model predicts the joint type,
+the 3D axis direction, and, for revolute joints, the 3D
+offset of the axis relative to the query point, expressed in
+units of the query point’s depth. Unlike prior single-image
+methods, which first segment the moving part and regress
+metric 3D parameters directly, this formulation decouples
+where to interact from how the selected point moves; the
+depth-normalized representation removes the dependence on
+an absolute scale that a single view cannot resolve. This
+formulation aligns well with robotics settings where the
+robot must interact with unseen objects based on a single
+observation. Across four held-out splits of in-distribution data
+and two out-of-distribution datasets, QueryArt demonstrates
+robust performance and transfers to unseen object instances
+and viewpoints without retraining or fine-tuning. Real-robot
+trials further show that the predicted parameters can be
+scaled to metric units from a single depth reading, applied
+
+
+to previously unseen furniture, and used to successfully
+manipulate it.
+VI. ACKNOWLEDGEMENTS
+This work has been supported by the German Federal Ministry of
+Research, Technology, and Space (BMFTR) under the Robotics Institute
+Germany (RIG).
+REFERENCES
+[1] H. Zhang, B. Eisner, and D. Held, “FlowBot++: Learning generalized
+articulated objects manipulation via articulation projection,” in Proc.
+Conf. Robot Learn., 2023.
+[2] A. Gupta, M. Zhang, R. Sathua, and S. Gupta, “Opening cabinets and
+drawers in the real world using a commodity mobile manipulator,” in
+Proc. Robot.: Sci. Syst., 2025.
+[3] H. Jiang, Y. Mao, M. Savva, and A. X. Chang, “Opd: Single-view 3d
+openable part detection,” in Proc. Eur. Conf. Comput. Vis., 2022.
+[4] X. Sun, H. Jiang, M. Savva, and A. Chang, “Opdmulti: Openable part
+detection for multiple objects,” in Proc. Int. Conf. 3D Vis., 2024.
+[5] S. Li, X. Chen, H. Cheng, G. Zhou, H. Zhao, and G. Tian, “Locate
+n’ rotate: Two-stage openable part detection with foundation model
+priors,” in Proc. Asian Conf. Comput. Vis., 2024.
+[6] S. Huang, H. Chang, Y. Liu, Y. Zhu, H. Dong, A. Boularias, P. Gao, and
+H. Li, “A3vlm: Actionable articulation-aware vision language model,”
+in Proc. Conf. Robot Learn., 2025.
+[7] H. Chen, B. Sun, A. Zhang, M. Pollefeys, and S. Leutenegger, “Vidbot:
+Learning generalizable 3d actions from in-the-wild 2d human videos
+for zero-shot robotic manipulation,” in Proc. IEEE Conf. Comput. Vis.
+Pattern Recognit., 2025.
+[8] J. Zhang, C. Zheng, Y. Yang, M. Argus, R. Soraki, W. Han, T. Anderson,
+C.-L. Li, S. Liu, J. Duan, Z. Ren, J. Zhang, and R. Krishna,
+“Molmomotion: Forecasting point trajectories in 3d with language
+instruction,” arXiv:2606.18558, 2026.
+[9] A.-M. Halacheva, Y. Miao, J.-N. Zaech, X. Wang, L. Van Gool, and
+D. P. Paudel, “Articulate3d: Holistic understanding of 3d scenes as
+universal scene description,” in Proc. IEEE Int. Conf. Comput. Vis.,
+2025.
+[10] A. Werby, M. Büchner, A. Röfer, C. Huang, W. Burgard, and A. Valada,
+“Articulated object estimation in the wild,” in Proc. Conf. Robot Learn.,
+2025.
+[11] M. Buechner, A. Roefer, T. Engelbracht, T. Welschehold, Z. Bauer,
+H. Blum, M. Pollefeys, and A. Valada, “Articulated 3d scene graphs
+for open-world mobile manipulation,” arXiv:2602.16356, 2026.
+[12] W. Yuan, J. Duan, V. Blukis, W. Pumacay, R. Krishna, A. Murali,
+A. Mousavian, and D. Fox, “Robopoint: A vision-language model for
+spatial affordance prediction in robotics,” in Proc. Conf. Robot Learn.,
+2025.
+[13] M. Deitke, C. Clark, S. Lee, R. Tripathi, et al., “Molmo and pixmo:
+Open weights and open data for state-of-the-art vision-language models,”
+in Proc. IEEE Conf. Comput. Vis. Pattern Recognit., 2025.
+[14] O. Siméoni, H. V. Vo, M. Seitzer, F. Baldassarre, M. Oquab, C. Jose,
+V. Khalidov, M. Szafraniec, S. Yi, M. Ramamonjisoa, F. Massa,
+D. Haziza, L. Wehrstedt, J. Wang, T. Darcet, T. Moutakanni, L. Sentana,
+C. Roberts, A. Vedaldi, J. Tolan, J. Brandt, C. Couprie, J. Mairal,
+H. Jégou, P. Labatut, and P. Bojanowski, “DINOv3,” arXiv:2508.10104,
+2025.
+[15] X. Zhu, W. Su, L. Lu, B. Li, X. Wang, and J. Dai, “Deformable DETR:
+Deformable transformers for end-to-end object detection,” in Proc. Int.
+Conf. Learn. Represent., 2021.
+[16] S. Qian and D. F. Fouhey, “Understanding 3d object interaction from
+a single image,” in Proc. IEEE Int. Conf. Comput. Vis., 2023.
+[17] N. Heppert, M. Z. Irshad, S. Zakharov, K. Liu, R. A. Ambrus, J. Bohg,
+A. Valada, and T. Kollar, “CARTO: Category and joint agnostic
+reconstruction of ARTiculated objects,” in Proc. IEEE Conf. Comput.
+Vis. Pattern Recognit., 2023.
+[18] X. Li, H. Wang, L. Yi, L. J. Guibas, A. L. Abbott, and S. Song,
+“Category-level articulated object pose estimation,” in Proc. IEEE Conf.
+Comput. Vis. Pattern Recognit., 2020.
+[19] A. Jain, R. Lioutikov, C. Chuck, and S. Niekum, “ScrewNet: Category-
+independent articulation model estimation from depth images using
+screw theory,” in Proc. IEEE Int. Conf. Robot. Autom., 2021.
+[20] V. Zeng, T. E. Lee, J. Liang, and O. Kroemer, “Visual identification of
+articulated object parts,” in Proc. IEEE/RSJ Int. Conf. Intell. Robots
+Syst., 2021.
+[21] A. Jain, S. Giguere, R. Lioutikov, and S. Niekum, “Distributional
+depth-based estimation of object articulation models,” in Proc. Conf.
+Robot Learn., 2022.
+[22] Z. Jiang, C.-C. Hsu, and Y. Zhu, “Ditto: Building digital twins of
+articulated objects from interaction,” in Proc. IEEE Conf. Comput. Vis.
+Pattern Recognit., 2022.
+[23] Y. Weng, B. Wen, J. Tremblay, V. Blukis, D. Fox, L. Guibas, and
+S. Birchfield, “Neural implicit representation for building digital twins
+of unknown articulated objects,” in Proc. IEEE Conf. Comput. Vis.
+Pattern Recognit., 2024.
+[24] J. Liu, A. Mahdavi-Amiri, and M. Savva, “PARIS: Part-level recon-
+struction and motion analysis for articulated objects,” in Proc. IEEE
+Int. Conf. Comput. Vis., 2023.
+[25] Y. Liu, B. Jia, R. Lu, J. Ni, S.-C. Zhu, and S. Huang, “Building
+interactable replicas of complex articulated objects via gaussian
+splatting,” in Proc. Int. Conf. Learn. Represent., 2025.
+[26] S. Kim, J. Ha, Y. H. Kim, Y. Lee, and F. C. Park, “Screwsplat: An end-
+to-end method for articulated object recognition,” arXiv:2508.02146,
+2025.
+[27] J. Sturm, C. Stachniss, and W. Burgard, “A probabilistic framework
+for learning kinematic models of articulated objects,” J. Artif. Intell.
+Res., vol. 41, pp. 477–526, 2011.
+[28] D. Katz, M. Kazemi, J. A. Bagnell, and A. Stentz, “Interactive
+segmentation, tracking, and kinematic modeling of unknown 3D
+articulated objects,” in Proc. IEEE Int. Conf. Robot. Autom., 2013.
+[29] S. Pillai, M. R. Walter, and S. Teller, “Learning articulated motions
+from visual demonstration,” in Proc. Robot.: Sci. Syst., 2014.
+[30] R. Martín-Martín, S. Höfer, and O. Brock, “An integrated approach
+to visual perception of articulated objects,” in Proc. IEEE Int. Conf.
+Robot. Autom., 2016.
+[31] C.-C. Hsu, Z. Jiang, and Y. Zhu, “Ditto in the house: Building
+articulation models of indoor scenes through interactive perception,”
+in Proc. IEEE Int. Conf. Robot. Autom., 2023.
+[32] N. Heppert, T. Migimatsu, B. Yi, C. Chen, and J. Bohg, “Category-
+independent articulated object tracking with factor graphs,” in Proc.
+IEEE/RSJ Int. Conf. Intell. Robots Syst., 2022.
+[33] R. Buchanan, A. Röfer, J. Moura, A. Valada, and S. Vijayakumar,
+“Online estimation of articulated objects with factor graphs using vision
+and proprioceptive sensing,” in Proc. IEEE Int. Conf. Robot. Autom.,
+2024.
+[34] R. Ranftl, A. Bochkovskiy, and V. Koltun, “Vision transformers for
+dense prediction,” in Proc. IEEE Int. Conf. Comput. Vis., 2021.
+[35] T.-Y. Lin, P. Dollár, R. Girshick, K. He, B. Hariharan, and S. Belongie,
+“Feature pyramid networks for object detection,” in Proc. IEEE Conf.
+Comput. Vis. Pattern Recognit., 2017.
+[36] B. Mildenhall, P. P. Srinivasan, M. Tancik, J. T. Barron, R. Ramamoor-
+thi, and R. Ng, “NeRF: Representing scenes as neural radiance fields
+for view synthesis,” in Proc. Eur. Conf. Comput. Vis., 2020.
+[37] Y. Mao, Y. Zhang, H. Jiang, A. X. Chang, and M. Savva, “MultiScan:
+Scalable RGBD scanning for 3D environments with articulated objects,”
+in Proc. Adv. Neural Inf. Process. Syst., 2022.
+[38] A. Delitzas, A. Takmaz, F. Tombari, R. Sumner, M. Pollefeys, and
+F. Engelmann, “SceneFun3D: Fine-grained functionality and affordance
+understanding in 3D scenes,” in Proc. IEEE Conf. Comput. Vis. Pattern
+Recognit., 2024.
+[39] F. Xiang, Y. Qin, K. Mo, Y. Xia, H. Zhu, F. Liu, M. Liu, H. Jiang,
+Y. Yuan, H. Wang, L. Yi, A. X. Chang, L. J. Guibas, and H. Su,
+“SAPIEN: A SimulAted part-based interactive ENvironment,” in Proc.
+IEEE Conf. Comput. Vis. Pattern Recognit., 2020.
+[40] M. Khanna, Y. Mao, H. Jiang, S. Haresh, B. Shacklett, D. Batra,
+A. Clegg, E. Undersander, A. X. Chang, and M. Savva, “Habitat
+synthetic scenes dataset (HSSD-200): An analysis of 3D scene scale
+and realism tradeoffs for ObjectGoal navigation,” in Proc. IEEE Conf.
+Comput. Vis. Pattern Recognit., 2024.
+[41] T. Engelbracht, R. Zurbrügg, M. Wohlrapp, M. Büchner, A. Val-
+ada, M. Pollefeys, H. Blum, and Z. Bauer, “Hoi! A multimodal
+dataset for force-grounded, cross-view articulated manipulation,”
+arXiv:2512.04884, 2025.

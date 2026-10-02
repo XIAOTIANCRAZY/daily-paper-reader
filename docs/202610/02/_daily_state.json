@@ -1,0 +1,185 @@
+{
+  "date": "20261002",
+  "date_label": "",
+  "generated_at": "2026-10-02 23:12:37 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2610.01726v1",
+      "route": "202610/02/2610.01726v1-query-conditioned-articulation-estimation-from-a-single-image",
+      "title": "Query-Conditioned Articulation Estimation from a Single Image",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "从单张RGB图像估计铰接运动学参数",
+      "first_seen_at": "2026-10-02 23:12:37 UTC",
+      "updated_at": "2026-10-02 23:12:37 UTC"
+    },
+    {
+      "paper_id": "2609.36553v1",
+      "route": "202610/02/2609.36553v1-learning-to-explore-hidden-kinematics-for-articulated-object-manipulation",
+      "title": "Learning to Explore Hidden Kinematics for Articulated Object Manipulation",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "对铰接物体关节类型与参数的贝叶斯信念估计",
+      "first_seen_at": "2026-10-02 23:12:37 UTC",
+      "updated_at": "2026-10-02 23:12:37 UTC"
+    },
+    {
+      "paper_id": "2610.01863v1",
+      "route": "202610/02/2610.01863v1-litereality-agent-an-agentic-system-for-interactable-3d-indoor-scene-reconstruction",
+      "title": "LiteReality-Agent: An Agentic System for Interactable 3D Indoor Scene Reconstruction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-scn-gen"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "智能体编码harness重建铰接可仿真三维室内场景",
+      "first_seen_at": "2026-10-02 23:12:37 UTC",
+      "updated_at": "2026-10-02 23:12:37 UTC"
+    },
+    {
+      "paper_id": "2609.36024v2",
+      "route": "202610/02/2609.36024v2-codimrecon-agentic-reconstruction-of-sim-ready-3d-scenes-with-deformable-curves-surfaces-and-volumes",
+      "title": "CoDimRecon: Agentic Reconstruction of Sim-Ready 3D Scenes with Deformable Curves, Surfaces, and Volumes",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "从多视角观测智能体重建含刚体与铰接物体的场景",
+      "first_seen_at": "2026-10-02 23:12:37 UTC",
+      "updated_at": "2026-10-02 23:12:37 UTC"
+    },
+    {
+      "paper_id": "2609.36380v1",
+      "route": "202610/02/2609.36380v1-lego-anything-coding-agents-for-3d-scene-reconstruction",
+      "title": "LEGO-Anything: Coding Agents for 3D Scene Reconstruction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-scn-gen"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "编码智能体迭代编写Blender代码重建三维场景",
+      "first_seen_at": "2026-10-02 23:12:37 UTC",
+      "updated_at": "2026-10-02 23:12:37 UTC"
+    },
+    {
+      "paper_id": "2609.36777v1",
+      "route": "202610/02/2609.36777v1-code4scene-benchmarking-coding-agents-for-constructing-and-editing-3d-scenes",
+      "title": "Code4Scene: Benchmarking Coding Agents for Constructing and Editing 3D Scenes",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-scn-gen"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "编码智能体依据语言规格构建与编辑三维场景",
+      "first_seen_at": "2026-10-02 23:12:37 UTC",
+      "updated_at": "2026-10-02 23:12:37 UTC"
+    },
+    {
+      "paper_id": "2609.37067v1",
+      "route": "202610/02/2609.37067v1-fact-fidelity-aware-construction-of-articulated-twins",
+      "title": "FACT: Fidelity-Aware Construction of Articulated Twins",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "智能体构建铰接孪生并保证运动与接触保真度",
+      "first_seen_at": "2026-10-02 23:12:37 UTC",
+      "updated_at": "2026-10-02 23:12:37 UTC"
+    },
+    {
+      "paper_id": "2609.39135v1",
+      "route": "202610/02/2609.39135v1-asking-the-world-generalist-physical-reasoning-through-agentic-world-modeling-and-probing",
+      "title": "Asking the World: Generalist Physical Reasoning through Agentic World Modeling and Probing",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "通过智能体世界建模与探测推断潜在物理属性与动力学",
+      "first_seen_at": "2026-10-02 23:12:37 UTC",
+      "updated_at": "2026-10-02 23:12:37 UTC"
+    },
+    {
+      "paper_id": "2610.02023v1",
+      "route": "202610/02/2610.02023v1-sphere-adaptive-vr-indoor-scene-generation-via-llm-enhanced-spatial-preference-learning-and-human-in-the-loop-rl",
+      "title": "SPHERE: Adaptive VR Indoor Scene Generation via LLM-Enhanced Spatial Preference Learning and Human-in-the-Loop RL",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-scn-gen"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "基于LLM的三维室内场景生成与人机交互创作",
+      "first_seen_at": "2026-10-02 23:12:37 UTC",
+      "updated_at": "2026-10-02 23:12:37 UTC"
+    },
+    {
+      "paper_id": "2610.00904v1",
+      "route": "202610/02/2610.00904v1-screw-attention-rigid-body-algebra-inside-a-transformer",
+      "title": "Screw Attention: Rigid-Body Algebra Inside a Transformer",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "在注意力中编码铰接刚体的关节螺旋与相对位姿",
+      "first_seen_at": "2026-10-02 23:12:37 UTC",
+      "updated_at": "2026-10-02 23:12:37 UTC"
+    },
+    {
+      "paper_id": "2610.01742v1",
+      "route": "202610/02/2610.01742v1-world-motion-models-flexible-sequence-modeling-of-se3-trajectories",
+      "title": "World Motion Models: Flexible Sequence Modeling of SE(3) Trajectories",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "统一铰接物体的SE(3)轨迹先验",
+      "first_seen_at": "2026-10-02 23:12:37 UTC",
+      "updated_at": "2026-10-02 23:12:37 UTC"
+    }
+  ]
+}
