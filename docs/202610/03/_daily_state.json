@@ -1,0 +1,73 @@
+{
+  "date": "20261003",
+  "date_label": "",
+  "generated_at": "2026-10-03 22:02:02 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2610.01863v1",
+      "route": "202610/03/2610.01863v1-litereality-agent-an-agentic-system-for-interactable-3d-indoor-scene-reconstruction",
+      "title": "LiteReality-Agent: An Agentic System for Interactable 3D Indoor Scene Reconstruction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-scn-gen"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "用LLM编码智能体与observe-edit-verify harness构建铰接三维场景",
+      "first_seen_at": "2026-10-03 22:02:02 UTC",
+      "updated_at": "2026-10-03 22:02:02 UTC"
+    },
+    {
+      "paper_id": "2609.37067v1",
+      "route": "202610/03/2609.37067v1-fact-fidelity-aware-construction-of-articulated-twins",
+      "title": "FACT: Fidelity-Aware Construction of Articulated Twins",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "以智能体方式构建兼顾几何接触与动态保真度的铰接孪生体",
+      "first_seen_at": "2026-10-03 22:02:02 UTC",
+      "updated_at": "2026-10-03 22:02:02 UTC"
+    },
+    {
+      "paper_id": "2610.01742v1",
+      "route": "202610/03/2610.01742v1-world-motion-models-flexible-sequence-modeling-of-se3-trajectories",
+      "title": "World Motion Models: Flexible Sequence Modeling of SE(3) Trajectories",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "统一铰接物体与动态场景的SE(3)轨迹先验",
+      "first_seen_at": "2026-10-03 22:02:02 UTC",
+      "updated_at": "2026-10-03 22:02:02 UTC"
+    },
+    {
+      "paper_id": "2609.36454v1",
+      "route": "202610/03/2609.36454v1-dynamichoi-coupled-dynamics-for-physics-aware-hoi-reconstruction",
+      "title": "DynamicHOI: Coupled Dynamics for Physics-aware HOI Reconstruction",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "用铰接逆动力学与牛顿-欧拉动力学进行物理感知重建",
+      "first_seen_at": "2026-10-03 22:02:02 UTC",
+      "updated_at": "2026-10-03 22:02:02 UTC"
+    }
+  ]
+}
