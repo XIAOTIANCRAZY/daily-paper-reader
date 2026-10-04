@@ -1,0 +1,143 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-04T22:01:12.821961+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 3,
+    "deep_cap": 7,
+    "deep_selected": 3,
+    "quick_candidates": 0,
+    "quick_skim_target": 12,
+    "quick_selected": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2609.37067v1",
+      "source": "arxiv",
+      "title": "FACT: Fidelity-Aware Construction of Articulated Twins",
+      "abstract": "Visually plausible articulated assets may still fail during contact interactions or exhibit inaccurate motion. We present FACT (Fidelity-Aware Construction of Articulated Twins), an agentic framework that progressively constructs articulated twins to improve geometry, contact, and dynamic fidelity. The agent drives an evidence--diagnosis--revision loop on a shared editable representation, selecting measurements and model edits using quantitative feedback, while numerical tools execute and validate the updates. It reconstructs editable articulated geometry from images through feature planning, targeted measurements, and diagnostic refinement. On this reference, it repairs collision proxies through task-aware local repartitioning before fidelity-constrained compression. Finally, it constructs response models from passive-response videos, using simulation residuals to guide model revision and constrained physical parameter fitting. Experiments show that FACT improves geometric reconstruction over baselines, enables more reliable interaction with simpler collision proxies, and better reproduces held-out physical responses than direct parameter inference.",
+      "authors": [
+        "Kuixiang Shao",
+        "Chuansen Nie",
+        "Yinuo Bai",
+        "Jiayuan Gu",
+        "Jingyi Yu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-09-29T09:04:34+00:00",
+      "link": "https://arxiv.org/pdf/2609.37067v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "agentic construction of articulated twins with dynamic and contact fidelity",
+      "llm_evidence_cn": "智能体构建具动力学与接触保真度的铰接孪生",
+      "llm_evidence": "智能体构建具动力学与接触保真度的铰接孪生",
+      "canonical_evidence": "智能体构建具动力学与接触保真度的铰接孪生",
+      "llm_tldr_en": "FACT is an agentic framework that reconstructs editable articulated twins from images via an evidence-diagnosis-revision loop, improving geometry, contact, and dynamic fidelity of articulated assets.",
+      "llm_tldr_cn": "针对铰接资产虽视觉逼真却在接触交互中失效或运动不准确的问题，本文提出FACT智能体框架。它在共享可编辑表示上运行证据-诊断-修正循环，依据量化反馈选择测量与模型编辑，并由数值工具执行验证。方法能从图像重建可编辑铰接几何，通过任务感知局部重划分修复碰撞代理，再进行保真度约束压缩。结果提升了铰接物体的几何、接触与动态保真度，为铰接物体的运动学与物理属性建模提供了新思路。",
+      "llm_tldr": "针对铰接资产虽视觉逼真却在接触交互中失效或运动不准确的问题，本文提出FACT智能体框架。它在共享可编辑表示上运行证据-诊断-修正循环，依据量化反馈选择测量与模型编辑，并由数值工具执行验证。方法能从图像重建可编辑铰接几何，通过任务感知局部重划分修复碰撞代理，再进行保真度约束压缩。结果提升了铰接物体的几何、接触与动态保真度，为铰接物体的运动学与物理属性建模提供了新思路。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.01863v1",
+      "source": "arxiv",
+      "title": "LiteReality-Agent: An Agentic System for Interactable 3D Indoor Scene Reconstruction",
+      "abstract": "We present LiteReality-Agent, an agentic system for reconstructing real indoor environments as realistic, articulated, and simulation-ready 3D scenes from RGB-D scans. At its core, LiteReality-Agent formulates 3D reconstruction as a coding problem, in which a coding agent gathers evidence using specialised tools and iteratively edits a Python script, Room.py, which can be executed to produce a 3D digital twin of the room. With this formulation, we develop a robust observe-edit-verify harness that supports evidence gathering, measurement, verification, layout optimisation, simulation readiness, and quality control throughout the reconstruction process. LiteReality-Agent produces high-quality reconstructions suitable for simulation and downstream embodied AI tasks. Furthermore, as agent capabilities continue to improve rapidly, the system introduced by LiteReality-Agent remains a strong orchestration framework for future agents: it equips them with specialised tools, structured workflows, and robust verification mechanisms that substantially improve reconstruction quality and reliability. We demonstrate that LiteReality-Agent produces reconstructions that are more geometrically accurate, visually realistic, and simulation-compatible than those generated by recent frontier models, such as Astra and Fable. We therefore view LiteReality-Agent as a practical and important building block for robust real-to-sim systems. Both the source code and the data-capture application are publicly available. Code:https://github.com/LiteReality/LiteReality-Agent/",
+      "authors": [
+        "Zhening Huang",
+        "Yueyan Li",
+        "Johnathan Chiu",
+        "Xiaoyang Lyu",
+        "Matt Zhou",
+        "Yuxin Yao",
+        "Joan Lasenby",
+        "Shangzhe Wu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.GR",
+        "cs.RO"
+      ],
+      "published": "2026-10-01T15:25:35+00:00",
+      "link": "https://arxiv.org/pdf/2610.01863v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LLM coding agent with observe-edit-verify harness for articulated 3D scene reconstruction",
+      "llm_evidence_cn": "以编码智能体与观察-编辑-验证harness构建铰接三维场景",
+      "llm_evidence": "以编码智能体与观察-编辑-验证harness构建铰接三维场景",
+      "canonical_evidence": "以编码智能体与观察-编辑-验证harness构建铰接三维场景",
+      "llm_tldr_en": "LiteReality-Agent casts 3D indoor reconstruction as a coding problem where an LLM coding agent iteratively edits a Room.py script to build articulated, simulation-ready digital twins from RGB-D scans via an observe-edit-verify harness.",
+      "llm_tldr_cn": "针对真实室内环境重建难以兼顾铰接结构与仿真可用性的问题，LiteReality-Agent把三维重建形式化为编程任务，由编码智能体借助专用工具收集证据并迭代修改Room.py脚本，配合观察-编辑-验证的harness完成测量、布局优化与质量控制，最终生成可交互、可直接仿真的高质量三维数字孪生，为智能体驱动的场景构建提供了新范式。",
+      "llm_tldr": "针对真实室内环境重建难以兼顾铰接结构与仿真可用性的问题，LiteReality-Agent把三维重建形式化为编程任务，由编码智能体借助专用工具收集证据并迭代修改Room.py脚本，配合观察-编辑-验证的harness完成测量、布局优化与质量控制，最终生成可交互、可直接仿真的高质量三维数字孪生，为智能体驱动的场景构建提供了新范式。",
+      "llm_tags": [
+        "query:d-scn-gen"
+      ],
+      "matched_query_tag": "query:d-scn-gen",
+      "matched_query_text": "language model agent for 3d scene construction",
+      "matched_requirement_id": "req-14",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.01742v1",
+      "source": "arxiv",
+      "title": "World Motion Models: Flexible Sequence Modeling of SE(3) Trajectories",
+      "abstract": "Equipping artificial agents with spatial intelligence requires a comprehensive generative prior over the dynamic 3D world. We propose World Motion Models (WMMs) that capture \"what was, is, and will be where across time\" via sparse SE(3) pose trajectories. WMMs are built on the observation that elements of dynamic scenes can be well approximated by a set of rigid SE(3) trajectories, a minimal yet expressive primitive for 4D modeling. This representation unifies articulated objects, human bodies, hand-object interactions, piecewise-rigid scene dynamics, camera motion, and even robot states and actions into a single shared space. Given this representation, we cast the joint distribution of these entities as a flexible sequence modeling problem, utilizing flow-matching with per-token noise levels. Coupled with a context token mechanism for non-sequential conditioning, this formulation supports any-to-any marginal conditioning across an arbitrary number of entities and time steps. Tasks such as future prediction, motion infilling, model-predictive control, inverse kinematics, cross-embodiment retargeting, and policy learning all reduce to the application of different masks over the same network. Experiments on 6 diverse applications of 3D vision and robotics demonstrate the versatility and flexibility of WMMs with strong performance.",
+      "authors": [
+        "Jiahui Lei",
+        "Qianqian Wang",
+        "Trevor Darrell",
+        "Angjoo Kanazawa"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-10-01T14:13:24+00:00",
+      "link": "https://arxiv.org/pdf/2610.01742v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "sparse SE(3) pose trajectories unify articulated objects and rigid dynamics",
+      "llm_evidence_cn": "稀疏SE(3)位姿轨迹统一铰接物体与刚性动态",
+      "llm_evidence": "稀疏SE(3)位姿轨迹统一铰接物体与刚性动态",
+      "canonical_evidence": "稀疏SE(3)位姿轨迹统一铰接物体与刚性动态",
+      "llm_tldr_en": "World Motion Models represent dynamic scenes as sparse SE(3) pose trajectories, unifying articulated objects, humans and hand-object interaction, and cast their joint distribution as flexible sequence modeling for 4D generative priors.",
+      "llm_tldr_cn": "为赋予智能体空间智能，需要动态三维世界的生成先验，而现有表示难以统一各类刚性运动与铰接结构。本文提出世界运动模型WMM，用稀疏SE(3)位姿轨迹刻画动态场景，将铰接物体、人体、手物交互、相机运动乃至机器人状态统一到共享空间。作者把这些实体的联合分布建模为灵活的序列建模问题。该表示以极简原语实现富有表达力的四维动态建模，为动态世界生成提供统一框架。",
+      "llm_tldr": "为赋予智能体空间智能，需要动态三维世界的生成先验，而现有表示难以统一各类刚性运动与铰接结构。本文提出世界运动模型WMM，用稀疏SE(3)位姿轨迹刻画动态场景，将铰接物体、人体、手物交互、相机运动乃至机器人状态统一到共享空间。作者把这些实体的联合分布建模为灵活的序列建模问题。该表示以极简原语实现富有表达力的四维动态建模，为动态世界生成提供统一框架。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": []
+}

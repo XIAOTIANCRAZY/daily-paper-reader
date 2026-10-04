@@ -1,0 +1,57 @@
+{
+  "date": "20261004",
+  "date_label": "",
+  "generated_at": "2026-10-04 22:03:23 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.37067v1",
+      "route": "202610/04/2609.37067v1-fact-fidelity-aware-construction-of-articulated-twins",
+      "title": "FACT: Fidelity-Aware Construction of Articulated Twins",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "智能体构建具动力学与接触保真度的铰接孪生",
+      "first_seen_at": "2026-10-04 22:03:23 UTC",
+      "updated_at": "2026-10-04 22:03:23 UTC"
+    },
+    {
+      "paper_id": "2610.01863v1",
+      "route": "202610/04/2610.01863v1-litereality-agent-an-agentic-system-for-interactable-3d-indoor-scene-reconstruction",
+      "title": "LiteReality-Agent: An Agentic System for Interactable 3D Indoor Scene Reconstruction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-scn-gen"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "以编码智能体与观察-编辑-验证harness构建铰接三维场景",
+      "first_seen_at": "2026-10-04 22:03:23 UTC",
+      "updated_at": "2026-10-04 22:03:23 UTC"
+    },
+    {
+      "paper_id": "2610.01742v1",
+      "route": "202610/04/2610.01742v1-world-motion-models-flexible-sequence-modeling-of-se3-trajectories",
+      "title": "World Motion Models: Flexible Sequence Modeling of SE(3) Trajectories",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "稀疏SE(3)位姿轨迹统一铰接物体与刚性动态",
+      "first_seen_at": "2026-10-04 22:03:23 UTC",
+      "updated_at": "2026-10-04 22:03:23 UTC"
+    }
+  ]
+}

@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-03</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-04</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 4 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 3 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>2</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-03 22:02:02 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-04 22:03:23 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,10 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共生成 4 篇推荐（精读 2 篇，速读 2 篇）</p>
-<p>精读：《LiteReality-Agent: An Agentic System for Interactable 3D Indoor Scene Reconstruction》（9.0/10）, 《FACT: Fidelity-Aware Construction of Articulated Twins》（8.0/10）</p>
-<p>速读：《World Motion Models: Flexible Sequence Modeling of SE(3) Trajectories》（7.0/10）, 《DynamicHOI: Coupled Dynamics for Physics-aware HOI Reconstruction》（6.0/10）</p>
-<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
+<p>今日精读3篇，榜单亮出两篇9.0分佳作，聚焦具身智能与3D场景重建方向。</p>
+<p>最值得看的是两条线：FACT 解决铰接物体数字孪生的高保真构建，LiteReality-Agent 让智能体自动重建可交互的室内3D场景。</p>
+<p>建议普通读者先挑这两篇的演示视频和开源代码上手，重点体会&quot;重建出来就能直接交互&quot;这一趋势。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -81,12 +80,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">2 篇</strong>
+    <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="LiteReality-Agent: An Agentic System for Interactable 3D Indoor Scene Reconstruction">LiteReality-Agent: An Agentic System for Interactable 3D Indoor Scene Reconstruction</span></li><li><span class="dpr-home-dashboard-paper-title" title="FACT: Fidelity-Aware Construction of Articulated Twins">FACT: Fidelity-Aware Construction of Articulated Twins</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FACT: Fidelity-Aware Construction of Articulated Twins">FACT: Fidelity-Aware Construction of Articulated Twins</span></li><li><span class="dpr-home-dashboard-paper-title" title="LiteReality-Agent: An Agentic System for Interactable 3D Indoor Scene Reconstruction">LiteReality-Agent: An Agentic System for Interactable 3D Indoor Scene Reconstruction</span></li><li><span class="dpr-home-dashboard-paper-title" title="World Motion Models: Flexible Sequence Modeling of SE(3) Trajectories">World Motion Models: Flexible Sequence Modeling of SE(3) Trajectories</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">d-artic-kin <strong>1</strong></span><span class="dpr-home-dashboard-tag">d-scn-gen <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">d-artic-kin <strong>2</strong></span><span class="dpr-home-dashboard-tag">d-scn-gen <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -94,12 +93,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">2 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="World Motion Models: Flexible Sequence Modeling of SE(3) Trajectories">World Motion Models: Flexible Sequence Modeling of SE(3) Trajectories</span></li><li><span class="dpr-home-dashboard-paper-title" title="DynamicHOI: Coupled Dynamics for Physics-aware HOI Reconstruction">DynamicHOI: Coupled Dynamics for Physics-aware HOI Reconstruction</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">d-artic-kin <strong>2</strong></span></div>
+
 </section>
 </div>
 
