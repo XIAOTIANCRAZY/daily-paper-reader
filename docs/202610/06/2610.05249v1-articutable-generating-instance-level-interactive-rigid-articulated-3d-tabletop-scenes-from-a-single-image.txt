@@ -1,0 +1,1760 @@
+ARTICUTABLE: GENERATING INSTANCE-LEVEL
+INTERACTIVE RIGID-ARTICULATED 3D TABLETOP
+SCENES FROM A SINGLE IMAGE
+Kai Lv*,1
+Yibo Yin*,2
+Lijun Guo1
+Heng Fan3
+Kaihao Zhang4
+Xingping Dong†,1
+1School of Computer Science, Wuhan University
+2 ´Ecole Polytechnique F´ed´erale de Lausanne (EPFL), Switzerland
+3Department of Computer Science and Engineering, University of North Texas
+4Australian National University
+kailv1013@whu.edu.cn, yibo.yin@epfl.ch, xingpingdong@whu.edu.cn
+Code: github.com/bryceyin13/articutable-code
+Input Image
+Reconstructed Articulated Scene
+Figure 1: Single-image reconstruction of articulated tabletop scenes. Given one RGB image
+(left), ArticuTable reconstructs an input-view-consistent 3D scene containing rigid and articulated
+objects. Renderings of the same scene under different joint configurations (right) demonstrate part-
+level articulation while preserving the arrangement of object instances.
+ABSTRACT
+Embodied agents benefit from 3D environments that combine visual fidelity to
+real-world observations with physical interactivity. Existing single-image tabletop
+reconstruction methods recover plausible scene geometry but typically represent
+objects as monolithic rigid bodies, limiting interaction to whole-object rigid mo-
+tion and precluding executable part-level articulation. Meanwhile, recovering a
+scene layout consistent with the input view remains challenging because a single
+observation may admit multiple plausible pose–scale configurations. We present
+ArticuTable, a single-image 3D tabletop reconstruction framework that recov-
+ers both executable part-level articulation and an input-view-consistent scene lay-
+out. For object modeling, we introduce generation-robust articulation modeling
+(GRAM), which combines joint fitting guided by a multimodal large language
+model with semantic state reasoning to recover reliable joint parameters and valid
+motion ranges from imperfect monolithic proxy meshes, thereby converting them
+into executable articulated assets. For scene layout, we introduce progressive
+semantic-geometric scene registration (PSGSR), which progressively narrows the
+pose–scale search space under complementary metric, planar, and input-view con-
+straints and resolves orientation ambiguity through structure-aware semantic cor-
+respondences, yielding a scene layout consistent with the input view. We further
+contribute ArticuTable-100, a curated collection of 100 simulation-ready tabletop
+*Equal contribution.
+†Corresponding author.
+1
+arXiv:2610.05249v1  [cs.CV]  4 Oct 2026
+
+
+scenes. Extensive evaluation, including a user study, demonstrates strong perfor-
+mance across visual fidelity, input-view consistency, articulation quality, physical
+plausibility, and simulation readiness.
+1
+INTRODUCTION
+Rapid advances in embodied intelligence have increased demand for large-scale collections of 3D
+scenes. Such scenes should faithfully reproduce object appearance and spatial layout while encod-
+ing the physical and kinematic properties required for interaction (Yang et al., 2024; Nasiriany et al.,
+2024; Lee et al., 2025; Pfaff et al., 2025; Xia et al., 2026; Li et al., 2026a). Tabletop scenes are par-
+ticularly important because they concentrate diverse object instances and dense spatial relationships
+within compact workspaces, making them natural testbeds for fine-grained manipulation (Wang
+et al., 2026; Luo et al., 2026). However, manually authoring visually faithful and physically inter-
+active tabletop scenes is labor-intensive and difficult to scale. Automatically reconstructing such
+scenes from readily available monocular RGB images therefore offers a practical and scalable al-
+ternative. Recent single-image 3D scene reconstruction methods have made substantial progress
+in decomposing scenes into object instances, reconstructing per-instance geometry, and recovering
+their spatial arrangements (Huang et al., 2025; Yao et al., 2025; Wang et al., 2026).
+A prevalent paradigm in these works is instance-wise reconstruction and registration (G¨umeli et al.,
+2022; Yao et al., 2025; Wang et al., 2026). Under this paradigm, each object is independently re-
+constructed or retrieved as a 3D asset and then registered to a shared scene coordinate frame by
+estimating its pose and scale from the input view. Although this factorization provides detailed
+object geometry and appearance, the resulting assets typically remain monolithic surface meshes.
+Consequently, reconstructed scenes support object-level rigid-body interaction but lack physically
+meaningful part-level motion. A natural solution is to apply existing articulation modeling methods
+to the reconstructed assets. However, many existing methods are trained and quantitatively evaluated
+on curated articulated-object datasets whose assets have well-defined part structures and articulation
+annotations (Xiang et al., 2020; Li et al., 2026b). Image-generated proxy meshes differ substan-
+tially: part boundaries may be fused, contact geometry may be distorted, and internal structures may
+be incomplete. These artifacts can make joint parameters estimated from local geometry unreliable
+and cause motion ranges inferred from learned priors or geometric constraints to yield implausible
+articulated states. Consequently, directly applying existing articulation modeling methods to gener-
+ated meshes may fail to produce reliable executable articulated assets. Scene registration presents
+a separate challenge. A single input view may admit multiple plausible pose–scale configurations,
+some of which attain comparable alignment scores. Existing methods commonly recover scene lay-
+outs by directly optimizing object poses and scales against the input view, resulting in a non-convex
+objective with competing basins of attraction. The solution therefore depends strongly on initial-
+ization, and an unfavorable initial estimate may lead local refinement to a geometrically incorrect
+arrangement that is inconsistent with the input view.
+To address these challenges, we present ArticuTable, a framework for reconstructing simulation-
+ready tabletop scenes containing both rigid and articulated objects from a single RGB image. As
+illustrated in Fig. 1, ArticuTable preserves the observed instance arrangement while enabling exe-
+cutable part-level articulation; the overall framework is shown in Fig. 2. For object modeling, we
+introduce generation-robust articulation modeling (GRAM). GRAM first decomposes a monolithic
+proxy mesh into geometric primitives and organizes them into functional links and a rooted kine-
+matic tree. To make joint estimation robust to distorted proxy geometry, MLLM-guided joint fitting
+first constructs joint-type-specific geometric hypotheses and then uses a multimodal large language
+model (MLLM) with global multimodal and structural evidence to select or correct joint axes and
+pivots. Meanwhile, semantic state reasoning combines functional semantic evidence with geometric
+feasibility to infer valid motion ranges, reducing its reliance on geometric or collision constraints
+derived from imperfect meshes. The resulting kinematic structure, joint parameters, and motion
+ranges are exported as an executable URDF asset. For scene layout recovery, we introduce progres-
+sive semantic-geometric scene registration (PSGSR). Its progressive multi-constraint registration
+(PMCR) progressively restricts the pose–scale search space: point-cloud alignment first provides a
+coarse metric estimate, top-view registration then refines the planar layout, and input-view regis-
+tration finally improves consistency with the original observation. Each stage is initialized by the
+preceding estimate, reducing the risk that subsequent local refinement enters an incorrect basin of
+2
+
+
+attraction. Structure-aware semantic pose selection (SASPS) ranks yaw candidates in both stages us-
+ing structure-weighted bidirectional semantic correspondences and initializes differentiable refine-
+ment with the selected pose. Efficient 2D top-view rotations reduce input-view search to residual
+symmetric hypotheses, enabling PSGSR to recover an input-view-consistent layout.
+We further construct ArticuTable-100, a curated collection of 100 simulation-ready tabletop scenes
+containing visual meshes, collision geometry, and executable articulated assets. Quantitative com-
+parisons, simulation-based evaluation, and a user study assess the reconstructed scenes in terms of
+visual fidelity, input-view consistency, articulation quality, and physical plausibility.
+Our main contributions are summarized as follows:
+• We present ArticuTable, a framework that reconstructs simulation-ready tabletop scenes
+from a single RGB image while simultaneously enabling executable part-level articulation
+and preserving scene-layout consistency with the input view.
+• We introduce GRAM, which combines MLLM-guided joint fitting with semantic state
+reasoning to address unreliable contact-derived joint estimates and mesh-induced motion-
+range errors, enabling executable URDF asset generation from imperfect monolithic
+meshes without articulation-specific training or fine-tuning.
+• We introduce PSGSR, which integrates progressive geometric and visual constraints with
+structure-aware semantic pose reasoning to resolve pose ambiguity and progressively re-
+cover an input-view-consistent scene layout.
+• We contribute ArticuTable-100, a curated collection of 100 simulation-ready tabletop
+scenes containing visual meshes, collision geometry, and executable articulated assets.
+2
+RELATED WORK
+Single-Image 3D Scene Reconstruction. Single-image 3D scene reconstruction has progressed
+from holistic indoor modeling toward object-centric scene assembly for embodied interaction. To-
+tal3DUnderstanding (Nie et al., 2020) jointly estimates room layout, camera and object poses, and
+object meshes, while Text2Room (H¨ollein et al., 2023) synthesizes textured room-scale geometry.
+Feed-forward methods such as DUSt3R (Wang et al., 2024) and VGGT (Wang et al., 2025) directly
+estimate camera parameters and dense geometry. For robotic applications, Digital Cousins (Dai
+et al., 2025) constructs interactive scene variations that preserve geometric and semantic affordances.
+More closely related to our tabletop setting, TabletopGen (Wang et al., 2026) generates per-object
+assets and assembles collision-free scenes through differentiable rotation optimization and top-view
+spatial alignment.
+Foundation Models for Object-Centric Reconstruction. Foundation models connect semantic
+interpretation with geometric synthesis in object-centric reconstruction. Large multimodal models
+reason about object functions and spatial relationships (OpenAI, 2025; Liu et al., 2023a), while
+language priors support compositional scene-layout generation (Feng et al., 2023). Promptable seg-
+mentation grounds these cues into object regions in images (Kirillov et al., 2023; Carion et al., 2026)
+and parts in native 3D geometry (Ma et al., 2025). Image-conditioned generators then lift isolated
+object observations into detailed open-domain 3D assets (Team, 2025; Xiang et al., 2025; 2026).
+Articulated Object Modeling. For interactive tabletop scenes, reconstructed static geometry must
+be endowed with part structures, kinematic relationships, and joint constraints. Given observations
+before and after interaction or across articulation states, motion can be inferred from geometric
+changes (Jiang et al., 2022b; Liu et al., 2023b). Image-based methods use learned priors, retrieval,
+or vision-language reasoning (Jiang et al., 2022a; Chen et al., 2024; Liu et al., 2025; Zhao et al.,
+2025; Le et al., 2025). Static-shape methods use learned prediction (Wang et al., 2019; Yan et al.,
+2020; Goyal et al., 2025; Li et al., 2026b), vision-language reasoning (Qiu et al., 2025), or geometric
+and physical optimization (Xu et al., 2026).
+Despite these advances, reconstructing a tabletop scene with both executable part-level articulation
+and single-view consistency remains challenging. Generated-mesh artifacts can corrupt joint esti-
+mation and motion-range inference, while dense arrangements and occlusions hinder input-view-
+consistent layout recovery. ArticuTable addresses these challenges through GRAM for executable
+articulated asset generation and PSGSR for progressive scene registration and pose disambiguation.
+3
+
+
+Instance-Aware 3D Asset Reconstruction
+Sim-Ready Articulated Tabletop Scene
+            Single RGB Image
+View Generation
+Front
+Top
+Front & Top Reference Views
+Class-Agnostic Instance Segmentation
+Cross-view Instance Association
+Instance Understanding & Completion
+Operable Meshes
+Rigid Meshes
+Object-wise Image-to-3D
+Progressive Semantic-Geometric Scene Registration
+Point-Cloud 
+Alignment
+Coarse Metric Scene
+Planar-Aligned Scene
+Registered 3D Scene
+Differentiable 
+Refinement
+Mask-Guided 
+Initialization
+Position
+Scale
+Mask
+Projection 
+Structure-Aware Semantic Pose Selection
+Direction 
+Loss
+Frozen 
+DINO
+Bidirectional 
+Patch Matching
+Candidate 
+Reference       
+Structure 
+Extraction
+Weight 
+Generation
+Top-view Stage
+Input-view Stage
+Semantic-Geometric Pose Optimization
+...
+Candidates 
+Generation-Robust Articulation Modeling
+MLLM-Guided Joint Fitting
+Semantic State Reasoning
+Segmentation and Kinematic 
+Structure Inference
+Hinge
+Spin
+Prismatic
+···
+···
+Segmentation
+···
+···
+Kinematic 
+Structure Inference
+Geometric Joint Initialization
+···
+···
+MLLM Selection
+and Correction
+···
+···
+Joint State Recovery
+···
+···
+Intrinsic Range 
+Inference
+···
+···
+Figure 2: Overview of ArticuTable. From a single RGB tabletop image, ArticuTable reconstructs
+object-wise 3D proxies, converts operable proxies into executable URDF assets with GRAM, and
+registers them into a simulation-ready scene with PSGSR.
+3
+METHOD
+3.1
+PROBLEM SETUP AND METHOD OVERVIEW
+Given a monocular RGB observation I ∈RH×W ×3, our objective is to recover a simulation-ready
+3D tabletop scene that is consistent with the input view in both instance arrangement and projected
+appearance. Operable objects must additionally support executable part-level articulation.
+Let G0 denote the supporting table and {Gi}N
+i=1 the reconstructed object assets. We represent each
+asset as Gi = (Li, Ji), where Li denotes its set of rigid links and Ji its set of kinematic joints.
+Each joint encodes its parent–child connectivity, type, axis, frame, and motion limits. For notational
+uniformity, we treat a rigid asset as a single link with an empty joint set, whereas an operable asset
+comprises multiple links connected by one or more executable joints.
+The reconstructed scene is represented as
+bS = {(Gi, Ti)}N
+i=0 ,
+(1)
+where Ti denotes the scene-level placement of Gi. It is parameterized by a rotation Ri ∈SO(3),
+an anisotropic scale matrix Di = diag(sx
+i , sy
+i , sz
+i ), and a translation ti ∈R3.
+Figure 2 provides an overview of ArticuTable. ArticuTable applies instance-aware 3D asset recon-
+struction to obtain a gravity-aligned proxy mesh for each instance. For operable objects, GRAM
+recovers kinematic structures and uses MLLM-guided joint fitting and semantic state reasoning to
+obtain reliable joint parameters and valid motion ranges, producing executable URDF assets. For
+scene layout, PSGSR uses PMCR to propagate estimates across point-cloud, top-view, and input-
+view stages, and SASPS to resolve yaw ambiguity before differentiable refinement. The optimized
+placements of operable proxies are transferred to their URDF counterparts for scene assembly.
+3.2
+INSTANCE-AWARE 3D ASSET RECONSTRUCTION
+Semantic-first pipelines may omit objects because only previously recognized categories are passed
+to instance segmentation. We therefore decouple instance discovery from semantic recognition.
+Given the input image and a synthesized top-view hypothesis, a class-agnostic segmenter indepen-
+dently extracts anonymous instance proposals in both views, whose identifiers carry no category
+information. Front-view proposals are associated with top-view proposals through one-to-one ge-
+ometric matching based on their table-normalized horizontal extents, relative spatial positions, and
+4
+
+
+mask areas. An MLLM then identifies reconstructable scene instances, assigns each one a semantic
+identity and operability type, and estimates object dimensions, placements, and direct support rela-
+tions from the paired scene observations. For each identified instance, we generate a reconstruction-
+ready condition image that preserves its appearance, overall pose, and articulation state, while using
+the matched top view only as auxiliary evidence for occluded geometry. An image-conditioned 3D
+generator then reconstructs an independent proxy mesh, which is standardized to the gravity-aligned
+coordinate frame used by GRAM and PSGSR.
+3.3
+GENERATION-ROBUST ARTICULATION MODELING
+For an operable object i, GRAM takes its monolithic proxy mesh Mproxy
+i
+as input and recovers the
+articulated asset Gi = (Li, Ji). GRAM first partitions the mesh into non-overlapping geometric
+primitives {Pk}K
+k=1 using 3D primitive segmentation. An MLLM then combines appearance and
+primitive-structure evidence to group primitives that should move rigidly together into functional
+links Li and infer their parent–child relations and joint types, producing a rooted kinematic tree. We
+omit the object index i from primitive-, link-, and joint-level notation when unambiguous.
+MLLM-Guided Joint Fitting.
+Local contact geometry provides useful joint initialization, but
+estimates derived from distorted contact regions in image-generated meshes can be unreliable. For
+each predicted joint j ∈Ji connecting a parent–child link pair (Lp, Lc), GRAM approximates their
+contact region as
+Cp,c =
+
+x ∈V(Lc) |
+min
+y∈V(Lp) ∥x −y∥2 ≤δ
+
+,
+(2)
+where V(L) denotes the surface vertices used for contact estimation and δ is a scale-adaptive contact
+threshold. Geometry then provides joint-type-specific hypotheses: the contact distribution yields
+axis and pivot hypotheses for revolute joints, while the principal directions of the child-link geometry
+form axis candidates for prismatic joints. Rather than directly accepting these local estimates, the
+MLLM evaluates them using global multimodal and structural evidence. It selects functionally
+consistent motion directions and, for revolute joints, corrects the axis direction and location when
+supported by visible mechanical evidence.
+Semantic State Reasoning.
+Since a proxy mesh provides only a single observed configuration,
+GRAM models the observed joint state and the object-intrinsic motion range separately. For each
+joint, GRAM expresses its state in a canonical coordinate system and estimates the observed coordi-
+nate qobs
+j
+relative to the canonical zero configuration. For revolute joints, geometric closure reason-
+ing recovers the canonical zero and observed state; for prismatic joints, the observed displacement is
+estimated along the fitted outward axis. Given this normalized state, semantic state reasoning com-
+bines functional semantics with geometric feasibility evidence to infer the object-intrinsic interval
+Qint
+j
+= [0, qmax
+j
+],
+qobs
+j
+∈Qint
+j ,
+(3)
+where qmax
+j
+denotes the maximum angular extent of a revolute joint or the maximum travel of a
+prismatic joint. By treating geometry as feasibility evidence rather than the sole basis for range
+estimation, this design reduces sensitivity to artifacts in imperfect meshes. Using the recovered
+canonical configuration, GRAM exports the kinematic structure, joint parameters, and intrinsic mo-
+tion ranges as an executable URDF asset.
+3.4
+PROGRESSIVE SEMANTIC-GEOMETRIC SCENE REGISTRATION
+Given independently reconstructed proxy meshes {Mproxy
+i
+}N
+i=1, PSGSR estimates their scene-
+level placements {Ti}N
+i=1 in a common scene coordinate frame. For each reference view v ∈
+{top, input}, Iv, M v
+i , and Πv denote the RGB image, instance mask, and camera, respectively.
+PSGSR combines PMCR with SASPS to reduce the sensitivity of scene registration to initialization.
+Progressive Multi-Constraint Registration.
+The supporting table first establishes a shared metric
+scene frame. PMCR then decomposes object registration into three successive stages. Point-cloud
+alignment provides a coarse object placement using a trimmed nearest-surface distance. Top-view
+registration then refines the planar position, footprint scale, and yaw under the synthesized top-view
+5
+
+
+observation, reducing the scale–depth ambiguity of perspective alignment. The support hierarchy
+inferred during instance understanding determines the initial vertical placement of each object. The
+resulting estimate initializes input-view registration, which corrects residual discrepancies in pro-
+jected position, anisotropic scale, yaw, and silhouette while further refining vertical placement for
+object-to-object support relations. By propagating each intermediate estimate to the subsequent
+stage, PMCR progressively introduces metric, planar, and input-view constraints, narrowing the
+placement search space before each refinement.
+Structure-Aware Semantic Pose Selection.
+Mask-guided initialization estimates position and
+scale without resolving yaw ambiguity. SASPS ranks yaw candidates Θi = {θi,k} in both stages:
+top-view candidates use 2D rotations, while input-view candidates are 3D renderings of residual
+symmetric poses. A frozen DINOv2 encoder (Oquab et al., 2023) extracts patch features from the
+reference and rendered RGB images, from which we obtain forward and backward nearest-neighbor
+correspondence sets C→
+k and C←
+k .
+Let a and b index reference and candidate patches, respectively. We assign their correspondence a
+structure-aware weight
+wk
+ab = αref
+a βk
+b sk
+ab,
+(4)
+where αref
+a
+measures local appearance structure in the reference image, βk
+b measures local geometric
+structure in the rendered normal map, and sk
+ab denotes DINO semantic matching confidence.
+Since the reference and candidate crops share the same image coordinate frame, we score each
+candidate by the weighted displacement between matched patches:
+Ldir(θi,k) = 1
+2
+X
+C∈{C→
+k ,C←
+k }
+P
+(a,b)∈C wk
+ab∥ua −vb∥2
+P
+(a,b)∈C wk
+ab
+,
+(5)
+where ua and vb are normalized patch coordinates. The candidate with the lowest direction loss,
+θ⋆
+i = arg minθi,k∈Θi Ldir(θi,k), is selected as the yaw initialization.
+Together with the mask-based position and scale estimates, the selected yaw hypothesis initializes
+differentiable refinement under a mask-projection objective that combines IoU with a boundary-
+aware SDF penalty.
+3.5
+CONSTRUCTION OF ARTICUTABLE-100
+We construct ArticuTable-100, a manually curated collection of 100 simulation-ready tabletop
+scenes reconstructed by ArticuTable. Candidate reconstructions are evaluated for visual fidelity,
+physical validity, and articulation executability. The resulting collection spans diverse tabletop ar-
+rangements, object combinations, and articulated object types. Each scene is distributed as a self-
+contained USDZ package directly loadable in Isaac Sim, containing textured visual assets, collision
+geometry for simulation, and executable articulated object models.
+4
+EXPERIMENTS
+4.1
+EXPERIMENTAL SETUP
+We evaluate scene reconstruction and registration on 150 generated tabletop reference images
+against ACDC, Gen3DSR, MIDI, and TabletopGen (Dai et al., 2025; Ardelean et al., 2025; Huang
+et al., 2025; Wang et al., 2026). All baselines share inputs and views; where applicable, they use
+the same TRELLIS.2 (Xiang et al., 2026) and GPT-5 (OpenAI, 2025) as ArticuTable. GRAM is
+evaluated on all 243 Lightwheel assets (Li et al., 2026b) following the official protocol, covering
+part decomposition, articulated geometry, and joint estimation. ArticuTable uses fixed pretrained
+models without task-specific training or fine-tuning. Complete baseline settings, metric definitions,
+implementation details, and ablation protocols are provided in Appendix D.
+4.2
+SCENE-LEVEL RECONSTRUCTION AND REGISTRATION
+Table 1 shows that ArticuTable leads across all scene-level metrics. Its advantage across image-
+based similarity, GPT-5 evaluation, and collision measures indicates that closer agreement with the
+6
+
+
+Input
+Ours
+Real-World
+Generated
+ACDC
+MIDI
+Gen3DSR
+TabletopGen
+Figure 3: Qualitative comparison of scene-level reconstruction and registration on generated
+and real-world inputs.
+input view is achieved without sacrificing physical validity. In particular, the substantially lower
+collision rates show that the recovered layouts are both visually aligned and physically plausible.
+Table 1: Scene-level results. Avg. is the mean of VF, IA, and PP, and OR is the mean overall rank.
+Best and second-best values are bolded and underlined.
+Input-View Consistency
+GPT-5 Evaluation
+Physical Validity
+Method
+LPIPS ↓DINOv2 ↑CLIP ↑VF ↑
+IA ↑
+PP ↑
+Avg. ↑OR ↓ColO (%) ↓ColS (%) ↓
+ACDC (Dai et al., 2025)
+0.4447
+0.5135
+0.8058 3.927 1.920 3.880
+3.242
+4.298
+1.5302
+32.00
+Gen3DSR (Ardelean et al., 2025)
+0.2716
+0.5704
+0.8386 2.220 4.680 4.013
+3.638
+3.349
+11.3322
+66.67
+MIDI (Huang et al., 2025)
+0.4302
+0.6469
+0.8668 2.787 2.933 2.360
+2.693
+4.142
+37.9430
+99.33
+TabletopGen (Wang et al., 2026)
+0.3935
+0.7788
+0.8908 5.380 4.860 5.893
+5.378
+2.162
+1.4488
+16.00
+ArticuTable (Ours)
+0.2398
+0.8991
+0.9265 5.867 6.253 6.600
+6.240
+1.049
+0.3819
+10.67
+Figure 3 provides qualitative comparisons on both generated and real-world inputs. Competing
+methods frequently exhibit missing or distorted objects, inaccurate orientations, and noticeable de-
+viations from the input layout. In contrast, ArticuTable reconstructs more complete tabletop scenes
+and more faithfully preserves object poses and spatial relationships. These results further illustrate
+the performance of ArticuTable across generated and real-world scenes.
+4.3
+ARTICULATED-ASSET EVALUATION
+Table 2 evaluates GRAM’s core articulation capability under the standardized Lightwheel protocol.
+GRAM achieves the strongest part-matching precision and joint-estimation accuracy among the
+evaluated mesh-conditioned methods while remaining competitive on articulated-geometry metrics.
+Among task-training-free approaches, its consistent gains over Articulate AnyMesh show that the
+improvements extend beyond joint parameters to part recovery and articulated geometry.
+Although evaluation on Lightwheel quantifies articulation accuracy under standardized benchmark
+conditions, it does not reflect the mesh imperfections encountered in our image-to-3D pipeline. To
+assess performance under these practical conditions, we manually audit all 425 candidate assets
+across the complete 150-scene evaluation set. Of these, 418 are judgeable, with 346 (82.8%) pass-
+ing both structural and motion criteria; the remaining seven lack sufficient visual evidence and are
+treated as unjudgeable (Appendix D.3; Table 6). We further compare GRAM with Particulate (Li
+7
+
+
+Table 2: Results on the Lightwheel articulation benchmark (Li et al., 2026b). Best and second-
+best results within each input modality are bolded and underlined, respectively.
+Method
+Input
+Task-Training-Free Prec.↑Rec.↑Rest mIoU↑Art. gIoU↑
+OC↓
+AE (◦)↓
+LE↓
+SINGAPO (Liu et al., 2025)
+Image
+–
+37.60
+25.40
+0.182
+-0.263
+0.030
+30.30
+0.077
+PAct (Liu et al., 2026)
+Image
+–
+24.60
+16.80
+0.092
+-0.434
+0.056
+42.90
+0.188
+PhysX-Anything (Cao et al., 2025)
+Image
+–
+20.30
+19.20
+0.093
+-0.459
+0.064
+38.80
+0.123
+URDF-Anything+ (Wu et al., 2026)
+Image
+–
+70.70
+23.90
+0.260
+-0.138
+0.033
+50.40
+0.128
+Articulate AnyMesh (Qiu et al., 2025) Mesh
+✓
+89.20
+42.50
+0.452
+0.158
+0.010
+21.70
+0.043
+URDF-Anything+ (Wu et al., 2026)
+Mesh
+–
+77.50
+27.40
+0.267
+-0.110
+0.026
+49.90
+0.111
+Particulate (Li et al., 2026b)
+Mesh
+–
+89.90
+51.50
+0.576
+0.305
+0.009
+20.90
+0.040
+GRAM (Ours)
+Mesh
+✓
+91.15
+46.54
+0.564
+0.283
+0.014
+17.26
+0.034
+Task-Training-Free indicates that no articulation-specific training or fine-tuning is required.
+GRAM (Ours)
+Particulate
+lower
+rest
+upper
+Figure 4: Robustness on raw image-to-3D meshes. Particulate versus GRAM across motion states.
+et al., 2026b), a strong Lightwheel baseline, on every articulated object reconstructed from the pre-
+sented real scenes. As shown in Fig. 4, GRAM maintains coherent geometry across motion states,
+whereas Particulate can produce implausible motion or degenerate states. Figures 1 and 9 further
+illustrate part-level articulation in reconstructed tabletop scenes.
+4.4
+ABLATION STUDIES
+Table 3: GRAM component ablation on Lightwheel. Enabled and disabled values are averaged
+over both settings of the other component; lower is better.
+Component
+Metric
+Enabled
+Disabled
+Reduction
+MLLM-Guided Joint Fitting
+AE ↓
+17.17◦
+40.06◦
+57.1%
+LE ↓
+0.0417
+0.0527
+20.9%
+Semantic State Reasoning
+Art. PC ↓
+0.2502
+0.2605
+3.9%
+OC ↓
+0.0152
+0.0176
+13.6%
+Table 3 confirms the complementary roles of the two GRAM components. MLLM-guided joint fit-
+ting primarily improves joint-axis direction and location, supporting the use of global multimodal
+evidence to correct unreliable local estimates. Semantic state reasoning improves articulated geom-
+etry across motion states, showing that semantic range estimation helps avoid implausible configu-
+rations caused by unreliable mesh-derived limits.
+Table 4 shows that view-based refinement consistently improves upon coarse point-cloud alignment.
+With SASPS disabled, adding the top-view stage improves LPIPS and DINOv2 while maintaining
+comparable CLIP similarity, supporting the progressive top-view-to-input-view design of PMCR.
+Enabling SASPS yields the best results across all three metrics, confirming that structure-aware
+semantic pose selection provides a stronger yaw initialization for differentiable refinement.
+Scene-level metrics such as LPIPS, DINOv2, and CLIP primarily measure overall image similarity,
+so local orientation discrepancies may have limited effects on their scores, and an incorrect ori-
+8
+
+
+Table 4: PSGSR ablation. “–” denotes a component not applicable to the corresponding variant.
+Variant
+Top-view Stage
+Input-view Stage
+SASPS
+LPIPS ↓
+DINOv2 ↑
+CLIP ↑
+Point-cloud alignment only
+–
+–
+–
+0.3439
+0.8102
+0.9077
+w/o Top-view stage
+×
+✓
+–
+0.2564
+0.8702
+0.9210
+Top-view stage only
+✓
+×
+×
+0.3235
+0.8586
+0.9156
+w/o SASPS
+✓
+✓
+×
+0.2543
+0.8762
+0.9205
+Full model
+✓
+✓
+✓
+0.2398
+0.8991
+0.9265
+Input Image
+Ours
+w/o Structure Weighting
+w/o SASPS
+w/o Top View
+Front-only SASPS
+Figure 5: Qualitative pose-selection ablation. Red boxes indicate representative orientation errors.
+entation can sometimes score higher. To directly examine these local differences, Fig. 5 provides
+qualitative comparisons under different component ablations: removing structure weighting selects
+a handle direction inconsistent with the reference, while removing SASPS reverses the orientation
+of the latched case. Front-only SASPS achieves orientation results comparable to the top-view-
+assisted setting, but incurs substantially higher computational cost because every hypothesis requires
+a new 3D rendering. The average optimization time more than doubles from 179.4 to 374.8 seconds
+(2.09×), reaching 595.3 seconds (3.32×) with sequential rendering. In contrast, the top-view stage
+enables efficient orientation search through inexpensive 2D rotations.
+4.5
+USER STUDY
+Table 5: User-study rankings from 59 participants. Each method receives 590 valid rankings;
+best and second-best results are bolded and underlined.
+Metric
+ACDC
+Gen3DSR
+MIDI
+TabletopGen
+ArticuTable
+Mean Rank ↓
+4.08
+3.75
+3.75
+2.24
+1.17
+Median Rank ↓
+4
+4
+4
+2
+1
+First-Place Rate ↑
+0.17%
+1.02%
+1.02%
+12.20%
+85.59%
+Top-2 Rate ↑
+6.61%
+11.86%
+8.81%
+74.58%
+98.14%
+Table 5 shows a strong and consistent preference for ArticuTable. It is ranked first in 85.59% of the
+evaluations and leads all summary measures by a wide margin over the strongest baseline, Table-
+topGen. Its near-universal top-two placement indicates that this preference is consistent rather than
+driven by a small subset of evaluations.
+4.6
+SIMULATION-READY VALIDATION
+Figure 6 demonstrates scene editing and physics-based interaction in Isaac Sim. The instance-level
+representation supports object removal, insertion, and rearrangement. In the representative interac-
+tion sequence, objects settle under gravity and contact; moving the toolbox transports its unattached
+contents through collision; and the recovered lid joint remains operable after relocation. These
+results demonstrate usable collision geometry and executable articulation in the assembled scene.
+Export settings and validation procedures are detailed in Appendix G.
+9
+
+
+Original Scene
+Rearrangement
+Insertion
+Removal
+Simulation Start
+In-Scene Editing
+Physics Validation
+Physics Settling
+Toolbox Dragging
+Articulated Opening
+Figure 6: Scene editing and physical interaction in Isaac Sim. Top: object removal, insertion, and
+rearrangement. Bottom: gravity settling, contact-based transport, and articulated opening. Yellow
+dashed ellipses highlight the edited or manipulated regions.
+5
+LIMITATION
+ArticuTable renders the reconstructed scene with an estimated pinhole camera, whose projection
+model and parameters may not fully match those of the input image. Under strong off-axis viewing,
+such discrepancies can become more visible near image boundaries. As shown in Fig. 7, the recon-
+structed cup exhibits less projected tilt than the input cup despite the overall scene alignment. Future
+work could jointly refine camera parameters and object transformations while explicitly accounting
+for lens distortion.
+Input image
+Reconstruction
+Input cup
+Reconstructed cup
+Figure 7: Residual projection misalignment. Despite the overall scene alignment, the recon-
+structed cup exhibits less projected tilt than the input cup. Red boxes identify the cups; cyan dashed
+lines indicate their projected axes, and green dashed lines indicate the image vertical.
+6
+CONCLUSION
+We presented ArticuTable, a framework for reconstructing simulation-ready tabletop scenes con-
+taining both rigid and articulated objects from a single RGB image. GRAM transforms monolithic
+object meshes into executable articulated assets by recovering functional links, rooted kinematic
+structures, and joint parameters. PSGSR improves scene registration through progressively con-
+strained metric, planar, and input-view stages, while SASPS selects reliable yaw hypotheses for dif-
+ferentiable refinement. Experiments demonstrate improvements in scene-level visual consistency,
+physical validity, articulation quality, and joint estimation. We further introduced ArticuTable-100,
+a curated collection of 100 simulation-ready scenes for downstream embodied manipulation. To-
+gether, these contributions provide a unified basis for constructing visually faithful and physically
+interactive tabletop environments from monocular observations.
+10
+
+
+REFERENCES
+Andreea Ardelean, Mert ¨Ozer, and Bernhard Egger. Gen3dsr: Generalizable 3d scene reconstruction
+via divide and conquer from a single view, 2025.
+Ziang Cao, Fangzhou Hong, Zhaoxi Chen, Liang Pan, and Ziwei Liu. Physx-anything: Simulation-
+ready physical 3d assets from single image, 2025.
+Nicolas Carion, Laura Gustafson, Yuan-Ting Hu, Shoubhik Debnath, Ronghang Hu, Didac Suris
+Coll-Vinent, Chaitanya Ryali, Kalyan Vasudev Alwala, Haitham Khedr, Andrew Huang, Jie Lei,
+Tengyu Ma, Baishan Guo, Arpit Kalla, Markus Marks, Joseph Greer, Meng Wang, Peize Sun, Ro-
+man R¨adle, Triantafyllos Afouras, Effrosyni Mavroudi, Katherine Xu, Tsung-Han Wu, Yu Zhou,
+Liliane Momeni, RISHI HAZRA, Shuangrui Ding, Sagar Vaze, Francois Porcher, Feng Li, Siyuan
+Li, Aishwarya Kamath, Ho Kei Cheng, Piotr Dollar, Nikhila Ravi, Kate Saenko, Pengchuan
+Zhang, and Christoph Feichtenhofer. SAM 3: Segment anything with concepts. In ICLR, 2026.
+Zoey Chen, Aaron Walsman, Marius Memmel, Kaichun Mo, Alex Fang, Karthikeya Vemuri, Alan
+Wu, Dieter Fox, and Abhishek Gupta. Urdformer: A pipeline for constructing articulated simula-
+tion environments from real-world images. arXiv, 2024.
+Tianyuan Dai, Josiah Wong, Yunfan Jiang, Chen Wang, Cem Gokmen, Ruohan Zhang, Jiajun Wu,
+and Li Fei-Fei. Automated creation of digital cousins for robust policy learning. In CoRL, 2025.
+Weixi Feng, Wanrong Zhu, Tsu-Jui Fu, Varun Jampani, Arjun Reddy Akula, Xuehai He, S Basu,
+Xin Eric Wang, and William Yang Wang. LayoutGPT: Compositional visual planning and gener-
+ation with large language models. In NeurIPS, 2023.
+Martin A Fischler and Robert C Bolles. Random sample consensus: a paradigm for model fitting
+with applications to image analysis and automated cartography. Communications of the ACM, 24
+(6):381–395, 1981.
+Pradyumn Goyal, Dmitry Petrov, Sheldon Andrews, Yizhak Ben-Shabat, Hsueh-Ti Derek Liu, and
+Evangelos Kalogerakis. Geopard: Geometric pretraining for articulation prediction in 3d shapes.
+In ICCV, 2025.
+Can G¨umeli, Angela Dai, and Matthias Nießner. ROCA: Robust CAD model retrieval and alignment
+from a single image. In CVPR, 2022.
+Lukas H¨ollein, Ang Cao, Andrew Owens, Justin Johnson, and Matthias Nießner. Text2room: Ex-
+tracting textured 3d meshes from 2d text-to-image models. In ICCV, 2023.
+Zehuan Huang, Yuan-Chen Guo, Xingqiao An, Yunhan Yang, Yangguang Li, Zi-Xin Zou, Ding
+Liang, Xihui Liu, Yan-Pei Cao, and Lu Sheng. MIDI: Multi-instance diffusion for single image
+to 3d scene generation. In CVPR, 2025.
+Hanxiao Jiang, Yongsen Mao, Manolis Savva, and Angel X Chang. Opd: Single-view 3d openable
+part detection. In ECCV, 2022a.
+Zhenyu Jiang, Cheng-Chun Hsu, and Yuke Zhu. Ditto: Building digital twins of articulated objects
+from interaction. In CVPR, 2022b.
+Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura Gustafson, Tete
+Xiao, Spencer Whitehead, Alexander C. Berg, Wan-Yen Lo, Piotr Dollar, and Ross Girshick.
+Segment anything. In ICCV, 2023.
+Samuli Laine, Janne Hellsten, Tero Karras, Yeongho Seol, Jaakko Lehtinen, and Timo Aila. Modular
+primitives for high-performance differentiable rendering. ACM Transactions on Graphics (ToG),
+2020.
+Long Le, Jason Xie, William Liang, Hung-Ju Wang, Yue Yang, Yecheng Jason Ma, Kyle Vedder,
+Arjun Krishna, Dinesh Jayaraman, and Eric Eaton. Articulate-Anything: Automatic modeling of
+articulated objects via a vision-language foundation model. In ICLR, 2025.
+11
+
+
+Sangmin Lee, Sungyong Park, and Heewon Kim. DynScene: Scalable generation of dynamic robotic
+manipulation scenes for embodied ai. In CVPR, 2025.
+Minzhang Li, Kuixiang Shao, Xuebing Li, Yuyang Jiao, Yinuo Bai, Hengan Zhou, Sixian Shen,
+Jiayuan Gu, and Jingyi Yu. SPREAD: Spatial-physical reasoning via geometry-aware diffusion.
+In CVPR, 2026a.
+Ruining Li, Yuxin Yao, Chuanxia Zheng, Christian Rupprecht, Joan Lasenby, Shangzhe Wu, and
+Andrea Vedaldi. Particulate: Feed-forward 3d object articulation. In CVPR, 2026b.
+Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. Visual instruction tuning. In NeurIPS,
+2023a.
+Jiayi Liu, Ali Mahdavi-Amiri, and Manolis Savva.
+Paris: Part-level reconstruction and motion
+analysis for articulated objects. In ICCV, 2023b.
+Jiayi Liu, Denys Iliash, Angel X. Chang, Manolis Savva, and Ali Mahdavi-Amiri. SINGAPO:
+Single image controlled generation of articulated parts in objects. In ICLR, 2025.
+Qingming Liu, Xinyue Yao, Shuyuan Zhang, Yueci Deng, Guiliang Liu, Zhen Liu, and Kui Jia.
+Pact: Part-decomposed single-view articulated object generation. arXiv, 2026.
+Zhen Luo, Yixuan Yang, Xudong Xu, Jinkun Hao, Zhaoyang Lyu, Feng Zheng, Jiangmiao Pang,
+and Yanwei Fu. STABLE: Simulation-ready tabletop layout generation via a semantics–physics
+dual system. In ICML, 2026.
+Changfeng Ma, Yang Li, Xinhao Yan, Jiachen Xu, Yunhan Yang, Chunshi Wang, Zibo Zhao, Yan-
+wen Guo, Zhuo Chen, and Chunchao Guo. P3-sam: Native 3d part segmentation, 2025.
+James Munkres. Algorithms for the assignment and transportation problems. Journal of the society
+for industrial and applied mathematics, 1957.
+Soroush Nasiriany, Abhiram Maddukuri, Lance Zhang, Adeet Parikh, Aaron Lo, Abhishek Joshi,
+Ajay Mandlekar, and Yuke Zhu. RoboCasa: Large-scale simulation of household tasks for gener-
+alist robots. In RSS, 2024.
+Yinyu Nie, Xiaoguang Han, Shihui Guo, Yujian Zheng, Jian Chang, and Jian Jun Zhang.
+To-
+tal3dunderstanding: Joint layout, object pose and mesh reconstruction for indoor scenes from
+a single image. In CVPR, 2020.
+OpenAI.
+GPT-5
+System
+Card,
+2025.
+URL
+https://openai.com/index/
+gpt-5-system-card/.
+Maxime Oquab, Timoth´ee Darcet, Th´eo Moutakanni, Huy Vo, Marc Szafraniec, Vasil Khalidov,
+Pierre Fernandez, Daniel Haziza, Francisco Massa, Alaaeldin El-Nouby, Mahmoud Assran, Nico-
+las Ballas, Wojciech Galuba, Russell Howes, Po-Yao Huang, Shang-Wen Li, Ishan Misra, Michael
+Rabbat, Vasu Sharma, Gabriel Synnaeve, Hu Xu, Herv´e J´egou, Julien Mairal, Patrick Labatut, Ar-
+mand Joulin, and Piotr Bojanowski. Dinov2: Learning robust visual features without supervision,
+2023.
+Jia Pan, Sachin Chitta, and Dinesh Manocha.
+Fcl: A general purpose library for collision and
+proximity queries. In ICRA, 2012.
+Nicholas Ezra Pfaff, Hongkai Dai, Sergey Zakharov, Shun Iwase, and Russ Tedrake. Steerable scene
+generation with post training and inference-time search. In CoRL, 2025.
+Xiaowen Qiu, Jincheng Yang, Yian Wang, Zhehuan Chen, Yufei Wang, Tsun-Hsuan Wang, Zhou
+Xian, and Chuang Gan. Articulate anymesh: Open-vocabulary 3d articulated objects modeling.
+In CoRL, 2025.
+Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal,
+et al. Learning transferable visual models from natural language supervision. In ICML, 2021.
+Tencent Hunyuan3D Team. Hunyuan3d 2.0: Scaling diffusion models for high resolution textured
+3d assets generation, 2025.
+12
+
+
+Jianyuan Wang, Minghao Chen, Nikita Karaev, Andrea Vedaldi, Christian Rupprecht, and David
+Novotny. Vggt: Visual geometry grounded transformer. In CVPR, 2025.
+Shuzhe Wang, Vincent Leroy, Yohann Cabon, Boris Chidlovskii, and Jerome Revaud. Dust3r: Ge-
+ometric 3d vision made easy. In CVPR, 2024.
+Xiaogang Wang, Bin Zhou, Yahao Shi, Xiaowu Chen, Qinping Zhao, and Kai Xu. Shape2motion:
+Joint analysis of motion parts and attributes from 3d shapes. In CVPR, 2019.
+Ziqian Wang, Yonghao He, Licheng Yang, Wei Zou, Hongxuan Ma, Liu Liu, Wei Sui, Yuxin Guo,
+and Hu Su. TabletopGen: Tabletop scene generation and interactive simulation for robotic ma-
+nipulation. In ECCV, 2026.
+Zhuangzhe Wu, Yue Xin, Chengkai Hou, Minghao Chen, Yaoxu Lyu, Jieyu Zhang, and Shanghang
+Zhang. Urdf-anything+: Autoregressive articulated 3d models generation for physical simulation,
+2026.
+Hongchi Xia, Xuan Li, Zhaoshuo Li, Qianli Ma, Jiashu Xu, Ming-Yu Liu, Yin Cui, Tsung-Yi Lin,
+Wei-Chiu Ma, Shenlong Wang, Shuran Song, and Fangyin Wei. SAGE: Scalable agentic 3d scene
+generation for embodied ai. In CVPR, 2026.
+Fanbo Xiang, Yuzhe Qin, Kaichun Mo, Yikuan Xia, Hao Zhu, Fangchen Liu, Minghua Liu, Hanxiao
+Jiang, Yifu Yuan, He Wang, et al. Sapien: A simulated part-based interactive environment. In
+CVPR, 2020.
+Jianfeng Xiang, Zelong Lv, Sicheng Xu, Yu Deng, Ruicheng Wang, Bowen Zhang, Dong Chen, Xin
+Tong, and Jiaolong Yang. Structured 3d latents for scalable and versatile 3d generation. In CVPR,
+2025.
+Jianfeng Xiang, Xiaoxue Chen, Sicheng Xu, Ruicheng Wang, Zelong Lv, Yu Deng, Hongyuan Zhu,
+Yue Dong, Hao Zhao, Nicholas Jing Yuan, and Jiaolong Yang. Native and compact structured
+latents for 3d generation. In CVPR, 2026.
+WenBo Xu, Liu Liu, Li Zhang, Dan Guo, and RuoNan Liu. Motionanymesh: Physics-grounded
+articulation for simulation-ready digital twins, 2026.
+Zihao Yan, Ruizhen Hu, Xingguang Yan, Luanmin Chen, Oliver Van Kaick, Hao Zhang, and Hui
+Huang. Rpm-net: recurrent prediction of motion and parts from point cloud. arXiv, 2020.
+Yandan Yang, Baoxiong Jia, Peiyuan Zhi, and Siyuan Huang. PhyScene: Physically interactable 3d
+scene synthesis for embodied ai. In CVPR, 2024.
+Kaixin Yao, Longwen Zhang, Xinhao Yan, Yan Zeng, Qixuan Zhang, Xu Lan, Wei Yang, Jiayuan
+Gu, and Jingyi Yu. CAST: Component-aligned 3d scene reconstruction from an rgb image. ACM
+Transactions on Graphics, 2025.
+Richard Zhang, Phillip Isola, Alexei A. Efros, Eli Shechtman, and Oliver Wang. The unreasonable
+effectiveness of deep features as a perceptual metric. In CVPR, 2018.
+Mandi Zhao, Yijia Weng, Dominik Bauer, and Shuran Song. Real2code: Reconstruct articulated
+objects via code generation. In ICLR, 2025.
+13
+
+
+A
+ADDITIONAL DETAILS OF INSTANCE-AWARE 3D ASSET
+RECONSTRUCTION
+A.1
+ANONYMOUS INSTANCE DISCOVERY
+Given the input image and its synthesized top-view hypothesis, we independently extract anony-
+mous instance proposals from the two views. Instead of querying a predefined category list, we use
+the single generic concept “tabletop item,” while detecting the complete table and tabletop surface
+separately as spatial supports. The resulting identifiers represent only view-local mask proposals
+and contain no semantic category information. The scene inventory remains input-view-driven: ev-
+ery retained input-view proposal is passed to subsequent instance understanding, while top-view
+proposals provide auxiliary cross-view evidence.
+A.2
+GEOMETRIC CROSS-VIEW ASSOCIATION
+We associate input-view and top-view proposals before assigning semantic identities.
+Let Av
+i
+and Bv
+i = [xl,v
+i , yt,v
+i , xr,v
+i , yb,v
+i
+] denote the mask and bounding box of proposal i in view v ∈
+{input, top}.
+Using the detected table (i = 0) as a common reference, we define the table-
+normalized horizontal extent
+rv
+i =
+ 
+xl,v
+i
+−xl,v
+0
+wv
+0
+, xr,v
+i
+−xl,v
+0
+wv
+0
+!
+,
+wv
+0 = xr,v
+0
+−xl,v
+0 ,
+(6)
+and the relative mask area
+av
+i = |Av
+i |
+|Av
+0|.
+(7)
+We additionally define dv
+i by min–max normalizing the bottom coordinate yb,v
+i
+over all non-table
+proposals in the same view, providing a view-relative spatial-position descriptor.
+For an input-view proposal i and a top-view proposal j, the association cost is
+cij =
+rinput
+i
+−rtop
+j
+
+1 + λd
+dinput
+i
+−dtop
+j
+ +
+
+q
+ainput
+i
+−
+q
+atop
+j
+ .
+(8)
+We set λd = 0.25. As a sensitivity check, removing the relative-position term by setting λd = 0
+changes 28 of the 1,184 associations across 150 scenes, with 97.64% remaining unchanged. Increas-
+ing λd to 1 changes only 2 associations, with 99.83% remaining unchanged. These results indicate
+that the matching is robust to the precise value of λd, while the relative-position term affects a small
+subset of ambiguous associations.
+We obtain a one-to-one association by minimizing the total cost with the Hungarian algo-
+rithm (Munkres, 1957). Because the matching operates only on table-normalized geometry and
+mask statistics, it does not require category agreement between views. Unmatched input-view pro-
+posals remain in the scene inventory and are processed using input-view evidence alone, whereas
+unmatched top-view proposals are not introduced as additional scene instances.
+A.3
+INSTANCE UNDERSTANDING AND OBJECT-WISE RECONSTRUCTION
+Semantic reasoning is performed after anonymous proposals have been discovered and associated.
+An MLLM examines each input-view proposal, determines whether it represents a complete and
+independently reconstructable scene instance, and assigns each retained instance a semantic identity
+and operability type. At the scene level, the MLLM further estimates object dimensions, planar
+placements, orientations, and direct support relations from the input and top-view observations,
+producing a support hierarchy rooted at the table. When a cross-view match is available, the corre-
+sponding top-view observation provides complementary evidence for object footprint and occluded
+geometry without overriding the appearance or physical state observed in the input image.
+For every retained instance, we construct a target-specific condition image in which the input obser-
+vation provides the primary evidence for the object’s appearance, overall pose, and articulation state,
+while the matched top view is used only to complete occluded geometry. TRELLIS.2 (Xiang et al.,
+14
+
+
+2026) reconstructs each condition image as an independent proxy mesh. The reconstructed meshes
+are then centered and gravity-aligned, while the inferred support hierarchy is passed to PSGSR for
+scene-level placement.
+B
+ADDITIONAL DETAILS OF GENERATION-ROBUST ARTICULATION
+MODELING
+B.1
+SEGMENTATION AND KINEMATIC STRUCTURE INFERENCE
+GRAM receives a textured monolithic mesh generated for an operable scene instance. Let c be the
+center of its axis-aligned bounding box and D its bounding-box diagonal. Following the gravity
+alignment described in Sec. 3.1, GRAM centers and isotropically scales the mesh within a right-
+handed Y-up working frame by
+x′ = x −c
+D
+.
+(9)
+Degenerate faces are removed, and P3-SAM (Ma et al., 2025) assigns one primitive label to every
+remaining face. Primitive IDs are reordered by decreasing surface area, and the labels are transferred
+back to the textured source geometry. This produces a textured working mesh together with a dense
+face-to-primitive map.
+GRAM next renders five orthographic views from the front, right, back, left, and top. Each cam-
+era produces an RGB rendering and a primitive-ID rendering with identical projection parameters.
+The RGB views expose appearance and functional cues, whereas the ID views establish an exact
+correspondence between visible regions and 3D primitives.
+The MLLM uses the paired views, primitive mesh, source and primary images, and boundary evi-
+dence to group primitives that undergo rigid co-motion. It predicts a set of links, their parent–child
+relations, and a joint type for every non-root link. Revolute joints are further classified as hinge or
+spin. Each link is materialized as a textured visual mesh and a convex-hull collision mesh.
+B.2
+MLLM-GUIDED JOINT FITTING
+For each joint j = (Lp, Lc), GRAM approximates the contact region using child surface vertices
+whose nearest parent surface lies within a scale-adaptive distance, preferring boundary vertices when
+available. The complete subtree rooted at Lc is treated as the moving body, while all links outside
+that subtree form the obstacle set. Consequently, joint fitting and collision evaluation follow the
+predicted kinematic hierarchy rather than moving the child link in isolation.
+For a hinge joint, the contact centroid initializes the pivot and the largest-variance principal direction
+of the contact set initializes the axis. For a spin joint, GRAM estimates the contact plane by PCA, fits
+a circle in that plane using seeded RANSAC (Fischler & Bolles, 1981) followed by least squares,
+and lifts the circle center and plane normal back to 3D. For a prismatic joint, PCA of the child
+vertices yields three candidate axes. The MLLM selects one candidate and its positive direction
+using the paired renderings and the source image. For revolute joints, the MLLM evaluates the
+contact-derived axis line using the paired views, source image, link geometry, and global kinematic
+structure. It corrects the axis direction when supported by explicit visual or mechanical evidence
+and estimates the pivot location from the visible attachment and rotation structure. When sufficient
+directional evidence is unavailable, the contact-derived axis direction is retained.
+B.3
+SEMANTIC STATE REASONING AND INTRINSIC LIMITS
+Joint geometry alone does not identify which configuration of an image-generated mesh should be
+treated as the semantic zero. GRAM therefore separates geometric closure recovery from semantic
+extent reasoning. For hinge joints, connected planar patches on the parent and child links generate
+candidate closed configurations around the fitted axis, while the complete moving subtree partic-
+ipates in geometric and collision-based validation. Candidates are ranked using plane alignment,
+overlap, axis proximity, and geometric consistency, yielding a plane-closed configuration and the
+signed displacement of the reconstructed mesh from that configuration. For spin joints, GRAM
+15
+
+
+searches for the nearest closed configuration in both rotational directions while moving the com-
+plete child subtree. Axis-local surfaces within an adaptive neighborhood of the rotation axis are
+excluded from the collision predicate, preventing axle-like contact from blocking an otherwise valid
+rotation.
+Prismatic joints use their selected outward direction to define a nonnegative coordinate from the
+canonical closed state. Motion is scanned in both directions until collision or loss of parent contact;
+a displacement is considered derailed when fewer than 5% of the transformed contact samples re-
+main close to the parent. These prismatic scans provide physical fallback intervals and geometric
+feasibility evidence.
+Given the recovered canonical state, semantic state reasoning infers the object-intrinsic interval
+Qint
+j
+= [0, qmax
+j
+] by combining functional semantics with geometric feasibility evidence. For rev-
+olute joints, the MLLM uses the primary image, calibrated joint renderings, recovered canonical
+configuration, and global kinematic structure to infer the mechanism-specific maximum angular
+extent. For prismatic joints, it combines the source and primary images, paired multiview render-
+ings, preserved reconstructed displacement, and physical scan evidence to infer the maximum travel.
+Throughout this process, the fitted axis, pivot, topology, and positive motion direction remain fixed.
+GRAM records three state quantities for every joint:
+qzero
+j
+= −qmesh
+j
+,
+qmesh
+j
+≡qobs
+j
+,
+qmesh
+j
+, qscene
+j
+∈Qint
+j
+= [0, qmax
+j
+],
+(10)
+where qzero
+j
+is the transform baked into the link geometry, qmesh
+j
+is the state represented by the
+reconstructed proxy mesh and corresponds to qobs
+j
+in Sec. 3.3, and qscene
+j
+is the state used when the
+asset is instantiated in the assembled scene.
+B.4
+URDF EXPORT AND SCENE-CONDITIONED MOTION
+Before export, GRAM verifies a one-to-one correspondence between predicted links, fitted joints,
+and state metadata. It bakes the semantic zero transform into each child subtree, converts joint
+axes and pivots from the normalized Y-up working frame to a right-handed Z-up URDF frame,
+and writes textured GLB visual meshes together with OBJ collision meshes. Link mass and inertia
+are computed from the collision volume using a fixed material density. The URDF contains the
+validated parent–child tree, joint types, axes, frames, and intrinsic limits; a companion manifest
+stores the working-to-URDF coordinate-frame conversion and the zero, mesh, and scene state of
+every joint. Generated XML is parsed again and every referenced mesh path is checked before the
+asset is accepted.
+The exported URDF limits describe object-intrinsic motion. After PSGSR places the articulated as-
+set in the reconstructed tabletop scene, a separate scene-level collision pass computes the collision-
+free subintervals permitted by the surrounding objects.
+These scene-conditioned intervals are
+recorded separately, leaving the object-intrinsic URDF limits and recovered internal kinematics un-
+changed.
+C
+ADDITIONAL DETAILS OF PROGRESSIVE SEMANTIC-GEOMETRIC SCENE
+REGISTRATION
+C.1
+TABLE ALIGNMENT AND METRIC SCENE FRAME
+PSGSR uses the supporting table to place the input-view reconstruction, camera, synthesized top
+view, and reconstructed assets in a common metric coordinate frame.
+Given the input image,
+VGGT (Wang et al., 2025) estimates a dense point map Pvggt together with a perspective cam-
+era Πvggt
+input. Both are expressed in a shared VGGT coordinate frame whose metric scale is unknown.
+Let Pvggt
+0
+⊂Pvggt denote the points selected by the tabletop mask, and let W0 denote the physical
+table width estimated during instance understanding.
+We fit a plane to Pvggt
+0
+and construct a rotation R0 that aligns its normal with the world vertical
+axis while orienting the horizontal axes using the input-camera viewing direction projected onto the
+16
+
+
+tabletop. The estimated table width then resolves the unknown metric scale:
+s0 =
+W0
+extentx
+ R0Pvggt
+0
+,
+pworld = s0R0pvggt + t0,
+(11)
+where extentx(·) denotes the robust tabletop extent along the width direction. The translation t0
+places the tabletop center at the scene origin and its supporting surface at z = 0. The same similarity
+transformation converts the VGGT object point clouds and the extrinsics of Πvggt
+input into the metric
+scene frame, while the input-camera intrinsics remain unchanged.
+We subsequently align the metric table proxy with the transformed tabletop points to refine its hor-
+izontal orientation and translation, and further align its projected geometry with the detected table
+regions in the input and synthesized top views. For the synthesized top view, we define a vertical
+orthographic camera Πtop centered according to the detected table region. If the table spans wtop
+0
+pixels in this view, its metric pixel size is
+rtop = W0
+wtop
+0
+,
+(12)
+which converts top-view mask coordinates and extents into metric planar positions and footprint
+scales. The calibrated cameras, table, and VGGT point clouds therefore share the same table-
+anchored metric scene frame used by all subsequent registration stages.
+C.2
+PROGRESSIVE MULTI-CONSTRAINT REGISTRATION
+Point-Cloud Alignment.
+For object i, let Xi denote surface samples from its gravity-aligned
+proxy mesh. We obtain the observed object point cloud Pi by selecting valid VGGT points within its
+input-view instance mask M input
+i
+and transforming them into the metric scene frame using Eq. 11.
+At this stage, the placement is parameterized by planar translation txy
+i
+= (tx
+i , ty
+i , 0)⊤, yaw θi, and
+uniform scale si. For each observed point p ∈Pi, we compute
+di(p) = min
+x∈Xi ∥p −(siRz(θi)x + txy
+i )∥2 .
+(13)
+Let Ii ⊆Pi denote the inlier points retained after removing the largest nearest-surface residuals.
+The trimmed point-cloud objective is
+Li
+pc =
+1
+|Ii|
+X
+p∈Ii
+di(p).
+(14)
+Trimming reduces the influence of depth outliers, occluded surfaces, and geometry absent from the
+reconstructed proxy. Minimizing this objective yields the coarse estimate Tpc
+i . This stage refines
+only planar translation, yaw, and uniform scale.
+Top-View and Input-View Registration.
+The point-cloud estimate initializes top-view registra-
+tion, which refines metric planar position, footprint scale, and yaw against the synthesized top-view
+observation. The resulting estimate initializes input-view registration, which further refines planar
+position, anisotropic scale, yaw, and silhouette consistency. The estimates are propagated as
+Tpc
+i
+−→Ttop
+i
+−→Tinput
+i
+.
+(15)
+This propagation retains the table-anchored metric initialization while progressively introducing
+top-view planar evidence and input-view projection evidence.
+Support-Aware Vertical Placement.
+The inferred support hierarchy is traversed from the table
+upward. Objects directly supported by the table remain grounded at z = 0. For an object supported
+by another object, its initial vertical position z0
+i is set to the estimated upper-surface height of its
+supporting parent.
+During input-view refinement, PSGSR optimizes a vertical residual ηi together with the object’s
+planar pose and scale. For a lower-surface point x of the child object, let hp(xxy) denote the highest
+17
+
+
+intersection between the vertical line through xxy and the triangular surface of a supporting parent
+p. The contact offset required by that parent is estimated from
+∆zi,p = max
+x∈Bi,p [hp(xxy) −xz] ,
+(16)
+where Bi,p contains lower child-surface points whose horizontal coordinates overlap the supporting
+parent. The offsets from all declared parents define a common contact-feasible interval Zi. The
+applied vertical position is
+zi = z0
+i + ProjZi (ηi) ,
+(17)
+where ProjZi restricts the optimized residual to vertical offsets that preserve contact with the sup-
+porting surfaces. The interval is recomputed from the current child and parent geometry during
+refinement. If the contact requirements of multiple supports do not admit a common interval, their
+violation is penalized in the optimization objective. This allows input-view refinement to adjust the
+vertical placement of object-supported instances while discouraging floating and interpenetration.
+C.3
+STRUCTURE-AWARE SEMANTIC POSE SELECTION
+Yaw Hypothesis Sampling.
+PSGSR estimates the relative dominant-axis alignment between the
+rendered and reference masks. When the mask axes provide reliable directional cues, yaw hypothe-
+ses are sampled around the two opposite axis alignments; otherwise, the full yaw range is searched.
+The resulting hypotheses are passed to SASPS for semantic ranking.
+Structure-Weighted Semantic Correspondence.
+For each candidate in Θi, SASPS renders an
+RGB image, a foreground mask, and a surface-normal map. All candidate renderings are cropped
+using a square region determined by the reference mask, thereby preserving a shared image coor-
+dinate frame. The crops are then encoded by a frozen DINOv2 ViT-L/14 encoder (Oquab et al.,
+2023) to obtain normalized patch features. DINOv2 is applied only to the reference and rendered
+RGB crops; rendered normal maps are used to compute geometric structure weights rather than as
+encoder inputs.
+The reference appearance weight αref
+a
+and candidate geometry weight βk
+b are computed from local
+variations in the reference RGB image and rendered surface-normal map, respectively. Bidirectional
+nearest-neighbor matching between normalized DINOv2 patch features produces the forward and
+backward correspondence sets used in Eq. 5.
+C.4
+MASK-PROJECTION REFINEMENT
+Let c
+M v
+i ∈[0, 1] denote the differentiably rendered silhouette of object i in view v, and let M v
+i
+denote its target mask. We refine the selected placement using
+Lv
+proj = 1 −IoU
+
+c
+M v
+i , M v
+i
+
+exp
+h
+−Lsdf
+
+c
+M v
+i , M v
+i
+i
+,
+(18)
+where Lsdf is a boundary-aware distance penalty that penalizes extraneous rendered regions and
+missing target regions according to their distances from the target boundary. The IoU term encour-
+ages global overlap, while the SDF term provides useful boundary guidance when the rendered and
+target silhouettes overlap only partially. In practice, the stage-specific data terms are supplemented
+with lightweight regularization penalties on pose and scale drift and support feasibility to stabilize
+optimization.
+D
+ADDITIONAL EXPERIMENTAL DETAILS
+D.1
+SCENE-LEVEL EVALUATION PROTOCOL
+The scene-level evaluation set contains 150 tabletop reference images produced by an image-
+generation model from diverse tabletop-scene descriptions. These images are generated directly in
+the image domain rather than rendered from paired ground-truth 3D scenes. Each method receives
+exactly the same monocular reference image, and its reconstructed scene is rendered from the corre-
+sponding input viewpoint. We compare ArticuTable with ACDC (Dai et al., 2025), Gen3DSR (Arde-
+lean et al., 2025), MIDI (Huang et al., 2025), and TabletopGen (Wang et al., 2026).
+18
+
+
+Table 6: Manual audit of generated articulations over the complete 150-scene evaluation set.
+Joint-level results include predicted joints only. Asset-level percentages are computed over the 418
+judgeable assets; seven unjudgeable assets are excluded. Clear missing articulations are counted as
+asset-level failures.
+Evaluation level
+N
+Pass
+Partial
+Fail
+Predicted joint
+527
+454 (86.1%)
+57 (10.8%)
+16 (3.0%)
+Asset
+418
+346 (82.8%)
+55 (13.2%)
+17 (4.1%)
+For a controlled comparison, we standardize shared upstream components only where compatible
+with each baseline’s design. Baselines requiring object-wise 3D generation use the same TREL-
+LIS.2 model (Xiang et al., 2026) as ArticuTable, whereas retrieval-based methods retain their orig-
+inal asset-retrieval mechanisms. Baselines requiring multimodal reasoning use the same GPT-5
+model (OpenAI, 2025) as ArticuTable. All remaining method-specific stages follow the respective
+reproduced pipelines. This protocol controls shared foundation models without altering the defining
+generation or retrieval paradigm of each method.
+Input-view consistency is measured using LPIPS (Zhang et al., 2018), DINOv2 (Oquab et al.,
+2023) similarity, and CLIP (Radford et al., 2021) similarity between the reference image and the
+reconstructed-scene rendering. Following TabletopGen, GPT-5 evaluates Visual Fidelity (VF), Im-
+age Alignment (IA), and Physical Plausibility (PP) on a 1–7 scale and assigns an Overall Rank (OR).
+Physical validity is evaluated at the initial scene configuration. ColO denotes the fraction of inter-
+secting pairs among all reconstructed object pairs, excluding pairs involving the supporting table,
+while ColS denotes the fraction of scenes containing at least one such inter-object intersection.
+D.2
+ARTICULATED-OBJECT EVALUATION PROTOCOL
+We evaluate GRAM on all 243 assets from the Lightwheel benchmark (Li et al., 2026b), following
+its official evaluation protocol. Since GRAM operates on static object meshes, mesh-conditioned
+methods constitute the primary baselines, while image-conditioned methods are included as contex-
+tual references.
+We report part-matching precision and recall, rest-pose mean Intersection over Union (mIoU), ar-
+ticulated generalized IoU (Art. gIoU), and whole-object Chamfer distance (OC). For the component
+ablation, we additionally report articulated-geometry point-cloud distance (Art. PC). Joint estima-
+tion is evaluated using angular error (AE) and axis-location error (LE). We also indicate whether
+each method requires articulation-specific training or fine-tuning.
+D.3
+MANUAL AUDIT OF GENERATED ARTICULATIONS
+Evaluation setup.
+We conduct an expert manual audit over the complete 150-scene evaluation
+set to assess articulation quality on the imperfect image-generated meshes encountered by the full
+reconstruction pipeline. A primary expert evaluates all candidate assets, and a second expert in-
+dependently re-evaluates a uniformly random 20% sample. Among the 150 scenes, 149 contain at
+least one candidate articulated asset, while one contains no movable object and therefore requires
+no joint-level assessment. The audit covers all 425 candidate assets and 527 predicted joints.
+Rating protocol.
+For each predicted joint, the evaluator inspects the input object crop, recon-
+structed initial state, and motion sweep, and separately scores structure and motion on a three-level
+scale. The structure score evaluates functional link grouping, joint type, axis, and pivot plausibility,
+while the motion score evaluates whether the predicted motion range remains functionally plausible
+without severe interpenetration, detachment, or geometric degeneration. A joint passes when both
+scores are 2, is partial when neither score is 0 and at least one score is 1, and fails when either score
+is 0. For multi-joint objects, the asset-level result is the worst result among its joints.
+Results.
+Among the 418 judgeable assets, 346 (82.8%) pass, 55 (13.2%) are partial, and 17 (4.1%)
+fail. Among the 527 predicted joints, 454 (86.1%) pass, 57 (10.8%) are partial, and 16 (3.0%) fail.
+Eleven candidate assets contain no predicted joint: four are judged as clear missing articulations and
+19
+
+
+Table 7: Inter-rater agreement on the random 20% re-evaluation sample. The dagger denotes
+quadratically weighted Cohen’s κ.
+Measure
+N
+Exact agreement
+Cohen’s κ
+Asset-level result
+85
+83.5%
+0.476
+Structure score
+101
+93.1%
+0.474†
+Motion score
+101
+89.1%
+0.659†
+counted as asset-level failures, while seven lack sufficient visible evidence to determine whether an
+articulation is missing and are excluded as unjudgeable.
+Inter-rater agreement.
+To assess inter-rater reliability, the second expert independently re-
+evaluates 85 of the 425 candidate assets, corresponding to a uniformly random 20% sample and
+102 articulation evaluation items. As summarized in Table 7, the two evaluators achieve 83.5% ex-
+act agreement on the final asset-level rating, with Cohen’s κ = 0.476. Across the 101 items with
+paired numerical scores, exact agreement is 93.1% for structure and 89.1% for motion, with quadrat-
+ically weighted κ values of 0.474 and 0.659, respectively. Only one asset exhibits a direct pass–fail
+disagreement; the other disagreements occur between adjacent categories or involve unjudgeable
+versus fail.
+Failure analysis.
+We assign one primary reason to each of the 77 non-pass evaluation items. The
+identified causes are motion-range errors (17), part-segmentation errors (15), implausible axes or
+pivots (13), topology or joint-type errors (12), collision or detachment (10), and missing articulation
+(10).
+D.4
+IMPLEMENTATION AND ABLATION PROTOCOLS
+We use GPT-5 (OpenAI, 2025) for multimodal scene and object analysis, auxiliary-view generation,
+and the multimodal kinematic reasoning performed within GRAM. SAM 3 (Carion et al., 2026)
+provides class-agnostic instance segmentation, TRELLIS.2 (Xiang et al., 2026) performs object-
+wise 3D reconstruction, and P3-SAM (Ma et al., 2025) provides primitive segmentation for GRAM.
+VGGT (Wang et al., 2025) estimates dense point maps and camera parameters, while SASPS uses a
+frozen DINOv2 ViT-L/14 encoder. All pretrained components are used without task-specific training
+or fine-tuning.
+Scene assembly and rendering are performed in Blender. Differentiable rasterization in PSGSR is
+implemented with nvdiffrast (Laine et al., 2020). Geometric collision checks within GRAM and
+scene-conditioned motion-range analysis use Trimesh/FCL (Pan et al., 2012), while simulation-
+based physical evaluation is performed in Isaac Sim with PhysX.
+All PSGSR variants share the same input images, proxy assets, and camera parameters, differing
+only in the evaluated registration components. GRAM component ablations follow a 2 × 2 factorial
+design over MLLM-guided joint fitting and semantic state reasoning. The marginal effect of each
+component is computed by averaging over the two settings of the other component.
+Point-cloud alignment is optimized for up to 120 iterations with a learning rate of 0.05. In the full
+PSGSR pipeline, top-view and input-view refinement run for up to 100 iterations at 512 × 512 and
+1024 × 1024 resolution, respectively. The learning rates for translation, yaw, and scale are 0.03,
+0.03, and 0.02, respectively.
+D.5
+FULL GRAM COMPONENT ABLATION
+Table 8 reports the four component configurations underlying the averaged results in Table 3. The
+ablation is conducted as a separate evaluation run from the benchmark comparison in Table 2. Within
+the ablation run, all four configurations use the same 243 Lightwheel assets and official evaluation
+protocol, and all marginal effects are computed exclusively from these configurations.
+20
+
+
+Table 8: Full GRAM component ablation on Lightwheel. Lower is better for all metrics.
+Configuration
+AE (◦)↓
+LE↓
+Art. PC↓
+OC↓
+Neither component
+40.06
+0.0527
+0.2556
+0.0177
+MLLM-Guided Joint Fitting only
+17.17
+0.0417
+0.2653
+0.0175
+Semantic State Reasoning only
+40.06
+0.0527
+0.2552
+0.0149
+Both components
+17.17
+0.0417
+0.2452
+0.0154
+Figure 8: User-study interface. The website interface used to present method outputs and collect
+participant rankings.
+D.6
+USER STUDY PROTOCOL
+Figure 8 shows the dedicated website used to present the outputs of ArticuTable and the four scene-
+reconstruction baselines for the same input scene. The study involved 59 adult volunteers, each
+of whom evaluated 10 scenes and ranked the five anonymized method outputs from 1 (best) to 5
+(worst). Incomplete attempts were excluded, yielding 590 valid rankings per method. We report the
+mean rank, median rank, first-place rate, and top-two rate.
+Among the participants, 72.9% were aged 18–24 and 27.1% were aged 25–34; 81.4% identified
+as male and 18.6% as female. All reported normal or corrected-to-normal vision and normal color
+vision. Regarding prior CG/3D vision experience, 55.9% reported none, 22.0% limited, 10.2%
+moderate, and 11.9% extensive experience. Participation was voluntary and uncompensated, and
+all participants provided informed consent before taking part. Only non-identifying demographic
+information was collected.
+21
+
+
+E
+ADDITIONAL QUALITATIVE RESULTS
+Input Image
+Reconstructed Articulated Scene
+Figure 9: Additional qualitative results of articulated tabletop-scene reconstruction. The first
+column shows the input images, while the remaining columns show the corresponding reconstructed
+scenes under different joint configurations.
+22
+
+
+Figure 9 presents additional qualitative results of ArticuTable. For each input image, we render the
+reconstructed scene under multiple joint configurations. Across diverse tabletop layouts and object
+categories, ArticuTable preserves the identities and spatial arrangement of object instances while
+enabling coherent part-level articulation. These examples complement the quantitative evaluation by
+demonstrating the ability of ArticuTable to construct visually consistent and interactive articulated
+scenes.
+F
+RUNTIME ANALYSIS
+All runtimes are measured as per-scene wall-clock time on a single NVIDIA GeForce RTX 4090,
+excluding queueing time. Unless otherwise specified, the default parallelization strategy is enabled.
+Table 9: PSGSR runtime. Per-scene wall-clock time over 150 scenes, reported as mean ± standard
+deviation.
+Stage
+Time (s) ↓
+Table and camera initialization
+8.3 ± 2.4
+Point-cloud alignment
+14.1 ± 2.0
+Top-view registration
+15.7 ± 2.6
+Input-view registration
+103.3 ± 11.3
+Total PSGSR
+141.4 ± 14.0
+Stage-wise runtime.
+Table 9 reports the runtime of consecutive PSGSR stages over all 150 eval-
+uation scenes. Input-view registration constitutes the dominant cost, accounting for approximately
+73.1% of the total runtime.
+Table 10: Pose-selection efficiency. Runtime averaged over the two scenes in Fig. 5.
+Variant
+Initialization
+Candidate Rendering
+Time (s) ↓
+Relative
+Full PSGSR
+Top-view-guided
+Batched
+179.4
+1.00×
+Front-only SASPS
+Input-view only
+Batched
+374.8
+2.09×
+Front-only SASPS
+Input-view only
+Sequential
+595.3
+3.32×
+Cost of front-only pose selection.
+The top-view stage provides an efficient initialization by com-
+bining inexpensive 2D rotation search with SASPS. The selected pose restricts input-view SASPS
+to a few residual symmetry-related hypotheses; without this initialization, Front-only SASPS must
+instead render 3D candidates throughout the full yaw search. As shown in Fig. 5, Front-only SASPS
+produces no obvious visual degradation relative to the full method. However, Table 10 shows that
+this comparable result comes at a substantially higher computational cost: batched candidate ren-
+dering requires 2.09× the runtime of the full method, while sequential candidate rendering further
+increases the runtime to 3.32×.
+G
+SIMULATION-READY ASSET VALIDATION
+This appendix details the export configuration and verification procedures underlying the simula-
+tion results in Sec. 4.6. Package-integrity and initial-state checks cover all ArticuTable-100 scenes;
+editing and dynamic interaction are demonstrated in the representative scene shown in Fig. 6.
+G.1
+USDZ PACKAGE EXPORT AND CONFIGURATION
+After scene registration and assembly, we convert each reconstructed scene into a self-contained
+USDZ package for direct use in Isaac Sim. The assembled rigid-object scene, including the re-
+constructed object poses, visual geometry, PBR materials, textures, and calibrated camera, is first
+23
+
+
+exported from Blender as a USD visual layer. Each GRAM-generated URDF is subsequently im-
+ported into Isaac Sim as an independent articulation. Scene-level scale is baked into the correspond-
+ing link meshes and joint frames, while the reconstructed articulation-root pose and observed joint
+state are retained. The imported articulations are then composed with the rigid-object scene in a
+shared metric, Z-up world frame.
+The visual and collision representations are kept separate throughout export. Visual meshes preserve
+their original geometry, materials, and textures. The supporting table uses its original unsimplified
+triangle mesh as an exact static collider. Ordinary movable rigid objects use high-fidelity convex
+decomposition with at most 128 convex hulls, at most 64 vertices per hull, a voxel resolution of 106,
+a 1% approximation error, and shrink wrapping enabled.
+For articulated objects, the collision meshes stored in the intermediate URDF are not used as the
+final Isaac Sim collision representation. Instead, every articulated link receives an independent
+signed-distance-field (SDF) collider generated from its original link geometry. The SDF resolution
+and subgrid resolution are set to 128 and 6, respectively, using 16-bit subgrid values, a triangle-
+reduction factor of 0.25, and no SDF remeshing. Compared with a single convex hull, this per-link
+representation more faithfully preserves interaction-relevant concavities, including open containers,
+internal compartments, and through-holes.
+The final stage contains a PhysX scene with gravity set to 9.81 m/s2 along the negative Z-axis. Ar-
+ticulation bases remain unfixed so that complete articulated objects can be moved through physical
+interaction. Joint-drive stiffness and damping are both set to zero, allowing the joints to respond to
+external operation instead of being locked by position drives. The reconstructed root poses, object
+scales, observed joint positions, and intrinsic joint limits are authored directly into the USD stage.
+All saved rigid-body linear velocities, angular velocities, and joint velocities are initialized to zero.
+Dynamic collision geometries use a contact offset of 2 mm and a rest offset of 0.
+Before packaging, all asset references are converted to paths relative to the root USD
+layer.
+Collision representations are constructed and checked in Isaac Sim, and the root
+layer stores /physics/updateToUsd=true.
+The root stage and all referenced USD
+layers,
+meshes,
+materials,
+and textures are then collected into a single archive using
+UsdUtils.CreateNewUsdzPackage. The resulting isaac asset package.usdz can
+therefore be transferred and opened without access to the original reconstruction directory. Table 11
+summarizes the export and physics configuration used for all released packages.
+G.2
+DIRECT-PACKAGE AND INITIAL-STATE VERIFICATION
+To validate the released assets rather than intermediate pipeline states, we directly load each USDZ
+package into Isaac Sim and render its initial state with the simulation timeline stopped. We verify
+that the scene transforms and authored joint states remain unchanged during this zero-step rendering
+and that the package is not modified. We then reopen the same package, initialize the PhysX runtime,
+and restore its authored scene-entry state before applying gravity or external interaction. Thus,
+the observed settling, rigid-body motion, and articulation are produced by simulation rather than
+additional scene reconstruction or manual pose correction.
+G.3
+EDITING AND PHYSICS-BASED INTERACTION
+The editing examples in the top row of Fig. 6 operate on independently addressable object instances.
+Removal deletes a selected instance, insertion adds a newly generated asset, and rearrangement
+changes existing instance transforms. Unchanged instances retain their reconstructed geometry and
+articulation without rerunning GRAM or PSGSR.
+For the gravity-settling test in the bottom row, selected objects are initialized slightly above their
+target support regions before physics is enabled. Their subsequent settling is governed by gravity,
+collision, and contact. For the transport test, the object inside the toolbox has no rigid attachment
+or predefined parent–child connection to the toolbox; its motion during toolbox displacement arises
+from contact with the interior collision geometry. After displacement, the lid is opened through
+the recovered revolute joint while the contained object remains inside. This sequence tests support
+contact, preservation of the internal cavity, and articulation with per-link collision geometry in the
+assembled scene.
+24
+
+
+Table 11: Configuration used to export the simulation-ready USDZ packages.
+Setting
+Configuration
+Package format
+Self-contained USDZ
+Stage units
+1 unit = 1 m
+Up axis
++Z
+Gravity
+9.81 m/s2 along −Z
+Visual representation
+Original geometry with PBR materials and textures
+Static table collision
+Original unsimplified triangle mesh
+Dynamic rigid collision
+Convex decomposition
+Maximum convex hulls
+128
+Maximum vertices per hull
+64
+Convex voxel resolution
+106
+Convex approximation error
+1%
+Convex shrink wrapping
+Enabled
+Articulated-link collision
+Per-link SDF from original link geometry
+SDF resolution
+128
+SDF subgrid resolution
+6
+SDF subgrid precision
+16 bit
+SDF triangle-reduction factor
+0.25
+SDF remeshing
+Disabled
+Contact / rest offset
+2 mm / 0 mm
+Articulation base
+Unfixed
+Joint-drive stiffness / damping
+0 / 0
+Initial velocities
+Zero
+Physics-state update
+/physics/updateToUsd=true
+25

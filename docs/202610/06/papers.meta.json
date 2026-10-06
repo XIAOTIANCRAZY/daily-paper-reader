@@ -1,8 +1,8 @@
 {
   "label": "2026-10-06",
   "date": "2026-10-06",
-  "generated_at": "2026-10-06T00:55:20",
-  "count": 2,
+  "generated_at": "2026-10-06T23:09:43",
+  "count": 3,
   "papers": [
     {
       "paper_id": "202610/06/2609.37067v1-fact-fidelity-aware-construction-of-articulated-twins",
@@ -16,6 +16,21 @@
       "tldr": "视觉上合理的铰接资产在接触交互中仍可能失败或运动失真。FACT 是一个智能体框架，通过证据—诊断—修正循环，在可编辑共享表示上逐步构建铰接孪生，提升几何、接触与动力学保真度。它从图像重建可编辑几何，修复碰撞代理并约束压缩，再利用被动响应视频拟合响应模型。实验表明，FACT 优于基线几何重建，能用更简单碰撞代理实现更可靠交互，并更好复现留出物理响应。",
       "tags": "query:d-artic-kin",
       "abstract_en": "Visually plausible articulated assets may still fail during contact interactions or exhibit inaccurate motion. We present FACT (Fidelity-Aware Construction of Articulated Twins), an agentic framework that progressively constructs articulated twins to improve geometry, contact, and dynamic fidelity. The agent drives an evidence--diagnosis--revision loop on a shared editable representation, selecting measurements and model edits using quantitative feedback, while numerical tools execute and validate the updates. It reconstructs editable articulated geometry from images through feature planning, targeted measurements, and diagnostic refinement. On this reference, it repairs collision proxies through task-aware local repartitioning before fidelity-constrained compression. Finally, it constructs response models from passive-response videos, using simulation residuals to guide model revision and constrained physical parameter fitting. Experiments show that FACT improves geometric reconstruction over baselines, enables more reliable interaction with simpler collision proxies, and better reproduces held-out physical responses than direct parameter inference.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/06/2610.05249v1-articutable-generating-instance-level-interactive-rigid-articulated-3d-tabletop-scenes-from-a-single-image",
+      "section": "deep",
+      "title_en": "ArticuTable: Generating Instance-Level Interactive Rigid-Articulated 3D Tabletop Scenes from a Single Image",
+      "authors": "Kai Lv, Yibo Yin, Lijun Guo, Heng Fan, Kaihao Zhang, Xingping Dong",
+      "date": "2026-10-04",
+      "pdf": "https://arxiv.org/pdf/2610.05249v1",
+      "score": "8.0",
+      "evidence": "单图重建可执行部件级铰接结构，涉及铰接物体运动学",
+      "tldr": "现有单图桌面重建能恢复几何，却将物体视为整体刚体，难以支持部件级可执行铰接交互。ArticuTable提出单图桌面场景重建框架，结合GRAM关节建模与PSGSR场景配准。它从单体代理网格恢复可靠关节参数和运动范围，并在多约束下生成与输入视角一致的布局。还贡献ArticuTable-100，实验显示其在视觉保真、视角一致、铰接质量、物理合理性和仿真就绪度上表现优异。",
+      "tags": "query:d-artic-kin",
+      "abstract_en": "Embodied agents benefit from 3D environments that combine visual fidelity to real-world observations with physical interactivity. Existing single-image tabletop reconstruction methods recover plausible scene geometry but typically represent objects as monolithic rigid bodies, limiting interaction to whole-object rigid motion and precluding executable part-level articulation. Meanwhile, recovering a scene layout consistent with the input view remains challenging because a single observation may admit multiple plausible pose-scale configurations. We present ArticuTable, a single-image 3D tabletop reconstruction framework that recovers both executable part-level articulation and an input-view-consistent scene layout. For object modeling, we introduce generation-robust articulation modeling (GRAM), which combines joint fitting guided by a multimodal large language model with semantic state reasoning to recover reliable joint parameters and valid motion ranges from imperfect monolithic proxy meshes, thereby converting them into executable articulated assets. For scene layout, we introduce progressive semantic-geometric scene registration (PSGSR), which progressively narrows the pose-scale search space under complementary metric, planar, and input-view constraints and resolves orientation ambiguity through structure-aware semantic correspondences, yielding a scene layout consistent with the input view. We further contribute ArticuTable-100, a curated collection of 100 simulation-ready tabletop scenes. Extensive evaluation, including a user study, demonstrates strong performance across visual fidelity, input-view consistency, articulation quality, physical plausibility, and simulation readiness.",
       "source": "arxiv",
       "selection_source": "fresh_fetch"
     },

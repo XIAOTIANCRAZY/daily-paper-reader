@@ -1,12 +1,12 @@
 {
   "mode": "standard",
-  "generated_at": "2026-10-06T00:52:40.260010+00:00",
+  "generated_at": "2026-10-06T23:08:21.446311+00:00",
   "stats": {
     "mode": "standard",
     "tag_count": 2,
-    "deep_divecandidates": 1,
+    "deep_divecandidates": 2,
     "deep_cap": 7,
-    "deep_selected": 1,
+    "deep_selected": 2,
     "quick_candidates": 1,
     "quick_skim_target": 12,
     "quick_selected": 1
@@ -37,20 +37,61 @@
         "query:D-artic-kin",
         "query:d-scn-gen"
       ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "agentic construction of articulated twins with contact and dynamic fidelity",
-      "llm_evidence_cn": "智能体构建铰接孪生并保证接触与动态保真度",
-      "llm_evidence": "智能体构建铰接孪生并保证接触与动态保真度",
-      "canonical_evidence": "智能体构建铰接孪生并保证接触与动态保真度",
-      "llm_tldr_en": "FACT is an agentic framework that constructs articulated twins via an evidence-diagnosis-revision loop on an editable representation, reconstructing articulated geometry from images and repairing collision proxies to improve geometry, contact, and dynamic fidelity.",
-      "llm_tldr_cn": "视觉上合理的铰接资产在接触交互中仍可能失效或运动不准确，制约了仿真与机器人应用。作者提出FACT，一种智能体框架，在共享可编辑表示上执行证据-诊断-修正循环，借助定量反馈选择测量与模型编辑，由数值工具执行并验证更新。它通过特征规划、定向测量与诊断精化从图像重建可编辑铰接几何，并修复碰撞代理。该工作提升了铰接物体的几何、接触与动态保真度，为高质量铰接孪生构建提供方案。",
-      "llm_tldr": "视觉上合理的铰接资产在接触交互中仍可能失效或运动不准确，制约了仿真与机器人应用。作者提出FACT，一种智能体框架，在共享可编辑表示上执行证据-诊断-修正循环，借助定量反馈选择测量与模型编辑，由数值工具执行并验证更新。它通过特征规划、定向测量与诊断精化从图像重建可编辑铰接几何，并修复碰撞代理。该工作提升了铰接物体的几何、接触与动态保真度，为高质量铰接孪生构建提供方案。",
+      "llm_score": 8.0,
+      "llm_evidence_en": "agentic construction of articulated twins improving geometry contact and dynamic fidelity from images",
+      "llm_evidence_cn": "从图像构建铰接孪生并提升几何、接触与动态保真度",
+      "llm_evidence": "从图像构建铰接孪生并提升几何、接触与动态保真度",
+      "canonical_evidence": "从图像构建铰接孪生并提升几何、接触与动态保真度",
+      "llm_tldr_en": "Visually plausible articulated assets may still fail in contact or exhibit inaccurate motion. FACT is an agentic framework that progressively builds articulated twins via an evidence-diagnosis-revision loop, reconstructing editable articulated geometry from images and repairing collision proxies for higher fidelity.",
+      "llm_tldr_cn": "视觉上逼真的铰接资产在接触交互中仍可能失效或表现出不准确运动，因为几何、接触与动态保真度难以同时保证。FACT提出一个智能体框架，在共享可编辑表示上通过证据-诊断-修正循环逐步构建铰接孪生，并借助数值工具执行与验证更新。该方法可从图像重建可编辑铰接几何，经特征规划与诊断细化后修复碰撞代理并做保真度约束压缩。实验表明其能提升几何、接触与动态保真度，为自动化构建可交互铰接资产提供新流程。",
+      "llm_tldr": "视觉上逼真的铰接资产在接触交互中仍可能失效或表现出不准确运动，因为几何、接触与动态保真度难以同时保证。FACT提出一个智能体框架，在共享可编辑表示上通过证据-诊断-修正循环逐步构建铰接孪生，并借助数值工具执行与验证更新。该方法可从图像重建可编辑铰接几何，经特征规划与诊断细化后修复碰撞代理并做保真度约束压缩。实验表明其能提升几何、接触与动态保真度，为自动化构建可交互铰接资产提供新流程。",
       "llm_tags": [
-        "query:d-artic-kin:composite"
+        "query:d-artic-kin"
       ],
-      "matched_query_tag": "query:d-artic-kin:composite",
-      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
-      "matched_requirement_id": "req-composite-d-artic-kin",
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "understanding 3D articulated objects from observations",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.05249v1",
+      "source": "arxiv",
+      "title": "ArticuTable: Generating Instance-Level Interactive Rigid-Articulated 3D Tabletop Scenes from a Single Image",
+      "abstract": "Embodied agents benefit from 3D environments that combine visual fidelity to real-world observations with physical interactivity. Existing single-image tabletop reconstruction methods recover plausible scene geometry but typically represent objects as monolithic rigid bodies, limiting interaction to whole-object rigid motion and precluding executable part-level articulation. Meanwhile, recovering a scene layout consistent with the input view remains challenging because a single observation may admit multiple plausible pose-scale configurations. We present ArticuTable, a single-image 3D tabletop reconstruction framework that recovers both executable part-level articulation and an input-view-consistent scene layout. For object modeling, we introduce generation-robust articulation modeling (GRAM), which combines joint fitting guided by a multimodal large language model with semantic state reasoning to recover reliable joint parameters and valid motion ranges from imperfect monolithic proxy meshes, thereby converting them into executable articulated assets. For scene layout, we introduce progressive semantic-geometric scene registration (PSGSR), which progressively narrows the pose-scale search space under complementary metric, planar, and input-view constraints and resolves orientation ambiguity through structure-aware semantic correspondences, yielding a scene layout consistent with the input view. We further contribute ArticuTable-100, a curated collection of 100 simulation-ready tabletop scenes. Extensive evaluation, including a user study, demonstrates strong performance across visual fidelity, input-view consistency, articulation quality, physical plausibility, and simulation readiness.",
+      "authors": [
+        "Kai Lv",
+        "Yibo Yin",
+        "Lijun Guo",
+        "Heng Fan",
+        "Kaihao Zhang",
+        "Xingping Dong"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-10-04T14:26:34+00:00",
+      "link": "https://arxiv.org/pdf/2610.05249v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "single-image reconstruction recovering executable part-level articulation of articulated objects",
+      "llm_evidence_cn": "单图重建可执行部件级铰接结构，涉及铰接物体运动学",
+      "llm_evidence": "单图重建可执行部件级铰接结构，涉及铰接物体运动学",
+      "canonical_evidence": "单图重建可执行部件级铰接结构，涉及铰接物体运动学",
+      "llm_tldr_en": "Existing single-image tabletop reconstruction treats objects as rigid bodies, preventing part-level articulation. ArticuTable recovers executable part-level articulation and an input-view-consistent layout from one image, enabling instance-level rigid-articulated scenes for embodied agents.",
+      "llm_tldr_cn": "现有单图桌面重建方法通常把物体表示为整体刚体，只能进行整物体刚性运动，无法支持部件级可执行的铰接交互，同时单视角还存在多种合理的姿态-尺度布局歧义。ArticuTable提出单图重建框架，同时恢复可执行的部件级铰接结构与与输入视角一致的场景布局。实验表明该方法能在桌面场景中实现实例级刚体与铰接物体的重建并支持部件级操作，为具身智能提供兼具视觉保真与物理可交互的三维环境。",
+      "llm_tldr": "现有单图桌面重建方法通常把物体表示为整体刚体，只能进行整物体刚性运动，无法支持部件级可执行的铰接交互，同时单视角还存在多种合理的姿态-尺度布局歧义。ArticuTable提出单图重建框架，同时恢复可执行的部件级铰接结构与与输入视角一致的场景布局。实验表明该方法能在桌面场景中实现实例级刚体与铰接物体的重建并支持部件级操作，为具身智能提供兼具视觉保真与物理可交互的三维环境。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "kinematic parameters of articulated 3D objects",
+      "matched_requirement_id": "req-2",
       "selection_source": "fresh_fetch"
     }
   ],
@@ -80,14 +121,14 @@
         "query:D-artic-kin",
         "query:d-scn-gen"
       ],
-      "llm_score": 6.0,
-      "llm_evidence_en": "per-pixel SE(3) rigid motion and part grouping from monocular video",
-      "llm_evidence_cn": "从单目视频预测逐像素刚体运动与部件分组",
-      "llm_evidence": "从单目视频预测逐像素刚体运动与部件分组",
-      "canonical_evidence": "从单目视频预测逐像素刚体运动与部件分组",
-      "llm_tldr_en": "Dense point tracks give only per-pixel 3D translation, ignoring part rotation and rigid grouping. MoSE3 is a feed-forward model predicting dense per-pixel world-space SE(3) motion from monocular RGB video, jointly yielding rotation, translation and motion grouping.",
-      "llm_tldr_cn": "稠密三维点跟踪只能给出每个像素的三自由度平移曲线，无法刻画部件旋转，也不能判断哪些像素属于同一刚体。本文提出MoSE3，首个从单目RGB视频前馈预测逐像素世界坐标系SE(3)运动的模型，同时输出旋转、平移与刚体分组。方法针对旋转流形回归与SE(3)标注稀缺的难题设计训练策略。逐像素六自由度运动为动态场景中部件级运动理解提供了更丰富的表示。",
-      "llm_tldr": "稠密三维点跟踪只能给出每个像素的三自由度平移曲线，无法刻画部件旋转，也不能判断哪些像素属于同一刚体。本文提出MoSE3，首个从单目RGB视频前馈预测逐像素世界坐标系SE(3)运动的模型，同时输出旋转、平移与刚体分组。方法针对旋转流形回归与SE(3)标注稀缺的难题设计训练策略。逐像素六自由度运动为动态场景中部件级运动理解提供了更丰富的表示。",
+      "llm_score": 7.0,
+      "llm_evidence_en": "predicts dense 6-DoF rigid motion per pixel, revealing object rotation and moving-part grouping",
+      "llm_evidence_cn": "逐像素预测稠密六自由度刚体运动，揭示物体旋转与运动部件分组",
+      "llm_evidence": "逐像素预测稠密六自由度刚体运动，揭示物体旋转与运动部件分组",
+      "canonical_evidence": "逐像素预测稠密六自由度刚体运动，揭示物体旋转与运动部件分组",
+      "llm_tldr_en": "MoSE3 is the first feed-forward model predicting dense SE(3) motion from monocular RGB video, giving full 6-DoF rigid transforms per pixel in world space with rotation and grouping.",
+      "llm_tldr_cn": "稠密三维点跟踪只能给出每像素三自由度平移曲线，无法刻画底层部件的旋转，也难以判断哪些像素作为同一刚体运动。论文提出首个前馈模型MoSE3，从单目RGB视频预测稠密SE(3)运动，在世界坐标系下为每个像素输出完整六自由度刚体变换，同时揭示旋转、平移与运动分组。针对旋转位于弯曲流形且SE(3)标注难以获取的挑战，方法设计了相应的表示与监督策略，为动态场景运动理解提供更丰富表示。",
+      "llm_tldr": "稠密三维点跟踪只能给出每像素三自由度平移曲线，无法刻画底层部件的旋转，也难以判断哪些像素作为同一刚体运动。论文提出首个前馈模型MoSE3，从单目RGB视频预测稠密SE(3)运动，在世界坐标系下为每个像素输出完整六自由度刚体变换，同时揭示旋转、平移与运动分组。针对旋转位于弯曲流形且SE(3)标注难以获取的挑战，方法设计了相应的表示与监督策略，为动态场景运动理解提供更丰富表示。",
       "llm_tags": [
         "query:d-artic-kin"
       ],
@@ -95,7 +136,7 @@
       "matched_query_text": "learning kinematic parameters from visual data",
       "matched_requirement_id": "req-5",
       "selection_source": "fresh_fetch",
-      "quick_tier": "6"
+      "quick_tier": "7"
     }
   ]
 }

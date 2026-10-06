@@ -1,9 +1,9 @@
 {
   "date": "20261006",
   "date_label": "",
-  "generated_at": "2026-10-06 00:55:19 UTC",
+  "generated_at": "2026-10-06 23:09:41 UTC",
   "recommend_exists": true,
-  "run_count": 1,
+  "run_count": 2,
   "papers": [
     {
       "paper_id": "2609.37067v1",
@@ -19,7 +19,23 @@
       "score": 9.0,
       "evidence": "智能体构建铰接孪生并保证接触与动态保真度",
       "first_seen_at": "2026-10-06 00:55:19 UTC",
-      "updated_at": "2026-10-06 00:55:19 UTC"
+      "updated_at": "2026-10-06 23:09:41 UTC"
+    },
+    {
+      "paper_id": "2610.05249v1",
+      "route": "202610/06/2610.05249v1-articutable-generating-instance-level-interactive-rigid-articulated-3d-tabletop-scenes-from-a-single-image",
+      "title": "ArticuTable: Generating Instance-Level Interactive Rigid-Articulated 3D Tabletop Scenes from a Single Image",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "单图重建可执行部件级铰接结构，涉及铰接物体运动学",
+      "first_seen_at": "2026-10-06 23:09:41 UTC",
+      "updated_at": "2026-10-06 23:09:41 UTC"
     },
     {
       "paper_id": "2610.03716v1",
@@ -32,10 +48,10 @@
           "label": "d-artic-kin"
         }
       ],
-      "score": 6.0,
+      "score": 7.0,
       "evidence": "从单目视频预测逐像素刚体运动与部件分组",
       "first_seen_at": "2026-10-06 00:55:19 UTC",
-      "updated_at": "2026-10-06 00:55:19 UTC"
+      "updated_at": "2026-10-06 23:09:41 UTC"
     }
   ]
 }
