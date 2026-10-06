@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-04</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-06</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 3 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 2 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>1</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-04 22:03:23 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-06 00:55:19 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读3篇，榜单亮出两篇9.0分佳作，聚焦具身智能与3D场景重建方向。</p>
-<p>最值得看的是两条线：FACT 解决铰接物体数字孪生的高保真构建，LiteReality-Agent 让智能体自动重建可交互的室内3D场景。</p>
-<p>建议普通读者先挑这两篇的演示视频和开源代码上手，重点体会&quot;重建出来就能直接交互&quot;这一趋势。</p>
+<p>今日精选2篇，精读FACT（9.0分）与速读MoSE3（6.0分）各一篇。最值得看的是FACT提出的保真度感知关节孪生构建方法，适合关注仿真与数字孪生的读者优先阅读。普通读者可先读FACT了解思路，再把MoSE3当作像素级SE(3)世界空间学习的补充速览。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">3 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FACT: Fidelity-Aware Construction of Articulated Twins">FACT: Fidelity-Aware Construction of Articulated Twins</span></li><li><span class="dpr-home-dashboard-paper-title" title="LiteReality-Agent: An Agentic System for Interactable 3D Indoor Scene Reconstruction">LiteReality-Agent: An Agentic System for Interactable 3D Indoor Scene Reconstruction</span></li><li><span class="dpr-home-dashboard-paper-title" title="World Motion Models: Flexible Sequence Modeling of SE(3) Trajectories">World Motion Models: Flexible Sequence Modeling of SE(3) Trajectories</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FACT: Fidelity-Aware Construction of Articulated Twins">FACT: Fidelity-Aware Construction of Articulated Twins</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">d-artic-kin <strong>2</strong></span><span class="dpr-home-dashboard-tag">d-scn-gen <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">d-artic-kin <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -93,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="MoSE3: Learning World-Space SE(3) at Every Pixel">MoSE3: Learning World-Space SE(3) at Every Pixel</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">d-artic-kin <strong>1</strong></span></div>
 </section>
 </div>
 

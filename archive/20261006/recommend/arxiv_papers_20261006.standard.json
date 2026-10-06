@@ -1,0 +1,101 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-06T00:52:40.260010+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 1,
+    "deep_cap": 7,
+    "deep_selected": 1,
+    "quick_candidates": 1,
+    "quick_skim_target": 12,
+    "quick_selected": 1
+  },
+  "deep_dive": [
+    {
+      "id": "2609.37067v1",
+      "source": "arxiv",
+      "title": "FACT: Fidelity-Aware Construction of Articulated Twins",
+      "abstract": "Visually plausible articulated assets may still fail during contact interactions or exhibit inaccurate motion. We present FACT (Fidelity-Aware Construction of Articulated Twins), an agentic framework that progressively constructs articulated twins to improve geometry, contact, and dynamic fidelity. The agent drives an evidence--diagnosis--revision loop on a shared editable representation, selecting measurements and model edits using quantitative feedback, while numerical tools execute and validate the updates. It reconstructs editable articulated geometry from images through feature planning, targeted measurements, and diagnostic refinement. On this reference, it repairs collision proxies through task-aware local repartitioning before fidelity-constrained compression. Finally, it constructs response models from passive-response videos, using simulation residuals to guide model revision and constrained physical parameter fitting. Experiments show that FACT improves geometric reconstruction over baselines, enables more reliable interaction with simpler collision proxies, and better reproduces held-out physical responses than direct parameter inference.",
+      "authors": [
+        "Kuixiang Shao",
+        "Chuansen Nie",
+        "Yinuo Bai",
+        "Jiayuan Gu",
+        "Jingyi Yu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-09-29T09:04:34+00:00",
+      "link": "https://arxiv.org/pdf/2609.37067v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "agentic construction of articulated twins with contact and dynamic fidelity",
+      "llm_evidence_cn": "智能体构建铰接孪生并保证接触与动态保真度",
+      "llm_evidence": "智能体构建铰接孪生并保证接触与动态保真度",
+      "canonical_evidence": "智能体构建铰接孪生并保证接触与动态保真度",
+      "llm_tldr_en": "FACT is an agentic framework that constructs articulated twins via an evidence-diagnosis-revision loop on an editable representation, reconstructing articulated geometry from images and repairing collision proxies to improve geometry, contact, and dynamic fidelity.",
+      "llm_tldr_cn": "视觉上合理的铰接资产在接触交互中仍可能失效或运动不准确，制约了仿真与机器人应用。作者提出FACT，一种智能体框架，在共享可编辑表示上执行证据-诊断-修正循环，借助定量反馈选择测量与模型编辑，由数值工具执行并验证更新。它通过特征规划、定向测量与诊断精化从图像重建可编辑铰接几何，并修复碰撞代理。该工作提升了铰接物体的几何、接触与动态保真度，为高质量铰接孪生构建提供方案。",
+      "llm_tldr": "视觉上合理的铰接资产在接触交互中仍可能失效或运动不准确，制约了仿真与机器人应用。作者提出FACT，一种智能体框架，在共享可编辑表示上执行证据-诊断-修正循环，借助定量反馈选择测量与模型编辑，由数值工具执行并验证更新。它通过特征规划、定向测量与诊断精化从图像重建可编辑铰接几何，并修复碰撞代理。该工作提升了铰接物体的几何、接触与动态保真度，为高质量铰接孪生构建提供方案。",
+      "llm_tags": [
+        "query:d-artic-kin:composite"
+      ],
+      "matched_query_tag": "query:d-artic-kin:composite",
+      "matched_query_text": "Papers central to 请帮我查找和三维铰接物体运动学参数及物理属性的预测、理解、生成相关的研究工作, especially work that connects or combines: a; kinematic parameters of articulated 3D objects; predicting physical properties of 3D articulated objects; understanding 3D articulated objects from observations; learning kinematic parameters from visual data; inferring physical properties of articulated systems; How to predict kinematic parameters of 3D articulated objects?; Methods for understanding physical properties of articulated objects.; Generate articulated objects with realistic motion parameters.; Learning based estimation of articulation parameters from images..",
+      "matched_requirement_id": "req-composite-d-artic-kin",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2610.03716v1",
+      "source": "arxiv",
+      "title": "MoSE3: Learning World-Space SE(3) at Every Pixel",
+      "abstract": "Dense 3D point tracking has been a prominent paradigm for modeling motion in dynamic scenes, but a point track is just a 3-DoF translation curve per pixel: it captures where pixels go, not the rotation of the underlying part, nor which pixels move together as one body. We propose MoSE3, the first feed-forward model that predicts dense SE(3) motion from monocular RGB video, producing full 6-DoF rigid transforms at every pixel in world space. Per-pixel SE(3) motion offers a richer view of how a scene moves: rotation, translation, and grouping all at once. Directly predicting SE(3) is challenging: rotations lie on a curved manifold that is ill-suited to Euclidean regression, and annotations for SE(3) are particularly difficult to acquire. To address these challenges, MoSE3 predicts per-pixel SE(3) through two jointly learned intermediates, 3D point tracks and rigidity embeddings, and recovers SE(3) by differentiably fitting transforms within each soft rigid cluster, enabling end-to-end prediction and supervision. To close the data gap, we introduce Art-Kubric, a large-scale synthetic dataset with dense SE(3) and rigidity labels for articulated objects with rich physical interactions. MoSE3 achieves state-of-the-art SE(3) estimation at pixel, part, and object levels on both rigid and articulated benchmarks, and state-of-the-art average 3D point tracking accuracy across three datasets, while showing strong generalization to real-world videos despite being trained solely on synthetic motion data.",
+      "authors": [
+        "Jiahuan Cheng",
+        "Zhiyi Li",
+        "Tian Xia",
+        "Ruojin Cai",
+        "Yilun Du",
+        "Qianqian Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-10-02T17:58:52+00:00",
+      "link": "https://arxiv.org/pdf/2610.03716v1",
+      "tags": [
+        "keyword:D-artic-kin",
+        "keyword:d-scn-gen",
+        "query:D-artic-kin",
+        "query:d-scn-gen"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "per-pixel SE(3) rigid motion and part grouping from monocular video",
+      "llm_evidence_cn": "从单目视频预测逐像素刚体运动与部件分组",
+      "llm_evidence": "从单目视频预测逐像素刚体运动与部件分组",
+      "canonical_evidence": "从单目视频预测逐像素刚体运动与部件分组",
+      "llm_tldr_en": "Dense point tracks give only per-pixel 3D translation, ignoring part rotation and rigid grouping. MoSE3 is a feed-forward model predicting dense per-pixel world-space SE(3) motion from monocular RGB video, jointly yielding rotation, translation and motion grouping.",
+      "llm_tldr_cn": "稠密三维点跟踪只能给出每个像素的三自由度平移曲线，无法刻画部件旋转，也不能判断哪些像素属于同一刚体。本文提出MoSE3，首个从单目RGB视频前馈预测逐像素世界坐标系SE(3)运动的模型，同时输出旋转、平移与刚体分组。方法针对旋转流形回归与SE(3)标注稀缺的难题设计训练策略。逐像素六自由度运动为动态场景中部件级运动理解提供了更丰富的表示。",
+      "llm_tldr": "稠密三维点跟踪只能给出每个像素的三自由度平移曲线，无法刻画部件旋转，也不能判断哪些像素属于同一刚体。本文提出MoSE3，首个从单目RGB视频前馈预测逐像素世界坐标系SE(3)运动的模型，同时输出旋转、平移与刚体分组。方法针对旋转流形回归与SE(3)标注稀缺的难题设计训练策略。逐像素六自由度运动为动态场景中部件级运动理解提供了更丰富的表示。",
+      "llm_tags": [
+        "query:d-artic-kin"
+      ],
+      "matched_query_tag": "query:d-artic-kin",
+      "matched_query_text": "learning kinematic parameters from visual data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

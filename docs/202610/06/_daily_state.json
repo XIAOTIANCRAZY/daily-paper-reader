@@ -1,0 +1,41 @@
+{
+  "date": "20261006",
+  "date_label": "",
+  "generated_at": "2026-10-06 00:55:19 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.37067v1",
+      "route": "202610/06/2609.37067v1-fact-fidelity-aware-construction-of-articulated-twins",
+      "title": "FACT: Fidelity-Aware Construction of Articulated Twins",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "智能体构建铰接孪生并保证接触与动态保真度",
+      "first_seen_at": "2026-10-06 00:55:19 UTC",
+      "updated_at": "2026-10-06 00:55:19 UTC"
+    },
+    {
+      "paper_id": "2610.03716v1",
+      "route": "202610/06/2610.03716v1-mose3-learning-world-space-se3-at-every-pixel",
+      "title": "MoSE3: Learning World-Space SE(3) at Every Pixel",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "d-artic-kin"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "从单目视频预测逐像素刚体运动与部件分组",
+      "first_seen_at": "2026-10-06 00:55:19 UTC",
+      "updated_at": "2026-10-06 00:55:19 UTC"
+    }
+  ]
+}
